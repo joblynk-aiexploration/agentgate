@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  REVIEWER
+  MEMBER
+}
+
+enum AgentStatus {
+  ACTIVE
+  PAUSED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum GatewayDecision {
+  ALLOW
+  REQUIRE_APPROVAL
+  BLOCK
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users            User[]
+  sessions         HumanSession[]
+  agents           Agent[]
+  apiKeys          ApiKey[]
+  policies         Policy[]
+  gatewayRequests  GatewayRequest[]
+  approvalRequests ApprovalRequest[]
+  auditLogs        AuditLog[]
+}
+
+model User {
+  id             String       @id @default(cuid())
+  organizationId String
+  email          String
+  name           String
+  role           UserRole     @default(REVIEWER)
+  passwordHash   String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  organization       Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sessions           HumanSession[]
+  reviewedApprovals  ApprovalRequest[] @relation("ApprovalReviewer")
+  auditLogs          AuditLog[]
+
+  @@unique([organizationId, email])
+  @@index([organizationId])
+}
+
+model HumanSession {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  tokenHash      String   @unique
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId])
+}
+
+model Agent {
+  id             String      @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  status         AgentStatus @default(ACTIVE)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization      Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  apiKeys           ApiKey[]
+  gatewayRequests   GatewayRequest[]
+  approvalRequests  ApprovalRequest[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, status])
+}
+
+model ApiKey {
+  id             String    @id @default(cuid())
+  organizationId String
+  agentId        String
+  name           String
+  keyPrefix      String
+  keyHash        String    @unique
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agent        Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, agentId])
+}
+
+model Policy {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  actionType     String
+  approvalLimit  Decimal  @db.Decimal(12, 2)
+  enabled        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId, actionType, enabled])
+}
+
+model GatewayRequest {
+  id             String          @id @default(cuid())
+  organizationId String
+  agentId        String
+  actionType     String
+  amountCents    Int?
+  environment    String
+  riskLevel      RiskLevel
+  riskScore      Int
+  decision       GatewayDecision
+  reason         String
+  payload        Json
+  createdAt      DateTime        @default(now())
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agent           Agent            @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  approvalRequest ApprovalRequest?
+
+  @@index([organizationId, agentId, createdAt])
+  @@index([organizationId, decision])
+}
+
+model ApprovalRequest {
+  id               String         @id @default(cuid())
+  organizationId   String
+  gatewayRequestId String         @unique
+  agentId          String
+  status           ApprovalStatus @default(PENDING)
+  requestedAction  String
+  riskLevel        RiskLevel
+  amountCents      Int?
+  reviewerId       String?
+  reviewerNote     String?
+  reviewedAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  gatewayRequest GatewayRequest @relation(fields: [gatewayRequestId], references: [id], onDelete: Cascade)
+  agent          Agent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  reviewer       User?          @relation("ApprovalReviewer", fields: [reviewerId], references: [id])
+
+  @@index([organizationId, status, createdAt])
+  @@index([organizationId, agentId])
+}
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  actorUserId    String?
+  actorAgentId   String?
+  action         String
+  targetType     String
+  targetId       String
+  metadata       Json
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorUser    User?        @relation(fields: [actorUserId], references: [id])
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, action])
+}
