@@ -102,3 +102,41 @@ export function parseAgentFormData(formData: FormData) {
     allowedTools: formData.getAll("allowedTools"),
   });
 }
+
+function parseOptionalDate(value: unknown) {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return null;
+  }
+
+  const date = new Date(trimmed);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+export const apiKeyCreateSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  agentId: z.string().trim().optional().nullable(),
+  expiresAt: z.preprocess(parseOptionalDate, z.date().nullable()),
+});
+
+export function parseApiKeyFormData(formData: FormData) {
+  return apiKeyCreateSchema.parse({
+    name: formData.get("name"),
+    agentId: formData.get("agentId") || null,
+    expiresAt: formData.get("expiresAt") || null,
+  });
+}
