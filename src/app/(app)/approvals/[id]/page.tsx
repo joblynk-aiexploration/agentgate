@@ -12,6 +12,7 @@ import {
   getApprovalOrThrow,
   requireApprovalViewer,
 } from "@/lib/approvals";
+import { redactSensitiveMetadata } from "@/server/audit/audit-service";
 import {
   formatDateTime,
   formatEnumLabel,
@@ -77,7 +78,7 @@ export default async function ApprovalDetailPage({
     actor: log.actorId ? `${log.actorType}:${log.actorId.slice(0, 8)}` : log.actorType,
     eventType: log.eventType,
     id: log.id,
-    metadataJson: log.metadataJson,
+    metadataJson: redactSensitiveMetadata(log.metadataJson),
     time: log.createdAt,
   }));
 

@@ -5,7 +5,7 @@ import {
   getApiAgentMembership,
   normalizeAllowedTools,
 } from "@/lib/agents";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/server/audit/audit-service";
 import { prisma } from "@/lib/prisma";
 import { agentPatchSchema } from "@/lib/validators";
 

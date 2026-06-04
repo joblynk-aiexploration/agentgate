@@ -2,7 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/server/audit/audit-service";
 import { getMembershipForUser, verifyPasswordCredentials } from "@/lib/auth";
 import { createSession } from "@/lib/session";
 import { loginSchema } from "@/lib/validators";
@@ -43,6 +43,9 @@ async function loginAction(formData: FormData) {
   await createSession(user.id);
 
   const headerStore = await headers();
+  const ipAddress =
+    headerStore.get("x-forwarded-for")?.split(",").at(0)?.trim() ??
+    headerStore.get("x-real-ip");
 
   await createAuditLog({
     organizationId: membership.organizationId,
@@ -56,6 +59,7 @@ async function loginAction(formData: FormData) {
       organizationSlug: membership.organization.slug,
       role: membership.role,
     },
+    ipAddress,
     userAgent: headerStore.get("user-agent"),
   });
 

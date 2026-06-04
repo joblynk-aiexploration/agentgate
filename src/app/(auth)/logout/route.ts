@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/server/audit/audit-service";
 import { getCurrentMembership, getCurrentUser } from "@/lib/auth";
 import { destroySession } from "@/lib/session";
 
@@ -10,6 +10,9 @@ async function logout() {
 
   if (user) {
     const headerStore = await headers();
+    const ipAddress =
+      headerStore.get("x-forwarded-for")?.split(",").at(0)?.trim() ??
+      headerStore.get("x-real-ip");
 
     await createAuditLog({
       organizationId: membership?.organizationId,
@@ -22,6 +25,7 @@ async function logout() {
         email: user.email,
         organizationSlug: membership?.organization.slug,
       },
+      ipAddress,
       userAgent: headerStore.get("user-agent"),
     });
   }

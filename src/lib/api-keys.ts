@@ -3,7 +3,7 @@ import {
   ApiKeyStatus,
   type MembershipRole,
 } from "@/generated/prisma/client";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/server/audit/audit-service";
 import { getCurrentMembership } from "@/lib/auth";
 import { generateApiKeyMaterial } from "@/lib/crypto";
 import { hasRole } from "@/lib/permissions";

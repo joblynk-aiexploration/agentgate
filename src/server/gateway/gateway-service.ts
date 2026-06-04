@@ -6,7 +6,7 @@ import {
   RiskLevel,
 } from "@/generated/prisma/client";
 import type { Prisma } from "@/generated/prisma/client";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/server/audit/audit-service";
 import { hashApiKey } from "@/lib/crypto";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, getRequestIp } from "@/server/gateway/idempotency";
@@ -171,6 +171,8 @@ export class GatewayService {
     idempotencyKey?: string | null,
   ): Promise<GatewayDecisionResponse> {
     const auth = await this.authenticate(headers);
+    const ipAddress = getRequestIp(headers);
+    const userAgent = headers.get("user-agent");
 
     if (idempotencyKey) {
       const existing = await this.findIdempotentAction(
@@ -348,7 +350,28 @@ export class GatewayService {
         riskLevel: actionRequest.riskLevel,
         policyReasons: policyResult.policyReasons,
       },
+      ipAddress,
+      userAgent,
     });
+
+    if (actionRequest.approvalRequest) {
+      await createAuditLog({
+        organizationId: auth.apiKey.organizationId,
+        actorType: "agent",
+        actorId: agent.id,
+        eventType: "approval.requested",
+        targetType: "ActionRequest",
+        targetId: actionRequest.id,
+        metadataJson: {
+          approvalRequestId: actionRequest.approvalRequest.id,
+          requiredRole: policyResult.requiredRole,
+          decision: actionRequest.decision,
+          riskLevel: actionRequest.riskLevel,
+        },
+        ipAddress,
+        userAgent,
+      });
+    }
 
     if (actionRequest.status === ActionStatus.BLOCKED) {
       await createAuditLog({
@@ -363,6 +386,8 @@ export class GatewayService {
           reason: actionRequest.reason,
           riskLevel: actionRequest.riskLevel,
         },
+        ipAddress,
+        userAgent,
       });
     }
 
@@ -374,6 +399,8 @@ export class GatewayService {
     headers: Headers,
   ): Promise<GatewayExecutionResponse> {
     const auth = await this.authenticate(headers);
+    const ipAddress = getRequestIp(headers);
+    const userAgent = headers.get("user-agent");
     const actionRequest = await this.getActionRequestForApiKey(
       auth.apiKey.organizationId,
       auth.apiKey.agentId,
@@ -413,6 +440,8 @@ export class GatewayService {
         simulated: true,
         apiKeyId: auth.apiKey.id,
       },
+      ipAddress,
+      userAgent,
     });
 
     return {
@@ -431,6 +460,8 @@ export class GatewayService {
     headers: Headers,
   ): Promise<GatewayCancelResponse> {
     const auth = await this.authenticate(headers);
+    const ipAddress = getRequestIp(headers);
+    const userAgent = headers.get("user-agent");
     const actionRequest = await this.getActionRequestForApiKey(
       auth.apiKey.organizationId,
       auth.apiKey.agentId,
@@ -486,6 +517,8 @@ export class GatewayService {
       metadataJson: {
         apiKeyId: auth.apiKey.id,
       },
+      ipAddress,
+      userAgent,
     });
 
     return {

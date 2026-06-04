@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import type { MembershipRole, Prisma } from "@/generated/prisma/client";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/server/audit/audit-service";
 import { getCurrentMembership } from "@/lib/auth";
 import { hasRole, roleRules } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";

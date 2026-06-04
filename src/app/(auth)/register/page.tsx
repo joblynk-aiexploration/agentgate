@@ -9,7 +9,7 @@ import {
   OrganizationStatus,
   UserStatus,
 } from "@/generated/prisma/client";
-import { createAuditLog } from "@/lib/audit";
+import { createAuditLog } from "@/server/audit/audit-service";
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/session";
 import { registerSchema, slugifyOrganizationName } from "@/lib/validators";
@@ -118,6 +118,9 @@ async function registerAction(formData: FormData) {
   await createSession(result.user.id);
 
   const headerStore = await headers();
+  const ipAddress =
+    headerStore.get("x-forwarded-for")?.split(",").at(0)?.trim() ??
+    headerStore.get("x-real-ip");
 
   await createAuditLog({
     organizationId: result.organization.id,
@@ -131,6 +134,7 @@ async function registerAction(formData: FormData) {
       organizationSlug: result.organization.slug,
       source: "registration",
     },
+    ipAddress,
     userAgent: headerStore.get("user-agent"),
   });
 

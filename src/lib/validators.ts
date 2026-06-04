@@ -232,3 +232,19 @@ export const approvalEditSchema = z.object({
   editedPayloadJson: jsonValueSchema,
   comment: z.string().trim().max(2000).optional().nullable(),
 });
+
+const optionalFilterString = z
+  .string()
+  .trim()
+  .max(120)
+  .optional()
+  .transform((value) => value || undefined);
+
+export const auditLogQuerySchema = z.object({
+  eventType: optionalFilterString,
+  actorType: optionalFilterString,
+  targetType: optionalFilterString,
+  from: optionalFilterString,
+  to: optionalFilterString,
+  search: optionalFilterString,
+});
