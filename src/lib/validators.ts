@@ -248,3 +248,10 @@ export const auditLogQuerySchema = z.object({
   to: optionalFilterString,
   search: optionalFilterString,
 });
+
+export const settingsUpdateSchema = z.object({
+  name: z.string().trim().min(2).max(120).optional(),
+  aiReviewerMode: z
+    .enum(["DISABLED", "LOCAL_RULES_ONLY", "LOCAL_MODEL", "PREMIUM_MODEL"])
+    .optional(),
+});
