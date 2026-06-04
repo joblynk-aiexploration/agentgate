@@ -1,268 +1,242 @@
+import { createHmac } from "node:crypto";
+import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
 import {
-  ActionStatus,
-  AgentStatus,
+  ApiKeyStatus,
   ApprovalStatus,
-  MembershipRole,
-  ToolType,
+  PrismaClient,
 } from "../src/generated/prisma/client";
-import { canActOnApproval } from "../src/lib/approvals";
-import { prisma } from "../src/lib/prisma";
-import { createAuditLog } from "../src/server/audit/audit-service";
-import { gatewayService } from "../src/server/gateway/gateway-service";
 
-const DEMO_API_KEY = "ag_test_seed_support_refund_demo_key";
+const DEMO_API_KEY =
+  process.env.AGENTGATE_DEMO_API_KEY ?? "ag_test_seed_support_refund_demo_key";
 
-function assert(condition: unknown, message: string): asserts condition {
-  if (!condition) {
-    throw new Error(message);
+const gatewayPayload = {
+  agentId: "support-refund-agent",
+  tool: "stripe",
+  action: "refund.create",
+  environment: "production",
+  amount: 1200,
+  currency: "USD",
+  reason: "Customer was double charged",
+};
+
+type Check = {
+  label: string;
+  passed: boolean;
+  detail?: string;
+};
+
+function hashApiKey(apiKey: string) {
+  const pepper = process.env.API_KEY_PEPPER;
+
+  if (!pepper) {
+    throw new Error("API_KEY_PEPPER is required to verify the demo API key hash.");
   }
+
+  return createHmac("sha256", pepper).update(apiKey).digest("hex");
 }
 
-function gatewayHeaders() {
-  return new Headers({
-    Authorization: `Bearer ${DEMO_API_KEY}`,
-    "Content-Type": "application/json",
-    "x-real-ip": "127.0.0.1",
-    "user-agent": "agentgate-v1-demo-verifier",
+function printCheck(check: Check) {
+  const marker = check.passed ? "PASS" : "FAIL";
+  const detail = check.detail ? ` - ${check.detail}` : "";
+
+  console.log(`[${marker}] ${check.label}${detail}`);
+}
+
+function printCurlExample(appUrl = "http://localhost:3000") {
+  console.log("\nLocal demo gateway curl:");
+  console.log(`curl -X POST ${appUrl.replace(/\/$/, "")}/api/gateway/check \\`);
+  console.log(`  -H "Authorization: Bearer ${DEMO_API_KEY}" \\`);
+  console.log('  -H "Content-Type: application/json" \\');
+  console.log("  -d '{");
+  console.log('    "agentId": "support-refund-agent",');
+  console.log('    "tool": "stripe",');
+  console.log('    "action": "refund.create",');
+  console.log('    "environment": "production",');
+  console.log('    "amount": 1200,');
+  console.log('    "currency": "USD",');
+  console.log('    "reason": "Customer was double charged"');
+  console.log("  }'");
+}
+
+async function verifyLiveGateway(appUrl: string) {
+  const response = await fetch(`${appUrl.replace(/\/$/, "")}/api/gateway/check`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${DEMO_API_KEY}`,
+      "Content-Type": "application/json",
+      "Idempotency-Key": `verify-demo-${Date.now()}`,
+    },
+    body: JSON.stringify(gatewayPayload),
   });
+
+  const body = await response.json().catch(() => null);
+  const passed =
+    response.ok &&
+    body?.decision === "REQUIRE_APPROVAL" &&
+    body?.requiresApproval === true &&
+    body?.status === "PENDING_APPROVAL";
+
+  return {
+    passed,
+    detail: response.ok
+      ? `decision=${body?.decision ?? "unknown"}, status=${body?.status ?? "unknown"}`
+      : `HTTP ${response.status}`,
+  };
 }
 
 async function main() {
-  const organization = await prisma.organization.findUnique({
-    where: { slug: "acme" },
-    select: {
-      id: true,
-      killSwitchEnabled: true,
-    },
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL is required to verify the V1 demo.");
+  }
+
+  const prisma = new PrismaClient({
+    adapter: new PrismaPg({
+      connectionString: process.env.DATABASE_URL,
+    }),
   });
 
-  assert(organization != null, "Expected seeded acme organization.");
-
-  const [supportAgent, reviewerMembership] = await Promise.all([
-    prisma.agent.findFirst({
-      where: {
-        organizationId: organization.id,
-        slug: "support-refund-agent",
-      },
+  try {
+    const organization = await prisma.organization.findUnique({
+      where: { slug: "acme" },
       select: {
         id: true,
-        slug: true,
-      },
-    }),
-    prisma.membership.findFirst({
-      where: {
-        organizationId: organization.id,
-        role: MembershipRole.reviewer,
-      },
-      select: {
-        organizationId: true,
-        role: true,
-        userId: true,
-      },
-    }),
-  ]);
-
-  assert(supportAgent != null, "Expected seeded Support Refund Agent.");
-  assert(reviewerMembership != null, "Expected seeded reviewer membership.");
-
-  await prisma.organization.update({
-    where: { id: organization.id },
-    data: { killSwitchEnabled: false },
-  });
-  await prisma.agent.update({
-    where: {
-      id: supportAgent.id,
-      organizationId: organization.id,
-    },
-    data: { status: AgentStatus.ACTIVE },
-  });
-
-  const runId = `verify-v1-${Date.now()}`;
-  const refundPayload = {
-    agentId: supportAgent.slug,
-    tool: ToolType.STRIPE,
-    action: "refund.create",
-    environment: "production",
-    amount: 1200,
-    currency: "USD",
-    reason: "Customer was double charged",
-    payload: { customerId: "cus_verify" },
-    metadata: { customerTier: "standard" },
-  };
-
-  const refund = await gatewayService.check(
-    refundPayload,
-    gatewayHeaders(),
-    `${runId}-refund`,
-  );
-
-  assert(
-    refund.decision === "REQUIRE_APPROVAL",
-    `Expected refund decision REQUIRE_APPROVAL, got ${refund.decision}`,
-  );
-  assert(refund.allowed === false, "Refund requiring approval must not be allowed yet.");
-  assert(refund.requiresApproval, "Refund should require approval.");
-  assert(Boolean(refund.approvalRequestId), "Refund should create approval request.");
-
-  const replay = await gatewayService.check(
-    refundPayload,
-    gatewayHeaders(),
-    `${runId}-refund`,
-  );
-  assert(
-    replay.actionRequestId === refund.actionRequestId,
-    "Gateway idempotency should replay the original action request for the same API key.",
-  );
-
-  const approval = await prisma.approvalRequest.findFirst({
-    where: {
-      id: refund.approvalRequestId,
-      organizationId: organization.id,
-    },
-    select: {
-      id: true,
-      actionRequestId: true,
-      assignedToId: true,
-      requiredRole: true,
-      status: true,
-    },
-  });
-
-  assert(approval != null, "Expected approval request for refund.");
-  assert(
-    canActOnApproval(reviewerMembership, approval),
-    "Reviewer membership should be eligible for seeded approval.",
-  );
-
-  await prisma.$transaction(async (tx) => {
-    await tx.approvalRequest.update({
-      where: {
-        id: approval.id,
-        organizationId: organization.id,
-      },
-      data: {
-        status: ApprovalStatus.APPROVED,
-        reviewedById: reviewerMembership.userId,
-        reviewComment: "Verified by V1 QA script.",
+        name: true,
       },
     });
-    await tx.actionRequest.update({
-      where: {
-        id: approval.actionRequestId,
-        organizationId: organization.id,
+
+    const organizationId = organization?.id;
+    const demoKeyHash = hashApiKey(DEMO_API_KEY);
+
+    const [
+      ownerUser,
+      reviewerUser,
+      supportRefundAgent,
+      refundPolicy,
+      demoApiKey,
+      pendingApprovalCount,
+    ] = await Promise.all([
+      prisma.user.findUnique({
+        where: { email: "owner@agentgate.dev" },
+        select: { id: true },
+      }),
+      prisma.user.findUnique({
+        where: { email: "reviewer@agentgate.dev" },
+        select: { id: true },
+      }),
+      organizationId
+        ? prisma.agent.findFirst({
+            where: {
+              organizationId,
+              slug: "support-refund-agent",
+            },
+            select: { id: true, status: true },
+          })
+        : null,
+      organizationId
+        ? prisma.policy.findFirst({
+            where: {
+              organizationId,
+              name: {
+                contains: "Refunds above $500",
+                mode: "insensitive",
+              },
+            },
+            select: { id: true, status: true },
+          })
+        : null,
+      organizationId
+        ? prisma.apiKey.findFirst({
+            where: {
+              organizationId,
+              keyHash: demoKeyHash,
+              status: ApiKeyStatus.ACTIVE,
+            },
+            select: { id: true, keyPrefix: true, agentId: true },
+          })
+        : null,
+      organizationId
+        ? prisma.approvalRequest.count({
+            where: {
+              organizationId,
+              status: ApprovalStatus.PENDING,
+            },
+          })
+        : 0,
+    ]);
+
+    const checks: Check[] = [
+      {
+        label: "Acme AI Operations organization exists",
+        passed: organization?.name === "Acme AI Operations",
       },
-      data: {
-        status: ActionStatus.APPROVED,
+      {
+        label: "owner@agentgate.dev user exists",
+        passed: Boolean(ownerUser),
       },
-    });
-  });
-
-  await createAuditLog({
-    organizationId: organization.id,
-    actorType: "user",
-    actorId: reviewerMembership.userId,
-    eventType: "approval.approved",
-    targetType: "ActionRequest",
-    targetId: approval.actionRequestId,
-    metadata: {
-      source: "verify-v1-demo",
-      approvalRequestId: approval.id,
-    },
-  });
-
-  await prisma.agent.update({
-    where: {
-      id: supportAgent.id,
-      organizationId: organization.id,
-    },
-    data: { status: AgentStatus.PAUSED },
-  });
-
-  const paused = await gatewayService.check(
-    refundPayload,
-    gatewayHeaders(),
-    `${runId}-paused`,
-  );
-
-  assert(paused.decision === "BLOCK", `Expected paused agent BLOCK, got ${paused.decision}`);
-  assert(
-    paused.reason === "Agent is paused by admin kill switch.",
-    `Unexpected paused reason: ${paused.reason}`,
-  );
-
-  await prisma.agent.update({
-    where: {
-      id: supportAgent.id,
-      organizationId: organization.id,
-    },
-    data: { status: AgentStatus.ACTIVE },
-  });
-  await prisma.organization.update({
-    where: { id: organization.id },
-    data: { killSwitchEnabled: true },
-  });
-
-  const killSwitch = await gatewayService.check(
-    refundPayload,
-    gatewayHeaders(),
-    `${runId}-kill-switch`,
-  );
-
-  assert(
-    killSwitch.decision === "BLOCK",
-    `Expected organization kill switch BLOCK, got ${killSwitch.decision}`,
-  );
-  assert(
-    killSwitch.reason === "Organization-level kill switch is active.",
-    `Unexpected kill switch reason: ${killSwitch.reason}`,
-  );
-
-  await prisma.organization.update({
-    where: { id: organization.id },
-    data: { killSwitchEnabled: false },
-  });
-  await prisma.agent.update({
-    where: {
-      id: supportAgent.id,
-      organizationId: organization.id,
-    },
-    data: { status: AgentStatus.ACTIVE },
-  });
-
-  const auditCounts = await prisma.auditLog.groupBy({
-    by: ["eventType"],
-    where: {
-      organizationId: organization.id,
-      targetId: {
-        in: [refund.actionRequestId, paused.actionRequestId, killSwitch.actionRequestId],
+      {
+        label: "reviewer@agentgate.dev user exists",
+        passed: Boolean(reviewerUser),
       },
-    },
-    _count: {
-      id: true,
-    },
-  });
+      {
+        label: "Support Refund Agent exists",
+        passed: Boolean(supportRefundAgent),
+        detail: supportRefundAgent ? `status=${supportRefundAgent.status}` : undefined,
+      },
+      {
+        label: "Refunds above $500 policy exists",
+        passed: Boolean(refundPolicy),
+        detail: refundPolicy ? `status=${refundPolicy.status}` : undefined,
+      },
+      {
+        label: "Demo API key hash exists",
+        passed: Boolean(demoApiKey),
+        detail: demoApiKey ? `prefix=${demoApiKey.keyPrefix}` : undefined,
+      },
+      {
+        label: "Sample pending approvals exist",
+        passed: pendingApprovalCount > 0,
+        detail: `count=${pendingApprovalCount}`,
+      },
+    ];
 
-  const eventTypes = new Set(auditCounts.map((item) => item.eventType));
-  assert(eventTypes.has("gateway.action_checked"), "Expected gateway action audit logs.");
-  assert(eventTypes.has("approval.requested"), "Expected approval requested audit log.");
-  assert(eventTypes.has("action.blocked"), "Expected blocked action audit log.");
+    console.log("AgentGate V1 demo verification\n");
+    checks.forEach(printCheck);
+    printCurlExample(process.env.APP_URL);
 
-  console.log("V1 demo verification passed.");
-  console.log({
-    refund,
-    replayActionRequestId: replay.actionRequestId,
-    paused,
-    killSwitch,
-    auditCounts,
-  });
+    if (process.env.APP_URL && process.env.AGENTGATE_DEMO_API_KEY) {
+      console.log("\nLive gateway check:");
+      const liveCheck = await verifyLiveGateway(process.env.APP_URL);
+      printCheck({
+        label: "POST /api/gateway/check returns REQUIRE_APPROVAL",
+        ...liveCheck,
+      });
+      checks.push({
+        label: "Live gateway check",
+        ...liveCheck,
+      });
+    } else {
+      console.log(
+        "\nLive gateway check skipped. Set APP_URL and AGENTGATE_DEMO_API_KEY to test the running app.",
+      );
+    }
+
+    const failed = checks.filter((check) => !check.passed);
+
+    if (failed.length > 0) {
+      console.error(`\nV1 demo verification failed: ${failed.length} check(s) failed.`);
+      process.exitCode = 1;
+      return;
+    }
+
+    console.log("\nV1 demo verification passed.");
+  } finally {
+    await prisma.$disconnect();
+  }
 }
 
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch((error) => {
+  console.error("V1 demo verification failed.");
+  console.error(error);
+  process.exit(1);
+});

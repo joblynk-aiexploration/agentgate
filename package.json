@@ -15,7 +15,9 @@
     "verify:policy": "tsx scripts/verify-policy-engine.ts",
     "verify:gateway": "tsx scripts/verify-gateway-demo.ts",
     "verify:v1": "tsx scripts/verify-v1-demo.ts",
-    "verify:security": "tsx scripts/verify-security-basics.ts"
+    "verify:security": "tsx scripts/verify-security-basics.ts",
+    "verify:demo": "tsx scripts/verify-v1-demo.ts",
+    "verify:demo-data": "tsx scripts/verify-demo-data.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
