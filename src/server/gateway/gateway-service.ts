@@ -10,6 +10,7 @@ import type { Prisma as PrismaTypes } from "@/generated/prisma/client";
 import { createAuditLog } from "@/server/audit/audit-service";
 import { hashApiKey } from "@/lib/crypto";
 import { prisma } from "@/lib/prisma";
+import { mapGatewayDecisionToStatus } from "@/server/gateway/decision";
 import { checkRateLimit, getRequestIp } from "@/server/gateway/idempotency";
 import type {
   GatewayActionRequest,
@@ -82,43 +83,6 @@ function buildEvaluationPayload(input: GatewayCheckRequest) {
     amount: input.amount ?? null,
     amountCents: amountToCents(input.amount),
     currency: input.currency ?? null,
-  };
-}
-
-function mapDecisionToStatus(
-  decision: ActionDecision,
-  input: GatewayCheckRequest,
-) {
-  if (decision === ActionDecision.BLOCK) {
-    return {
-      allowed: false,
-      requiresApproval: false,
-      status: ActionStatus.BLOCKED,
-    };
-  }
-
-  if (decision === ActionDecision.REQUIRE_APPROVAL) {
-    return {
-      allowed: false,
-      requiresApproval: true,
-      status: ActionStatus.PENDING_APPROVAL,
-    };
-  }
-
-  if (decision === ActionDecision.SANDBOX_ONLY) {
-    const allowed = !isProductionEnvironment(input);
-
-    return {
-      allowed,
-      requiresApproval: false,
-      status: allowed ? ActionStatus.ALLOWED : ActionStatus.BLOCKED,
-    };
-  }
-
-  return {
-    allowed: true,
-    requiresApproval: false,
-    status: ActionStatus.ALLOWED,
   };
 }
 
@@ -273,7 +237,7 @@ export class GatewayService {
       riskResult,
     });
 
-    const decisionState = mapDecisionToStatus(policyResult.decision, input);
+    const decisionState = mapGatewayDecisionToStatus(policyResult.decision, input);
     const reason =
       policyResult.decision === ActionDecision.SANDBOX_ONLY &&
       decisionState.status === ActionStatus.BLOCKED
