@@ -2,17 +2,11 @@ import { hash } from "bcryptjs";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import {
-  BillingPlan,
-  BillingStatus,
-  MembershipRole,
-  OrganizationStatus,
-  UserStatus,
-} from "@/generated/prisma/client";
+import { UserStatus } from "@/generated/prisma/client";
 import { createAuditLog } from "@/server/audit/audit-service";
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/session";
-import { registerSchema, slugifyOrganizationName } from "@/lib/validators";
+import { registerSchema } from "@/lib/validators";
 
 type RegisterPageProps = {
   searchParams: Promise<{
@@ -20,33 +14,10 @@ type RegisterPageProps = {
   }>;
 };
 
-async function resolveAvailableSlug(baseName: string) {
-  const baseSlug = slugifyOrganizationName(baseName);
-
-  for (let index = 0; index < 20; index += 1) {
-    const candidate = index === 0 ? baseSlug : `${baseSlug}-${index + 1}`;
-    const existing = await prisma.organization.findUnique({
-      where: {
-        slug: candidate,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!existing) {
-      return candidate;
-    }
-  }
-
-  return `${baseSlug}-${Date.now()}`;
-}
-
 async function registerAction(formData: FormData) {
   "use server";
 
   const parsed = registerSchema.safeParse({
-    organizationName: formData.get("organizationName"),
     name: formData.get("name"),
     email: formData.get("email"),
     password: formData.get("password"),
@@ -69,53 +40,23 @@ async function registerAction(formData: FormData) {
     redirect("/register?error=email");
   }
 
-  const slug = await resolveAvailableSlug(parsed.data.organizationName);
   const passwordHash = await hash(parsed.data.password, 12);
 
-  const result = await prisma.$transaction(async (tx) => {
-    const user = await tx.user.create({
-      data: {
-        email: parsed.data.email,
-        name: parsed.data.name,
-        passwordHash,
-        status: UserStatus.ACTIVE,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-      },
-    });
-
-    const organization = await tx.organization.create({
-      data: {
-        name: parsed.data.organizationName,
-        slug,
-        plan: BillingPlan.FREE,
-        status: OrganizationStatus.ACTIVE,
-        memberships: {
-          create: {
-            userId: user.id,
-            role: MembershipRole.org_owner,
-          },
-        },
-        billingSubscription: {
-          create: {
-            plan: BillingPlan.FREE,
-            status: BillingStatus.TRIALING,
-          },
-        },
-      },
-      select: {
-        id: true,
-        slug: true,
-      },
-    });
-
-    return { user, organization };
+  const user = await prisma.user.create({
+    data: {
+      email: parsed.data.email,
+      name: parsed.data.name,
+      passwordHash,
+      status: UserStatus.ACTIVE,
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+    },
   });
 
-  await createSession(result.user.id);
+  await createSession(user.id);
 
   const headerStore = await headers();
   const ipAddress =
@@ -123,22 +64,20 @@ async function registerAction(formData: FormData) {
     headerStore.get("x-real-ip");
 
   await createAuditLog({
-    organizationId: result.organization.id,
+    organizationId: null,
     actorType: "user",
-    actorId: result.user.id,
-    eventType: "auth.login",
+    actorId: user.id,
+    eventType: "user.registered",
     targetType: "User",
-    targetId: result.user.id,
+    targetId: user.id,
     metadataJson: {
-      email: result.user.email,
-      organizationSlug: result.organization.slug,
-      source: "registration",
+      email: user.email,
     },
     ipAddress,
     userAgent: headerStore.get("user-agent"),
   });
 
-  redirect("/dashboard");
+  redirect("/onboarding");
 }
 
 export default async function RegisterPage({ searchParams }: RegisterPageProps) {
@@ -150,10 +89,10 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
         <p className="text-sm font-semibold uppercase text-[#4c6f68]">
           AgentGate
         </p>
-        <h1 className="mt-2 text-3xl font-semibold">Create an organization</h1>
+        <h1 className="mt-2 text-3xl font-semibold">Create your account</h1>
         <p className="mt-3 text-sm leading-6 text-[#5c6470]">
-          Start a protected workspace for AI agent approvals, policies, and
-          audit logs.
+          Set up a secure human login first. You will create the organization,
+          first AI agent, and first API key in the next steps.
         </p>
 
         {error ? (
@@ -165,14 +104,6 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
         ) : null}
 
         <form action={registerAction} className="mt-8 flex flex-col gap-5">
-          <label className="flex flex-col gap-2 text-sm font-medium">
-            Organization
-            <input
-              className="border border-[#cbd3df] px-3 py-3 font-normal outline-none transition focus:border-[#2d6f7f]"
-              name="organizationName"
-              required
-            />
-          </label>
           <label className="flex flex-col gap-2 text-sm font-medium">
             Name
             <input
@@ -206,7 +137,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
             className="bg-[#172326] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#22363b]"
             type="submit"
           >
-            Create workspace
+            Continue to onboarding
           </button>
         </form>
 

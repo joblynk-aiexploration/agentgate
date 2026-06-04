@@ -26,11 +26,6 @@ export const loginSchema = z.object({
 });
 
 export const registerSchema = z.object({
-  organizationName: z
-    .string()
-    .trim()
-    .min(2, "Organization name is required.")
-    .max(80, "Organization name is too long."),
   name: z
     .string()
     .trim()
@@ -38,6 +33,14 @@ export const registerSchema = z.object({
     .max(80, "Name is too long."),
   email: emailSchema,
   password: passwordSchema,
+});
+
+export const organizationOnboardingSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Organization name is required.")
+    .max(80, "Organization name is too long."),
 });
 
 export function slugifyOrganizationName(name: string) {

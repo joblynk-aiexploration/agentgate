@@ -76,10 +76,16 @@ export async function getCurrentMembership() {
 }
 
 export async function requireMembership() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   const membership = await getCurrentMembership();
 
   if (!membership) {
-    redirect("/login");
+    redirect("/onboarding");
   }
 
   return membership;

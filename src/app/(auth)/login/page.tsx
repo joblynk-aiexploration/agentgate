@@ -34,13 +34,8 @@ async function loginAction(formData: FormData) {
     redirect("/login?error=credentials");
   }
 
-  const membership = await getMembershipForUser(user.id);
-
-  if (!membership) {
-    redirect("/login?error=membership");
-  }
-
   await createSession(user.id);
+  const membership = await getMembershipForUser(user.id);
 
   const headerStore = await headers();
   const ipAddress =
@@ -48,7 +43,7 @@ async function loginAction(formData: FormData) {
     headerStore.get("x-real-ip");
 
   await createAuditLog({
-    organizationId: membership.organizationId,
+    organizationId: membership?.organizationId ?? null,
     actorType: "user",
     actorId: user.id,
     eventType: "auth.login",
@@ -56,12 +51,16 @@ async function loginAction(formData: FormData) {
     targetId: user.id,
     metadataJson: {
       email: user.email,
-      organizationSlug: membership.organization.slug,
-      role: membership.role,
+      organizationSlug: membership?.organization.slug ?? null,
+      role: membership?.role ?? null,
     },
     ipAddress,
     userAgent: headerStore.get("user-agent"),
   });
+
+  if (!membership) {
+    redirect("/onboarding");
+  }
 
   redirect("/dashboard");
 }
@@ -106,7 +105,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           {error ? (
             <div className="mt-6 border border-[#e6c6b7] bg-[#fff4ef] px-4 py-3 text-sm text-[#9d3f1f]">
               {error === "membership"
-                ? "No active organization membership was found for this user."
+                ? "Finish onboarding to create your first organization."
                 : "Email or password was not accepted."}
             </div>
           ) : null}
