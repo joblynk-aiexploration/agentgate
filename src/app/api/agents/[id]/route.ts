@@ -146,8 +146,10 @@ export async function PATCH(request: Request, context: AgentRouteContext) {
 
     return NextResponse.json({ agent });
   } catch (error) {
+    console.error("Agent update failed", error);
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Agent update failed" },
+      { error: "Agent update failed." },
       { status: 400 },
     );
   }

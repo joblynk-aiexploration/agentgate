@@ -52,13 +52,10 @@ export async function PATCH(request: Request) {
       },
     });
   } catch (error) {
+    console.error("Settings update failed", error);
+
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Settings update failed.",
-      },
+      { error: "Settings update failed." },
       { status: 403 },
     );
   }

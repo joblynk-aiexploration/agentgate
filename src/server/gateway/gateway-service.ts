@@ -3,9 +3,10 @@ import {
   ActionStatus,
   ApiKeyStatus,
   ApprovalStatus,
+  Prisma,
   RiskLevel,
 } from "@/generated/prisma/client";
-import type { Prisma } from "@/generated/prisma/client";
+import type { Prisma as PrismaTypes } from "@/generated/prisma/client";
 import { createAuditLog } from "@/server/audit/audit-service";
 import { hashApiKey } from "@/lib/crypto";
 import { prisma } from "@/lib/prisma";
@@ -45,8 +46,8 @@ function getBearerToken(headers: Headers) {
   return token;
 }
 
-function toJsonValue(value: unknown): Prisma.InputJsonValue {
-  return JSON.parse(JSON.stringify(value ?? {})) as Prisma.InputJsonValue;
+function toJsonValue(value: unknown): PrismaTypes.InputJsonValue {
+  return JSON.parse(JSON.stringify(value ?? {})) as PrismaTypes.InputJsonValue;
 }
 
 function amountToCents(amount: number | null | undefined) {
@@ -133,7 +134,7 @@ function responseFromActionRequest(actionRequest: {
   riskAssessments?: {
     score: number;
     level: RiskLevel;
-    signalsJson: Prisma.JsonValue;
+    signalsJson: PrismaTypes.JsonValue;
     explanation: string;
   }[];
 }): GatewayDecisionResponse {
@@ -162,6 +163,13 @@ function responseFromActionRequest(actionRequest: {
     reason: actionRequest.reason,
     status: actionRequest.status,
   };
+}
+
+function isUniqueConstraintError(error: unknown) {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  );
 }
 
 export class GatewayService {
@@ -272,70 +280,88 @@ export class GatewayService {
         ? `${policyResult.reason} Sandbox-only actions are blocked in production in V1.`
         : policyResult.reason;
 
-    const actionRequest = await prisma.$transaction(async (tx) => {
-      const createdAction = await tx.actionRequest.create({
-        data: {
-          organizationId: auth.apiKey.organizationId,
-          agentId: agent.id,
-          apiKeyId: auth.apiKey.id,
-          tool: input.tool,
-          action: input.action,
-          environment: input.environment,
-          payloadJson: toJsonValue(evaluationPayload),
-          metadataJson: toJsonValue(input.metadata),
-          riskScore: riskResult.score,
-          riskLevel: riskResult.level,
-          decision: policyResult.decision,
-          status: decisionState.status,
-          requiresApproval: decisionState.requiresApproval,
-          policyMatchedId: policyResult.matchedPolicyId,
-          reason,
-          idempotencyKey: idempotencyKey ?? null,
-        },
-      });
+    let actionRequest;
 
-      await tx.riskAssessment.create({
-        data: {
-          organizationId: auth.apiKey.organizationId,
-          actionRequestId: createdAction.id,
-          score: riskResult.score,
-          level: riskResult.level,
-          signalsJson: toJsonValue(riskResult.signals),
-          explanation: riskResult.explanation,
-          modelVersion: riskResult.modelVersion,
-        },
-      });
+    try {
+      actionRequest = await prisma.$transaction(async (tx) => {
+        const createdAction = await tx.actionRequest.create({
+          data: {
+            organizationId: auth.apiKey.organizationId,
+            agentId: agent.id,
+            apiKeyId: auth.apiKey.id,
+            tool: input.tool,
+            action: input.action,
+            environment: input.environment,
+            payloadJson: toJsonValue(evaluationPayload),
+            metadataJson: toJsonValue(input.metadata),
+            riskScore: riskResult.score,
+            riskLevel: riskResult.level,
+            decision: policyResult.decision,
+            status: decisionState.status,
+            requiresApproval: decisionState.requiresApproval,
+            policyMatchedId: policyResult.matchedPolicyId,
+            reason,
+            idempotencyKey: idempotencyKey ?? null,
+          },
+        });
 
-      let approvalRequestId: string | undefined;
-
-      if (decisionState.requiresApproval) {
-        const approval = await tx.approvalRequest.create({
+        await tx.riskAssessment.create({
           data: {
             organizationId: auth.apiKey.organizationId,
             actionRequestId: createdAction.id,
-            status: ApprovalStatus.PENDING,
-            requiredRole: policyResult.requiredRole,
-            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          },
-          select: { id: true },
-        });
-
-        approvalRequestId = approval.id;
-      }
-
-      return {
-        ...createdAction,
-        approvalRequest: approvalRequestId ? { id: approvalRequestId } : null,
-        riskAssessments: [
-          {
             score: riskResult.score,
             level: riskResult.level,
-            signalsJson: riskResult.signals,
+            signalsJson: toJsonValue(riskResult.signals),
             explanation: riskResult.explanation,
+            modelVersion: riskResult.modelVersion,
           },
-        ],
-      };
-    });
+        });
+
+        let approvalRequestId: string | undefined;
+
+        if (decisionState.requiresApproval) {
+          const approval = await tx.approvalRequest.create({
+            data: {
+              organizationId: auth.apiKey.organizationId,
+              actionRequestId: createdAction.id,
+              status: ApprovalStatus.PENDING,
+              requiredRole: policyResult.requiredRole,
+              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            },
+            select: { id: true },
+          });
+
+          approvalRequestId = approval.id;
+        }
+
+        return {
+          ...createdAction,
+          approvalRequest: approvalRequestId ? { id: approvalRequestId } : null,
+          riskAssessments: [
+            {
+              score: riskResult.score,
+              level: riskResult.level,
+              signalsJson: riskResult.signals,
+              explanation: riskResult.explanation,
+            },
+          ],
+        };
+      });
+    } catch (error) {
+      if (idempotencyKey && isUniqueConstraintError(error)) {
+        const existing = await this.findIdempotentAction(
+          auth.apiKey.organizationId,
+          auth.apiKey.id,
+          idempotencyKey,
+        );
+
+        if (existing) {
+          return responseFromActionRequest(existing);
+        }
+      }
+
+      throw error;
+    }
 
     await createAuditLog({
       organizationId: auth.apiKey.organizationId,
@@ -530,12 +556,18 @@ export class GatewayService {
   }
 
   private async authenticate(headers: Headers) {
+    const ip = getRequestIp(headers);
+    const ipRateLimit = checkRateLimit(`ip:${ip}`);
+
+    if (!ipRateLimit.allowed) {
+      throw new GatewayError(429, "Rate limit exceeded.");
+    }
+
     const token = getBearerToken(headers);
     const keyHash = hashApiKey(token);
-    const ip = getRequestIp(headers);
-    const rateLimit = checkRateLimit(keyHash || ip);
+    const keyRateLimit = checkRateLimit(`api-key:${keyHash}`);
 
-    if (!rateLimit.allowed) {
+    if (!keyRateLimit.allowed) {
       throw new GatewayError(429, "Rate limit exceeded.");
     }
 

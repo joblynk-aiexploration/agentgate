@@ -13,13 +13,10 @@ export async function POST() {
 
     return NextResponse.json({ organization });
   } catch (error) {
+    console.error("Kill switch update failed", error);
+
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Kill switch update failed.",
-      },
+      { error: "Kill switch update failed." },
       { status: 403 },
     );
   }

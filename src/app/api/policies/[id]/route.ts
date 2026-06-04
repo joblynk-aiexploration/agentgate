@@ -86,8 +86,10 @@ export async function PATCH(request: Request, context: PolicyRouteContext) {
 
     return NextResponse.json({ policy });
   } catch (error) {
+    console.error("Policy update failed", error);
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Policy update failed." },
+      { error: "Policy update failed." },
       { status: 400 },
     );
   }

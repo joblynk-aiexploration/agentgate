@@ -31,8 +31,10 @@ export async function POST(request: Request, context: ApprovalActionContext) {
 
     return NextResponse.json({ approval });
   } catch (error) {
+    console.error("Approval failed", error);
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Approval failed." },
+      { error: "Approval failed." },
       { status: 403 },
     );
   }

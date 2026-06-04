@@ -70,11 +70,10 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
+    console.error("API key creation failed", error);
+
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "API key creation failed.",
-      },
+      { error: "API key creation failed." },
       { status: 400 },
     );
   }

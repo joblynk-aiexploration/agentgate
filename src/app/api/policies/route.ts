@@ -68,11 +68,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ policy }, { status: 201 });
   } catch (error) {
+    console.error("Policy creation failed", error);
+
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Policy creation failed.",
-      },
+      { error: "Policy creation failed." },
       { status: 400 },
     );
   }

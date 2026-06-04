@@ -24,11 +24,10 @@ export async function POST(_request: Request, context: ApiKeyRouteContext) {
 
     return NextResponse.json({ apiKey });
   } catch (error) {
+    console.error("API key revocation failed", error);
+
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "API key revocation failed.",
-      },
+      { error: "API key revocation failed." },
       { status: 404 },
     );
   }

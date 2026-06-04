@@ -138,8 +138,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ agent }, { status: 201 });
   } catch (error) {
+    console.error("Agent creation failed", error);
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Agent creation failed" },
+      { error: "Agent creation failed." },
       { status: 400 },
     );
   }
