@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   ActionDecision,
+  ApprovalStatus,
   AgentRiskTier,
   AgentStatus,
   MembershipRole,
@@ -75,6 +76,10 @@ const policyStatusValues = Object.values(PolicyStatus) as [
 const actionDecisionValues = Object.values(ActionDecision) as [
   ActionDecision,
   ...ActionDecision[],
+];
+const approvalStatusValues = Object.values(ApprovalStatus) as [
+  ApprovalStatus,
+  ...ApprovalStatus[],
 ];
 const membershipRoleValues = Object.values(MembershipRole) as [
   MembershipRole,
@@ -206,3 +211,24 @@ export const policyPatchSchema = policyInputSchema.partial().refine(
   (value) => Object.keys(value).length > 0,
   "At least one field is required.",
 );
+
+export const approvalListQuerySchema = z.object({
+  status: z.enum(approvalStatusValues).optional(),
+  riskLevel: z.enum(riskLevelValues).optional(),
+  tool: z.enum(toolTypeValues).optional(),
+  agentId: z.string().trim().optional(),
+  date: z.string().trim().optional(),
+  assignedToMe: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
+});
+
+export const approvalReviewSchema = z.object({
+  comment: z.string().trim().max(2000).optional().nullable(),
+});
+
+export const approvalEditSchema = z.object({
+  editedPayloadJson: jsonValueSchema,
+  comment: z.string().trim().max(2000).optional().nullable(),
+});
