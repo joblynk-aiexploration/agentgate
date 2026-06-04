@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server";
+import { gatewayErrorResponse } from "@/server/gateway/errors";
 import { getIdempotencyKey } from "@/server/gateway/idempotency";
-import { gatewayService, GatewayError } from "@/server/gateway/gateway-service";
+import { gatewayService } from "@/server/gateway/gateway-service";
 import { gatewayCheckRequestSchema } from "@/server/gateway/types";
-
-function errorResponse(error: unknown) {
-  if (error instanceof GatewayError) {
-    return NextResponse.json({ error: error.message }, { status: error.status });
-  }
-
-  return NextResponse.json({ error: "Gateway check failed." }, { status: 500 });
-}
 
 export async function POST(request: Request) {
   try {
@@ -31,6 +24,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(response);
   } catch (error) {
-    return errorResponse(error);
+    return gatewayErrorResponse(error, "Gateway check failed.");
   }
 }

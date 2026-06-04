@@ -1,17 +1,21 @@
 import {
   ActionDecision,
   ActionStatus,
-  ApiKeyStatus,
   ApprovalStatus,
   Prisma,
   RiskLevel,
 } from "@/generated/prisma/client";
 import type { Prisma as PrismaTypes } from "@/generated/prisma/client";
 import { createAuditLog } from "@/server/audit/audit-service";
-import { hashApiKey } from "@/lib/crypto";
 import { prisma } from "@/lib/prisma";
+import { authenticateApiKey } from "@/server/gateway/authenticate-api-key";
 import { mapGatewayDecisionToStatus } from "@/server/gateway/decision";
-import { checkRateLimit, getRequestIp } from "@/server/gateway/idempotency";
+import {
+  GatewayError,
+  gatewayForbiddenError,
+  gatewayNotFoundError,
+} from "@/server/gateway/errors";
+import { getRequestIp } from "@/server/gateway/idempotency";
 import type {
   GatewayActionRequest,
   GatewayCancelResponse,
@@ -21,31 +25,6 @@ import type {
 } from "@/server/gateway/types";
 import { policyEngine } from "@/server/policies/policy-engine";
 import { localRiskEngine } from "@/server/risk/risk-engine";
-
-export class GatewayError extends Error {
-  constructor(
-    public readonly status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
-
-function getBearerToken(headers: Headers) {
-  const authorization = headers.get("authorization");
-
-  if (!authorization?.startsWith("Bearer ")) {
-    throw new GatewayError(401, "Missing or invalid authorization header.");
-  }
-
-  const token = authorization.replace(/^Bearer\s+/i, "").trim();
-
-  if (!token) {
-    throw new GatewayError(401, "Missing API key.");
-  }
-
-  return token;
-}
 
 function toJsonValue(value: unknown): PrismaTypes.InputJsonValue {
   return JSON.parse(JSON.stringify(value ?? {})) as PrismaTypes.InputJsonValue;
@@ -142,21 +121,9 @@ export class GatewayService {
     headers: Headers,
     idempotencyKey?: string | null,
   ): Promise<GatewayDecisionResponse> {
-    const auth = await this.authenticate(headers);
+    const auth = await authenticateApiKey(headers);
     const ipAddress = getRequestIp(headers);
     const userAgent = headers.get("user-agent");
-
-    if (idempotencyKey) {
-      const existing = await this.findIdempotentAction(
-        auth.apiKey.organizationId,
-        auth.apiKey.id,
-        idempotencyKey,
-      );
-
-      if (existing) {
-        return responseFromActionRequest(existing);
-      }
-    }
 
     const agent = await prisma.agent.findFirst({
       where: {
@@ -169,33 +136,36 @@ export class GatewayService {
     });
 
     if (!agent) {
-      throw new GatewayError(404, "Agent not found.");
+      throw gatewayNotFoundError("Agent not found.");
     }
 
     if (auth.apiKey.agentId && auth.apiKey.agentId !== agent.id) {
-      throw new GatewayError(403, "API key is not scoped to this agent.");
+      throw gatewayForbiddenError("Gateway request is not allowed for this agent.");
     }
 
-    const [toolConnection] = await Promise.all([
-      prisma.toolConnection.findFirst({
-        where: {
-          organizationId: auth.apiKey.organizationId,
-          toolType: input.tool,
-        },
-        orderBy: {
-          updatedAt: "desc",
-        },
-      }),
-      prisma.apiKey.update({
-        where: {
-          id: auth.apiKey.id,
-          organizationId: auth.apiKey.organizationId,
-        },
-        data: {
-          lastUsedAt: new Date(),
-        },
-      }),
-    ]);
+    // V1 idempotency is scoped to the authenticated organization, API key, and
+    // idempotency key. Agent scope is enforced before replaying a prior decision.
+    if (idempotencyKey) {
+      const existing = await this.findIdempotentAction(
+        auth.apiKey.organizationId,
+        auth.apiKey.id,
+        idempotencyKey,
+      );
+
+      if (existing) {
+        return responseFromActionRequest(existing);
+      }
+    }
+
+    const toolConnection = await prisma.toolConnection.findFirst({
+      where: {
+        organizationId: auth.apiKey.organizationId,
+        toolType: input.tool,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
 
     const evaluationPayload = buildEvaluationPayload(input);
     const riskResult = await localRiskEngine.assess({
@@ -389,7 +359,7 @@ export class GatewayService {
     input: GatewayActionRequest,
     headers: Headers,
   ): Promise<GatewayExecutionResponse> {
-    const auth = await this.authenticate(headers);
+    const auth = await authenticateApiKey(headers);
     const ipAddress = getRequestIp(headers);
     const userAgent = headers.get("user-agent");
     const actionRequest = await this.getActionRequestForApiKey(
@@ -402,7 +372,7 @@ export class GatewayService {
       actionRequest.status !== ActionStatus.ALLOWED &&
       actionRequest.status !== ActionStatus.APPROVED
     ) {
-      throw new GatewayError(400, "Action is not approved for execution.");
+      throw new GatewayError(400, "Action is not approved for execution.", "state");
     }
 
     const updated = await prisma.actionRequest.update({
@@ -450,7 +420,7 @@ export class GatewayService {
     input: GatewayActionRequest,
     headers: Headers,
   ): Promise<GatewayCancelResponse> {
-    const auth = await this.authenticate(headers);
+    const auth = await authenticateApiKey(headers);
     const ipAddress = getRequestIp(headers);
     const userAgent = headers.get("user-agent");
     const actionRequest = await this.getActionRequestForApiKey(
@@ -465,7 +435,7 @@ export class GatewayService {
     ];
 
     if (!cancellableStatuses.includes(actionRequest.status)) {
-      throw new GatewayError(400, "Action cannot be cancelled.");
+      throw new GatewayError(400, "Action cannot be cancelled.", "state");
     }
 
     const updated = await prisma.$transaction(async (tx) => {
@@ -517,49 +487,6 @@ export class GatewayService {
       status: updated.status,
       cancelled: true,
     };
-  }
-
-  private async authenticate(headers: Headers) {
-    const ip = getRequestIp(headers);
-    const ipRateLimit = checkRateLimit(`ip:${ip}`);
-
-    if (!ipRateLimit.allowed) {
-      throw new GatewayError(429, "Rate limit exceeded.");
-    }
-
-    const token = getBearerToken(headers);
-    const keyHash = hashApiKey(token);
-    const keyRateLimit = checkRateLimit(`api-key:${keyHash}`);
-
-    if (!keyRateLimit.allowed) {
-      throw new GatewayError(429, "Rate limit exceeded.");
-    }
-
-    const apiKey = await prisma.apiKey.findFirst({
-      where: {
-        keyHash,
-        status: ApiKeyStatus.ACTIVE,
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
-      },
-      select: {
-        id: true,
-        organizationId: true,
-        agentId: true,
-        organization: {
-          select: {
-            id: true,
-            status: true,
-            killSwitchEnabled: true,
-          },
-        },
-      },
-    });
-
-    if (!apiKey) {
-      throw new GatewayError(401, "Invalid API key.");
-    }
-
-    return { apiKey, keyHash };
   }
 
   private async findIdempotentAction(
@@ -620,11 +547,13 @@ export class GatewayService {
     });
 
     if (!actionRequest) {
-      throw new GatewayError(404, "Action request not found.");
+      throw gatewayNotFoundError("Action request not found.");
     }
 
     if (scopedAgentId && scopedAgentId !== actionRequest.agentId) {
-      throw new GatewayError(403, "API key cannot access this action request.");
+      throw gatewayForbiddenError(
+        "Gateway request is not allowed for this action request.",
+      );
     }
 
     return actionRequest;

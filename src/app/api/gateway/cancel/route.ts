@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
-import { gatewayService, GatewayError } from "@/server/gateway/gateway-service";
+import { gatewayErrorResponse } from "@/server/gateway/errors";
+import { gatewayService } from "@/server/gateway/gateway-service";
 import { gatewayActionRequestSchema } from "@/server/gateway/types";
-
-function errorResponse(error: unknown) {
-  if (error instanceof GatewayError) {
-    return NextResponse.json({ error: error.message }, { status: error.status });
-  }
-
-  return NextResponse.json({ error: "Gateway cancellation failed." }, { status: 500 });
-}
 
 export async function POST(request: Request) {
   try {
@@ -26,6 +19,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(response);
   } catch (error) {
-    return errorResponse(error);
+    return gatewayErrorResponse(error, "Gateway cancellation failed.");
   }
 }
