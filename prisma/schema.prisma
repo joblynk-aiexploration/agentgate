@@ -337,7 +337,7 @@ model ActionRequest {
   approvalRequest ApprovalRequest?
   riskAssessments RiskAssessment[]
 
-  @@unique([organizationId, idempotencyKey])
+  @@unique([organizationId, apiKeyId, idempotencyKey])
   @@index([organizationId, agentId])
   @@index([organizationId, riskLevel])
   @@index([organizationId, decision])

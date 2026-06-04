@@ -177,6 +177,7 @@ export class GatewayService {
     if (idempotencyKey) {
       const existing = await this.findIdempotentAction(
         auth.apiKey.organizationId,
+        auth.apiKey.id,
         idempotencyKey,
       );
 
@@ -567,11 +568,13 @@ export class GatewayService {
 
   private async findIdempotentAction(
     organizationId: string,
+    apiKeyId: string,
     idempotencyKey: string,
   ) {
     return prisma.actionRequest.findFirst({
       where: {
         organizationId,
+        apiKeyId,
         idempotencyKey,
       },
       select: {

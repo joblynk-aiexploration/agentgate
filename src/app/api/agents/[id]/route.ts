@@ -76,7 +76,7 @@ export async function PATCH(request: Request, context: AgentRouteContext) {
   }
 
   const { id } = await context.params;
-  const body = await request.json();
+  const body = await request.json().catch(() => null);
   const parsed = agentPatchSchema.safeParse(body);
 
   if (!parsed.success) {
