@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "bcryptjs";
 import "dotenv/config";
@@ -37,7 +37,7 @@ const DEMO_API_KEY = "ag_test_seed_support_refund_demo_key";
 const DEVELOPMENT_API_KEY_PEPPER = "agentgate-development-seed-pepper";
 
 function hashApiKey(key: string, pepper: string) {
-  return createHash("sha256").update(`${pepper}:${key}`).digest("hex");
+  return createHmac("sha256", pepper).update(key).digest("hex");
 }
 
 async function main() {
@@ -360,9 +360,8 @@ async function main() {
   const supportApiKey = await prisma.apiKey.create({
     data: {
       organizationId: organization.id,
-      agentId: supportRefundAgent.id,
       createdById: developer.id,
-      name: "Support Refund Agent Demo Key",
+      name: "Gateway Demo Org Key",
       keyPrefix: "ag_test_seed",
       keyHash: hashApiKey(DEMO_API_KEY, apiKeyPepper),
       status: ApiKeyStatus.ACTIVE,

@@ -28,10 +28,28 @@ Local setup is intentionally light while the foundation is being built.
 
 AgentGate V1 uses local deterministic TypeScript rules only. It does not call OpenAI, Anthropic, Gemini, or other paid AI APIs.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Gateway API
 
-## Deploy on Vercel
+AgentGate agents call the gateway with API keys, not human login sessions. API keys use the `ag_test_` prefix in V1. Full keys are shown once at creation and only hashes are stored.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Example gateway check:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+curl -X POST "http://localhost:3000/api/gateway/check" \
+  -H "Authorization: Bearer <ag_test_api_key>" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: demo-refund-1200" \
+  -d '{
+    "agentId": "support-refund-agent",
+    "tool": "stripe",
+    "action": "refund.create",
+    "environment": "production",
+    "amount": 1200,
+    "currency": "USD",
+    "reason": "Customer was double charged",
+    "payload": {},
+    "metadata": {}
+  }'
+```
+
+V1 execution is simulated only. The `/api/gateway/execute` route records simulated execution and never calls Stripe, Gmail, Slack, or other external tools.
