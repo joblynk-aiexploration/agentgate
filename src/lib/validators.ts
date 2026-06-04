@@ -1,7 +1,11 @@
 import { z } from "zod";
 import {
+  ActionDecision,
   AgentRiskTier,
   AgentStatus,
+  MembershipRole,
+  PolicyStatus,
+  RiskLevel,
   ToolType,
 } from "@/generated/prisma/client";
 
@@ -64,6 +68,30 @@ const agentRiskTierValues = Object.values(AgentRiskTier) as [
   ...AgentRiskTier[],
 ];
 const toolTypeValues = Object.values(ToolType) as [ToolType, ...ToolType[]];
+const policyStatusValues = Object.values(PolicyStatus) as [
+  PolicyStatus,
+  ...PolicyStatus[],
+];
+const actionDecisionValues = Object.values(ActionDecision) as [
+  ActionDecision,
+  ...ActionDecision[],
+];
+const membershipRoleValues = Object.values(MembershipRole) as [
+  MembershipRole,
+  ...MembershipRole[],
+];
+const riskLevelValues = Object.values(RiskLevel) as [RiskLevel, ...RiskLevel[]];
+
+const jsonValueSchema: z.ZodType<unknown> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(jsonValueSchema),
+    z.record(z.string(), jsonValueSchema),
+  ]),
+);
 
 export const agentInputSchema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -140,3 +168,41 @@ export function parseApiKeyFormData(formData: FormData) {
     expiresAt: formData.get("expiresAt") || null,
   });
 }
+
+export const policyRuleInputSchema = z.object({
+  tool: z.enum(toolTypeValues).optional().nullable(),
+  action: z.string().trim().max(160).optional().nullable(),
+  decision: z.enum(actionDecisionValues),
+  requiredRole: z.enum(membershipRoleValues).optional().nullable(),
+  riskOverride: z.enum(riskLevelValues).optional().nullable(),
+  conditionsJson: z
+    .record(z.string(), jsonValueSchema)
+    .default({})
+    .refine(
+      (value) => {
+        try {
+          JSON.stringify(value);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      "Conditions must be valid JSON.",
+    ),
+});
+
+export const policyInputSchema = z.object({
+  name: z.string().trim().min(2).max(160),
+  description: z.string().trim().max(1200).optional().nullable(),
+  status: z.enum(policyStatusValues),
+  priority: z.coerce.number().int().min(1).max(10_000),
+  rules: z
+    .array(policyRuleInputSchema)
+    .min(1, "Add at least one rule.")
+    .max(20, "A V1 policy can have up to 20 rules."),
+});
+
+export const policyPatchSchema = policyInputSchema.partial().refine(
+  (value) => Object.keys(value).length > 0,
+  "At least one field is required.",
+);
