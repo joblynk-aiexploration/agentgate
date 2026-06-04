@@ -1,10 +1,296 @@
-import { ProtectedPage } from "@/app/(app)/_components/protected-page";
+import { BookOpen, Braces, ClipboardCheck, KeyRound, Route } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { roleRules, requireRole } from "@/lib/permissions";
 
-export default function DeveloperDocsPage() {
+const curlExample = `curl -X POST http://localhost:3000/api/gateway/check \\
+  -H "Authorization: Bearer <ag_test_api_key>" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "agentId": "support-refund-agent",
+    "tool": "stripe",
+    "action": "refund.create",
+    "environment": "production",
+    "amount": 1200,
+    "currency": "USD",
+    "reason": "Customer was double charged",
+    "payload": {},
+    "metadata": {}
+  }'`;
+
+const typescriptExample = `type GatewayDecision =
+  | "ALLOW"
+  | "REQUIRE_APPROVAL"
+  | "BLOCK"
+  | "LOG_ONLY"
+  | "SANDBOX_ONLY";
+
+async function checkRefund(apiKey: string) {
+  const response = await fetch("http://localhost:3000/api/gateway/check", {
+    method: "POST",
+    headers: {
+      Authorization: \`Bearer \${apiKey}\`,
+      "Content-Type": "application/json",
+      "Idempotency-Key": "refund-1200-demo",
+    },
+    body: JSON.stringify({
+      agentId: "support-refund-agent",
+      tool: "stripe",
+      action: "refund.create",
+      environment: "production",
+      amount: 1200,
+      currency: "USD",
+      reason: "Customer was double charged",
+      payload: {},
+      metadata: {},
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(\`Gateway check failed: \${response.status}\`);
+  }
+
+  const result = (await response.json()) as {
+    actionRequestId: string;
+    decision: GatewayDecision;
+    allowed: boolean;
+    requiresApproval: boolean;
+    approvalRequestId?: string;
+    status: string;
+  };
+
+  return result;
+}`;
+
+const decisionRows = [
+  {
+    decision: "ALLOW",
+    detail: "The action can proceed to simulated execution without approval.",
+  },
+  {
+    decision: "REQUIRE_APPROVAL",
+    detail: "The action is held in the Approval Inbox until an eligible reviewer approves or rejects it.",
+  },
+  {
+    decision: "BLOCK",
+    detail: "The action must not execute. Paused agents, kill switch, and blocking policies return this.",
+  },
+  {
+    decision: "LOG_ONLY",
+    detail: "The action is allowed, but AgentGate still records the full audit trail.",
+  },
+  {
+    decision: "SANDBOX_ONLY",
+    detail: "V1 allows this only for non-production or sandbox-style environments; production requests are blocked.",
+  },
+] as const;
+
+function CodeBlock({ children }: { children: string }) {
   return (
-    <ProtectedPage
-      title="Developer Docs"
-      description="Integrate agents with the gateway check endpoint and local policy decision model."
-    />
+    <pre className="overflow-x-auto bg-[#111318] p-4 text-xs leading-6 text-[#d8eeee]">
+      <code>{children}</code>
+    </pre>
+  );
+}
+
+export default async function DeveloperDocsPage() {
+  const membership = await requireRole(roleRules.viewDeveloperDocs);
+
+  return (
+    <section className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+      <PageHeader
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Button href="/developer/api-keys" variant="secondary">
+              <KeyRound className="h-4 w-4" aria-hidden />
+              API keys
+            </Button>
+            <Button href="/developer">
+              <Route className="h-4 w-4" aria-hidden />
+              Developer home
+            </Button>
+          </div>
+        }
+        description="Integrate agents with the AgentGate gateway, local safety engine, policy decisions, approvals, and audit logs."
+        eyebrow={membership.organization.slug}
+        title="Developer Docs"
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>What AgentGate Does</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 text-sm leading-6 text-[#34404a]">
+          <p>
+            AgentGate is the safety, approval, and audit layer for AI agents. Agents call the
+            gateway before taking sensitive actions, and AgentGate decides whether to allow,
+            block, log, or route the action for human approval.
+          </p>
+          <div className="border border-[#d9dee8] bg-[#f8fafc] p-4 font-semibold text-[#172326]">
+            AI Agent &rarr; AgentGate Gateway API &rarr; Local Safety Engine &rarr; Policy
+            Decision &rarr; Approval Inbox &rarr; Audit Log
+          </div>
+          <p>
+            AgentGate V1 uses deterministic local TypeScript rules only. It does not use
+            OpenAI, Anthropic, Gemini, or paid AI APIs.
+          </p>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-5 xl:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Setup Flow</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="grid gap-3 text-sm leading-6 text-[#34404a]">
+              <li>1. Register an agent from the Agent Registry and assign allowed tools.</li>
+              <li>2. Create an API key from Developer &gt; API Keys.</li>
+              <li>3. Copy the full `ag_test_` key immediately. It is shown once.</li>
+              <li>4. Send gateway checks with `Authorization: Bearer &lt;ag_test_api_key&gt;`.</li>
+              <li>5. Handle the decision response before calling execute or cancel.</li>
+            </ol>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Gateway Endpoints</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid gap-4 text-sm">
+              <div>
+                <dt className="font-semibold">POST /api/gateway/check</dt>
+                <dd className="mt-1 text-[#5c6470]">
+                  Authenticates the API key, resolves the agent, scores risk, evaluates policies,
+                  creates approval requests when needed, and writes audit logs.
+                </dd>
+              </div>
+              <div>
+                <dt className="font-semibold">POST /api/gateway/execute</dt>
+                <dd className="mt-1 text-[#5c6470]">
+                  Simulates execution only after the action is allowed or approved. V1 never calls
+                  Stripe, email providers, Slack, databases, or external tools.
+                </dd>
+              </div>
+              <div>
+                <dt className="font-semibold">POST /api/gateway/cancel</dt>
+                <dd className="mt-1 text-[#5c6470]">
+                  Cancels pending actions and any pending approval request for the same organization.
+                </dd>
+              </div>
+            </dl>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>TypeScript Fetch Example</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CodeBlock>{typescriptExample}</CodeBlock>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>curl Example</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CodeBlock>{curlExample}</CodeBlock>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Decision Handling</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3">
+            {decisionRows.map((row) => (
+              <div
+                className="grid gap-2 border border-[#d9dee8] bg-[#f8fafc] p-4 md:grid-cols-[180px_1fr]"
+                key={row.decision}
+              >
+                <div>
+                  <StatusBadge status={row.decision} />
+                </div>
+                <p className="text-sm leading-6 text-[#34404a]">{row.detail}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-5 xl:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle>Approval Flow</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm leading-6 text-[#34404a]">
+            A `REQUIRE_APPROVAL` decision creates an Approval Inbox item. Eligible reviewers can
+            inspect risk signals, payload JSON, metadata, policy reason, and audit history before
+            approving, rejecting, or saving an edited payload.
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Future SDK</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm leading-6 text-[#34404a]">
+            A TypeScript SDK placeholder is planned for typed gateway clients, idempotency helpers,
+            and decision handling utilities.
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Future Webhooks</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm leading-6 text-[#34404a]">
+            Webhook placeholders will notify external systems about approvals, blocks, executions,
+            and audit events after V1.
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Future Tool Proxy and MCP Gateway</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-start gap-3 text-sm leading-6 text-[#34404a]">
+          <Braces className="mt-0.5 h-4 w-4 shrink-0 text-[#2d6f7f]" aria-hidden />
+          <p>
+            Future versions can proxy tool calls or act as an MCP gateway. V1 keeps execution
+            simulated so policies, approvals, and audit trails can be demonstrated without real
+            third-party side effects.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Links</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button href="/agents" variant="secondary">
+            Register agent
+          </Button>
+          <Button href="/developer/api-keys" variant="secondary">
+            Create API key
+          </Button>
+          <Button href="/approvals" variant="secondary">
+            <ClipboardCheck className="h-4 w-4" aria-hidden />
+            Approval Inbox
+          </Button>
+          <Button href="/audit-logs" variant="secondary">
+            <BookOpen className="h-4 w-4" aria-hidden />
+            Audit Logs
+          </Button>
+        </CardContent>
+      </Card>
+    </section>
   );
 }

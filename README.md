@@ -1,8 +1,8 @@
 # AgentGate
 
-AgentGate is an enterprise-grade multi-tenant SaaS product: the safety, approval, and audit layer for AI agents.
+AgentGate is an enterprise-grade multi-tenant SaaS demo: the safety, approval, and audit layer for AI agents.
 
-V1 focuses on a working demo flow where AI agent actions pass through a gateway, local safety engine, policy decision, approval inbox, and audit log before simulated execution.
+One-line pitch: AgentGate lets AI agents request sensitive actions through a governed gateway before anything is approved, blocked, simulated, or audited.
 
 ## Tech Stack
 
@@ -12,33 +12,161 @@ V1 focuses on a working demo flow where AI agent actions pass through a gateway,
 - PostgreSQL
 - Prisma ORM
 - Zod
+- bcryptjs
+- jose
 - npm
 
-## Local Setup
+## Architecture
 
-Local setup is intentionally light while the foundation is being built.
+```text
+AI Agent -> AgentGate Gateway API -> Local Safety Engine -> Policy Decision -> Approval Inbox -> Audit Log
+```
 
-1. Copy `.env.example` to `.env.local` and update secrets.
-2. Start PostgreSQL with `docker compose up -d`.
-3. Install dependencies with `npm install`.
-4. Run Prisma setup with `npm run prisma:generate` and `npm run prisma:migrate`.
-5. Start the app with `npm run dev`.
+The important V1 flow:
 
-## V1 AI Policy
+1. An AI agent calls `POST /api/gateway/check` with an API key.
+2. AgentGate authenticates the key and resolves the organization and agent.
+3. The local TypeScript risk engine scores the action.
+4. The policy engine decides `ALLOW`, `REQUIRE_APPROVAL`, `BLOCK`, `LOG_ONLY`, or `SANDBOX_ONLY`.
+5. High-risk actions can create an Approval Inbox item.
+6. Every important step is written to the audit log.
+7. Execution is simulated only.
 
-AgentGate V1 uses local deterministic TypeScript rules only. It does not call OpenAI, Anthropic, Gemini, or other paid AI APIs.
+## V1 Scope
 
-## Gateway API
+V1 focuses on:
 
-AgentGate agents call the gateway with API keys, not human login sessions. API keys use the `ag_test_` prefix in V1. Full keys are shown once at creation and only hashes are stored.
+- Organizations and membership roles
+- Email/password login with httpOnly sessions
+- Agent registry
+- Hashed API keys for agents and developers
+- Gateway checks
+- Local deterministic risk scoring
+- Policy decisions
+- Approval Inbox
+- Audit logs and CSV export
+- Demo integrations
+- Display-only billing
+- Lightweight reports
+- Organization kill switch
 
-Example gateway check:
+## What V1 Intentionally Does Not Do
+
+- No OpenAI, Anthropic, Gemini, or paid AI APIs
+- No real Stripe refunds
+- No real emails
+- No real Slack messages
+- No real database writes
+- No live Stripe billing
+- No external credentials required
+- No production tool side effects
+
+AgentGate V1 uses local rules only.
+
+## Environment Variables
+
+Copy `.env.example` to `.env` or `.env.local` and set values:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/agentgate"
+APP_URL="http://localhost:3000"
+SESSION_SECRET="replace-with-a-long-random-secret"
+API_KEY_PEPPER="replace-with-a-long-random-secret"
+ENCRYPTION_KEY="replace-with-32-byte-key"
+NODE_ENV="development"
+```
+
+`API_KEY_PEPPER` must remain stable for stored API key hashes to keep working.
+
+## Docker Postgres Setup
+
+Start local PostgreSQL:
 
 ```bash
-curl -X POST "http://localhost:3000/api/gateway/check" \
-  -H "Authorization: Bearer <ag_test_api_key>" \
+docker compose up -d
+```
+
+The provided `docker-compose.yml` starts PostgreSQL 16 with:
+
+- user: `postgres`
+- password: `postgres`
+- database: `agentgate`
+- port: `5432`
+
+## Prisma Commands
+
+Generate the Prisma client:
+
+```bash
+npm run prisma:generate
+```
+
+Run migrations:
+
+```bash
+npm run prisma:migrate
+```
+
+Seed demo data:
+
+```bash
+npm run prisma:seed
+```
+
+Open Prisma Studio:
+
+```bash
+npm run prisma:studio
+```
+
+## Login Credentials
+
+Seeded demo users:
+
+- `owner@agentgate.dev` / `Password123!`
+- `security@agentgate.dev` / `Password123!`
+- `developer@agentgate.dev` / `Password123!`
+- `reviewer@agentgate.dev` / `Password123!`
+- `auditor@agentgate.dev` / `Password123!`
+
+## Demo API Key
+
+The seed command prints a local demo API key:
+
+```text
+ag_test_seed_support_refund_demo_key
+```
+
+Only its hash is stored. This key is for local development and gateway demos.
+
+## Run the Dev Server
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the app:
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+## Test the Gateway Endpoint
+
+Run this after seeding the database:
+
+```bash
+curl -X POST http://localhost:3000/api/gateway/check \
+  -H "Authorization: Bearer ag_test_seed_support_refund_demo_key" \
   -H "Content-Type: application/json" \
-  -H "Idempotency-Key: demo-refund-1200" \
   -d '{
     "agentId": "support-refund-agent",
     "tool": "stripe",
@@ -46,10 +174,113 @@ curl -X POST "http://localhost:3000/api/gateway/check" \
     "environment": "production",
     "amount": 1200,
     "currency": "USD",
-    "reason": "Customer was double charged",
-    "payload": {},
-    "metadata": {}
+    "reason": "Customer was double charged"
   }'
 ```
 
-V1 execution is simulated only. The `/api/gateway/execute` route records simulated execution and never calls Stripe, Gmail, Slack, or other external tools.
+Expected result:
+
+- `decision`: `REQUIRE_APPROVAL`
+- `requiresApproval`: `true`
+- `status`: `PENDING_APPROVAL`
+
+## Approve an Action
+
+1. Login as `owner@agentgate.dev` or `reviewer@agentgate.dev`.
+2. Go to `/approvals`.
+3. Open the pending approval.
+4. Review the agent, tool, action, risk signals, policy reason, payload, and metadata.
+5. Add an optional comment.
+6. Click Approve.
+7. The related `ActionRequest` moves to `APPROVED`.
+8. The approval decision is written to Audit Logs.
+
+## Test the Kill Switch
+
+1. Login as `owner@agentgate.dev` or `security@agentgate.dev`.
+2. Go to `/settings`.
+3. Enable the organization kill switch.
+4. Send the gateway curl request again.
+5. AgentGate returns `BLOCK`.
+6. Go to `/audit-logs` and confirm the kill-switch audit event and blocked gateway action.
+
+Disable the kill switch from `/settings` when finished.
+
+## Gateway Execute and Cancel
+
+V1 never performs real external execution.
+
+Use `POST /api/gateway/execute` only after an action is `ALLOWED` or `APPROVED`; it marks the action as `EXECUTED` and returns a simulated result.
+
+Use `POST /api/gateway/cancel` to cancel pending/requested actions and any pending approval request.
+
+## Verification Scripts
+
+Risk engine:
+
+```bash
+npm run verify:risk
+```
+
+Policy engine:
+
+```bash
+npm run verify:policy
+```
+
+Gateway examples and optional live verification:
+
+```bash
+npm run verify:gateway
+```
+
+For live gateway verification:
+
+```bash
+APP_URL="http://localhost:3000" \
+AGENTGATE_DEMO_API_KEY="ag_test_seed_support_refund_demo_key" \
+npm run verify:gateway
+```
+
+## Final Demo Script
+
+1. Login as `owner@agentgate.dev`.
+2. Go to Dashboard.
+3. See pending high-risk approval.
+4. Go to Agents.
+5. Open Support Refund Agent.
+6. See allowed tools and recent risky actions.
+7. Go to Policies.
+8. See Refunds above $500 require approval.
+9. Use curl or Developer Docs to send a refund action for `$1,200`.
+10. AgentGate returns `REQUIRE_APPROVAL`.
+11. Go to Approval Inbox.
+12. Open approval.
+13. See risk signals and policy reason.
+14. Approve it.
+15. Go to Audit Logs.
+16. See full trail.
+17. Pause agent.
+18. Send same gateway request.
+19. AgentGate returns `BLOCK` because the agent is paused.
+
+## Product Roadmap
+
+Near-term:
+
+- Richer approval assignment and escalation
+- Policy templates
+- More report filters
+- Better API docs and typed examples
+- Webhook notifications
+
+Future:
+
+- TypeScript SDK
+- Tool proxy
+- MCP gateway
+- Local model reviewer option
+- Premium model reviewer option
+- SSO and enterprise identity
+- Real integration adapters with strict sandboxing
+- Live billing integration
