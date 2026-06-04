@@ -13,6 +13,15 @@ const roleLevels: Record<MembershipRole, number> = {
 
 export const roleRules = {
   manageOrganization: ["platform_owner", "org_owner"],
+  manageAgents: ["platform_owner", "org_owner", "security_admin"],
+  viewAgents: [
+    "platform_owner",
+    "org_owner",
+    "security_admin",
+    "developer",
+    "reviewer",
+    "auditor",
+  ],
   managePolicies: ["platform_owner", "org_owner", "security_admin"],
   manageApprovals: ["platform_owner", "org_owner", "security_admin", "reviewer"],
   viewAuditLogs: ["platform_owner", "org_owner", "security_admin", "auditor"],
