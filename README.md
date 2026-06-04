@@ -4,6 +4,76 @@ AgentGate is an enterprise-grade multi-tenant SaaS demo: the safety, approval, a
 
 One-line pitch: AgentGate lets AI agents request sensitive actions through a governed gateway before anything is approved, blocked, simulated, or audited.
 
+## Quick Start
+
+Run these commands from a fresh clone:
+
+1. Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+2. Start PostgreSQL with Docker:
+
+```bash
+docker compose up -d
+```
+
+3. Install dependencies:
+
+```bash
+npm install
+```
+
+4. Run Prisma migrations:
+
+```bash
+npm run prisma:migrate
+```
+
+5. Seed the demo database:
+
+```bash
+npm run prisma:seed
+```
+
+The seed is safe to rerun for local demos. It resets the `acme` demo organization,
+recreates demo users, creates pending approvals, writes audit logs, and stores only
+the hash of the local demo API key.
+
+6. Start the dev server:
+
+```bash
+npm run dev
+```
+
+7. Login at `http://localhost:3000/login`:
+
+```text
+owner@agentgate.dev / Password123!
+reviewer@agentgate.dev / Password123!
+```
+
+8. Test the gateway:
+
+```bash
+curl -X POST http://localhost:3000/api/gateway/check \
+  -H "Authorization: Bearer ag_test_seed_support_refund_demo_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agentId": "support-refund-agent",
+    "tool": "stripe",
+    "action": "refund.create",
+    "environment": "production",
+    "amount": 1200,
+    "currency": "USD",
+    "reason": "Customer was double charged"
+  }'
+```
+
+Expected: `REQUIRE_APPROVAL` with a pending approval in `/approvals`.
+
 ## Tech Stack
 
 - Next.js App Router
@@ -137,7 +207,8 @@ The seed command prints a local demo API key:
 ag_test_seed_support_refund_demo_key
 ```
 
-Only its hash is stored. This key is for local development and gateway demos.
+Only its hash is stored. This key is local-only demo material, is never used for
+human login, and should not be reused outside a local AgentGate demo.
 
 ## Run the Dev Server
 
