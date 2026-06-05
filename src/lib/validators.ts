@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   ActionDecision,
+  ActionStatus,
   ApprovalStatus,
   AgentRiskTier,
   AgentStatus,
@@ -76,6 +77,10 @@ const toolTypeValues = Object.values(ToolType) as [ToolType, ...ToolType[]];
 const policyStatusValues = Object.values(PolicyStatus) as [
   PolicyStatus,
   ...PolicyStatus[],
+];
+const actionStatusValues = Object.values(ActionStatus) as [
+  ActionStatus,
+  ...ActionStatus[],
 ];
 const actionDecisionValues = Object.values(ActionDecision) as [
   ActionDecision,
@@ -251,6 +256,17 @@ const optionalFilterString = z
   .max(120)
   .optional()
   .transform((value) => value || undefined);
+
+export const actionListQuerySchema = z.object({
+  status: z.enum(actionStatusValues).optional(),
+  decision: z.enum(actionDecisionValues).optional(),
+  riskLevel: z.enum(riskLevelValues).optional(),
+  tool: z.enum(toolTypeValues).optional(),
+  agentId: optionalFilterString,
+  from: optionalFilterString,
+  to: optionalFilterString,
+  environment: optionalFilterString,
+});
 
 export const auditLogQuerySchema = z.object({
   eventType: optionalFilterString,

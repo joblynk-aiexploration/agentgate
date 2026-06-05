@@ -44,6 +44,7 @@ type ToolVolumeRow = {
 
 type RecentApprovalRow = {
   action: string;
+  actionRequestId: string;
   agent: string;
   createdAt: Date;
   id: string;
@@ -191,6 +192,7 @@ export default async function DashboardPage() {
         createdAt: true,
         actionRequest: {
           select: {
+            id: true,
             action: true,
             tool: true,
             riskLevel: true,
@@ -285,6 +287,7 @@ export default async function DashboardPage() {
 
   const approvalRows: RecentApprovalRow[] = recentApprovals.map((approval) => ({
     action: approval.actionRequest.action,
+    actionRequestId: approval.actionRequest.id,
     agent: approval.actionRequest.agent.name,
     createdAt: approval.createdAt,
     id: approval.id,
@@ -381,6 +384,17 @@ export default async function DashboardPage() {
       header: "Created",
       accessor: (row) => formatRelativeTime(row.createdAt),
     },
+    {
+      header: "Action",
+      accessor: (row) => (
+        <a
+          className="font-semibold text-[#2d6f7f] hover:text-[#172326]"
+          href={`/actions/${row.actionRequestId}`}
+        >
+          Inspect
+        </a>
+      ),
+    },
   ];
 
   const blockedColumns: DataTableColumn<BlockedActionRow>[] = [
@@ -406,6 +420,17 @@ export default async function DashboardPage() {
     {
       header: "Created",
       accessor: (row) => formatRelativeTime(row.createdAt),
+    },
+    {
+      header: "Action",
+      accessor: (row) => (
+        <a
+          className="font-semibold text-[#2d6f7f] hover:text-[#172326]"
+          href={`/actions/${row.id}`}
+        >
+          Inspect
+        </a>
+      ),
     },
   ];
 

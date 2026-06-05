@@ -296,6 +296,14 @@ export default async function AgentDetailPage({ params }: AgentDetailPageProps) 
       header: "Created",
       accessor: (row) => formatRelativeTime(row.createdAt),
     },
+    {
+      header: "Action",
+      accessor: (row) => (
+        <Button className="h-8" href={`/actions/${row.id}`} variant="secondary">
+          Inspect
+        </Button>
+      ),
+    },
   ];
 
   const policyColumns: DataTableColumn<PolicyRow>[] = [

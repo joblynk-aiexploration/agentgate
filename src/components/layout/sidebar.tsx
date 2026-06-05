@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   BarChart3,
+  ListChecks,
   Bot,
   ClipboardCheck,
   CreditCard,
@@ -16,6 +17,7 @@ import { formatEnumLabel } from "@/lib/format";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Gauge },
+  { href: "/actions", label: "Actions", icon: ListChecks },
   { href: "/agents", label: "Agents", icon: Bot },
   { href: "/policies", label: "Policies", icon: ShieldCheck },
   { href: "/approvals", label: "Approvals", icon: ClipboardCheck },

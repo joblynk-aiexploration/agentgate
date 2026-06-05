@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +32,7 @@ type AuditLogRow = {
   metadataJson: unknown;
   metadataSummary: string;
   target: string;
+  targetId: string | null;
   targetType: string;
 };
 
@@ -125,6 +127,7 @@ export default async function AuditLogsPage({
       target: log.targetId
         ? `${log.targetType ?? "target"}:${log.targetId.slice(0, 8)}`
         : (log.targetType ?? "None"),
+      targetId: log.targetId,
       targetType: log.targetType ?? "None",
     };
   });
@@ -145,7 +148,20 @@ export default async function AuditLogsPage({
       ),
     },
     { header: "Actor", accessor: "actor" },
-    { header: "Target", accessor: "target" },
+    {
+      header: "Target",
+      accessor: (row) =>
+        row.targetId && row.targetType === "ActionRequest" ? (
+          <Link
+            className="font-semibold text-[#172326] hover:text-[#2d6f7f]"
+            href={`/actions/${row.targetId}`}
+          >
+            {row.target}
+          </Link>
+        ) : (
+          row.target
+        ),
+    },
     {
       header: "Metadata summary",
       accessor: (row) => (

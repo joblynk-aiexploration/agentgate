@@ -23,6 +23,7 @@ type ApprovalsPageProps = {
 
 type ApprovalRow = {
   action: string;
+  actionRequestId: string;
   agent: string;
   id: string;
   reason: string;
@@ -99,6 +100,7 @@ export default async function ApprovalsPage({
 
   const rows: ApprovalRow[] = approvals.map((approval) => ({
     action: approval.actionRequest.action,
+    actionRequestId: approval.actionRequest.id,
     agent: approval.actionRequest.agent.name,
     id: approval.id,
     reason: approval.actionRequest.reason,
@@ -145,9 +147,18 @@ export default async function ApprovalsPage({
     {
       header: "Actions",
       accessor: (row) => (
-        <Button className="h-8" href={`/approvals/${row.id}`} variant="secondary">
-          Review
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button className="h-8" href={`/approvals/${row.id}`} variant="secondary">
+            Review
+          </Button>
+          <Button
+            className="h-8"
+            href={`/actions/${row.actionRequestId}`}
+            variant="ghost"
+          >
+            Inspect
+          </Button>
+        </div>
       ),
     },
   ];

@@ -226,9 +226,14 @@ export default async function ApprovalDetailPage({
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <PageHeader
         actions={
-          <Button href="/approvals" variant="secondary">
-            Back to approvals
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button href={`/actions/${actionRequest.id}`} variant="secondary">
+              Inspect action
+            </Button>
+            <Button href="/approvals" variant="secondary">
+              Back to approvals
+            </Button>
+          </div>
         }
         description="Review the policy reason, risk signals, payload, and audit history before deciding whether this simulated action may proceed."
         eyebrow={membership.organization.slug}
