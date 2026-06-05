@@ -1,5 +1,11 @@
 import { revalidatePath } from "next/cache";
-import { AlertTriangle, Building2, ShieldAlert, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  Building2,
+  ShieldAlert,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -55,10 +61,16 @@ export default async function SettingsPage() {
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <PageHeader
         actions={
-          <Button href="/settings/members" variant="secondary">
-            <Users className="h-4 w-4" aria-hidden />
-            Members
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button href="/settings/access-review" variant="secondary">
+              <ShieldCheck className="h-4 w-4" aria-hidden />
+              Access review
+            </Button>
+            <Button href="/settings/members" variant="secondary">
+              <Users className="h-4 w-4" aria-hidden />
+              Members
+            </Button>
+          </div>
         }
         description="Manage the organization profile, local safety posture, and V1 kill switch."
         eyebrow={organization.slug}
