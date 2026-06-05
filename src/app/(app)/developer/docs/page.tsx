@@ -1,4 +1,11 @@
-import { BookOpen, Braces, ClipboardCheck, KeyRound, Route } from "lucide-react";
+import {
+  BookOpen,
+  Braces,
+  ClipboardCheck,
+  FileJson,
+  KeyRound,
+  Route,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -161,6 +168,10 @@ export default async function DeveloperDocsPage() {
               <KeyRound className="h-4 w-4" aria-hidden />
               API keys
             </Button>
+            <Button href="/api/openapi" variant="secondary">
+              <FileJson className="h-4 w-4" aria-hidden />
+              OpenAPI
+            </Button>
             <Button href="/developer">
               <Route className="h-4 w-4" aria-hidden />
               Developer home
@@ -240,6 +251,26 @@ export default async function DeveloperDocsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>OpenAPI Specification</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 text-sm leading-6 text-[#34404a]">
+          <p>
+            AgentGate exposes a JSON OpenAPI 3.1 document for the public gateway
+            and developer APIs. It documents gateway checks, simulated execution,
+            API keys, agents, approvals, audit logs, and settings without
+            exposing secrets or internal-only schemas.
+          </p>
+          <div>
+            <Button href="/api/openapi" variant="secondary">
+              <FileJson className="h-4 w-4" aria-hidden />
+              View /api/openapi
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
