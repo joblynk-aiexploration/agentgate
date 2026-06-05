@@ -32,8 +32,11 @@ export function DataTable<T>({
       <table className="w-full min-w-[720px] border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-[#e5e9ef] bg-[#f8fafc] text-xs uppercase text-[#687384]">
-            {columns.map((column) => (
-              <th className={cn("px-4 py-3 font-semibold", column.className)} key={column.header}>
+            {columns.map((column, index) => (
+              <th
+                className={cn("px-4 py-3 font-semibold", column.className)}
+                key={`${column.header}-${index}`}
+              >
                 {column.header}
               </th>
             ))}
@@ -45,14 +48,17 @@ export function DataTable<T>({
               className="border-b border-[#edf1f6] transition hover:bg-[#fbfcfe] last:border-0"
               key={rowKey(row, index)}
             >
-              {columns.map((column) => {
+              {columns.map((column, columnIndex) => {
                 const value =
                   typeof column.accessor === "function"
                     ? column.accessor(row)
                     : (row[column.accessor] as ReactNode);
 
                 return (
-                  <td className={cn("px-4 py-3 align-top", column.className)} key={column.header}>
+                  <td
+                    className={cn("px-4 py-3 align-top", column.className)}
+                    key={`${column.header}-${columnIndex}`}
+                  >
                     {value}
                   </td>
                 );

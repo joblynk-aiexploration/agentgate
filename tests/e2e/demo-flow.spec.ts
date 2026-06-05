@@ -54,7 +54,9 @@ test("seeded owner can inspect core demo pages", async ({ page, request }) => {
 
   await page.goto("/policies");
   await expect(page.getByRole("heading", { name: "Policies" })).toBeVisible();
-  await expect(page.getByText(/Refunds above \$500 require approval/i)).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /Refunds above \$500 require/i }),
+  ).toBeVisible();
 
   await page.goto("/approvals");
   await expect(page.getByRole("heading", { name: "Approval Inbox" })).toBeVisible();
