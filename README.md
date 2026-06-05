@@ -285,6 +285,45 @@ Use `POST /api/gateway/execute` only after an action is `ALLOWED` or `APPROVED`;
 
 Use `POST /api/gateway/cancel` to cancel pending/requested actions and any pending approval request.
 
+## Using the SDK Starter
+
+AgentGate includes a small local TypeScript SDK starter in `src/sdk`. It is not
+published to npm yet and is intended as repo-local starter code for developers
+connecting AI agents to the V1 Gateway API.
+
+```ts
+import { AgentGateClient } from "@/sdk";
+
+const agentgate = new AgentGateClient({
+  apiKey: process.env.AGENTGATE_API_KEY!,
+  baseUrl: "http://localhost:3000",
+});
+
+const decision = await agentgate.check({
+  agentId: "support-refund-agent",
+  tool: "stripe",
+  action: "refund.create",
+  environment: "production",
+  amount: 1200,
+  currency: "USD",
+  reason: "Customer was double charged",
+});
+
+if (decision.requiresApproval) {
+  console.log("Approval required", decision.approvalRequestId);
+} else if (decision.allowed) {
+  await agentgate.execute(decision.actionRequestId);
+}
+```
+
+Available methods:
+
+- `check(input)`
+- `execute(actionRequestId)`
+- `cancel(actionRequestId)`
+
+The SDK uses `fetch`, works in Node 18+, and does not call paid AI APIs.
+
 ## Verification Scripts
 
 Risk engine:

@@ -95,6 +95,29 @@ async function checkRefund(apiKey: string) {
   return result;
 }`;
 
+const sdkStarterExample = `import { AgentGateClient } from "@/sdk";
+
+const agentgate = new AgentGateClient({
+  apiKey: process.env.AGENTGATE_API_KEY!,
+  baseUrl: "http://localhost:3000",
+});
+
+const decision = await agentgate.check({
+  agentId: "support-refund-agent",
+  tool: "stripe",
+  action: "refund.create",
+  environment: "production",
+  amount: 1200,
+  currency: "USD",
+  reason: "Customer was double charged",
+});
+
+if (decision.requiresApproval) {
+  console.log("Approval required", decision.approvalRequestId);
+} else if (decision.allowed) {
+  await agentgate.execute(decision.actionRequestId);
+}`;
+
 const decisionRows = [
   {
     decision: "ALLOW",
@@ -229,6 +252,19 @@ export default async function DeveloperDocsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>SDK Starter</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <p className="text-sm leading-6 text-[#34404a]">
+            `src/sdk` contains a local TypeScript SDK starter for Node 18+ agents.
+            It is not published to npm yet and does not call paid AI APIs.
+          </p>
+          <CodeBlock>{sdkStarterExample}</CodeBlock>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>curl Example</CardTitle>
         </CardHeader>
         <CardContent>
@@ -298,11 +334,12 @@ export default async function DeveloperDocsPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Future SDK</CardTitle>
+            <CardTitle>SDK Starter</CardTitle>
           </CardHeader>
           <CardContent className="text-sm leading-6 text-[#34404a]">
-            A TypeScript SDK placeholder is planned for typed gateway clients, idempotency helpers,
-            and decision handling utilities.
+            A repo-local TypeScript SDK starter is available in `src/sdk` with typed
+            `check`, `execute`, and `cancel` methods. Publishing as a package is a
+            future roadmap item.
           </CardContent>
         </Card>
         <Card>
