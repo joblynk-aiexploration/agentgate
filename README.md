@@ -12,6 +12,13 @@ real business-tool side effects are required.
 
 For a non-technical walkthrough, see the [AgentGate User Manual](docs/user-manual.md).
 
+Founder demo package:
+
+- [Live demo script](docs/demo-script.md)
+- [Founder notes](docs/founder-notes.md)
+- [Customer discovery questions](docs/customer-discovery-questions.md)
+- [Product positioning](docs/product-positioning.md)
+
 ## Quick Start
 
 Run these commands from a fresh clone:
