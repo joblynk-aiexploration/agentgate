@@ -1,4 +1,4 @@
-import { CheckCircle2, CreditCard } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CreditCard } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/ui/metric-card";
@@ -13,25 +13,45 @@ const plans = [
     name: "Starter",
     price: "$99/month",
     audience: "Small teams validating agent controls",
-    features: ["Agent registry", "Gateway checks", "Approval inbox"],
+    features: [
+      "Agent registry",
+      "Gateway checks",
+      "Approval inbox",
+      "Audit log basics",
+    ],
   },
   {
     name: "Agency",
     price: "$499/month",
     audience: "Multi-client teams and operators",
-    features: ["More agents", "Policy templates", "Audit exports"],
+    features: [
+      "More agents",
+      "Policy templates",
+      "Audit exports",
+      "Demo integrations",
+    ],
   },
   {
     name: "Business",
     price: "$1,999/month",
     audience: "Production AI operations teams",
-    features: ["Higher volume", "Advanced reports", "Priority controls"],
+    features: [
+      "Higher volume",
+      "Advanced reports",
+      "Kill switch controls",
+      "Developer API",
+    ],
   },
   {
     name: "Enterprise",
     price: "Custom",
     audience: "Large organizations with custom governance",
-    features: ["SAML placeholder", "Custom review flows", "Dedicated support"],
+    features: [
+      "Custom governance planning",
+      "SSO roadmap",
+      "Dedicated review flows",
+      "Deployment support roadmap",
+    ],
   },
 ] as const;
 
@@ -46,7 +66,7 @@ export default async function BillingPage() {
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <PageHeader
-        description="Review the current display-only V1 subscription state. AgentGate V1 does not create live Stripe charges."
+        description="Review V1 placeholder pricing and the current display-only subscription state. No live Stripe billing is implemented."
         eyebrow={membership.organization.slug}
         title="Billing"
       />
@@ -74,21 +94,44 @@ export default async function BillingPage() {
         <CardHeader>
           <CardTitle>V1 billing scope</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm leading-6 text-[#5c6470]">
-            Billing is represented with local subscription data only. No live Stripe
-            checkout, payment methods, invoices, or external billing side effects are
-            implemented in AgentGate V1.
+        <CardContent className="flex items-start gap-3 text-sm leading-6 text-[#5c6470]">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#9d6b1f]" aria-hidden />
+          <p>
+            Billing is represented with local subscription data only. These plans
+            are product placeholders for the demo. AgentGate V1 does not create
+            live Stripe checkout sessions, payment methods, invoices, charges, or
+            external billing side effects.
           </p>
         </CardContent>
       </Card>
 
+      <div>
+        <p className="text-xs font-semibold uppercase text-[#4c6f68]">
+          Placeholder pricing
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold text-[#111318]">
+          Plans for explaining packaging, not charging customers in V1
+        </h2>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {plans.map((plan) => (
-          <Card key={plan.name}>
+          <Card
+            className={
+              plan.name === "Business" ? "border-[#2d6f7f] shadow-md" : undefined
+            }
+            key={plan.name}
+          >
             <CardHeader>
               <div className="flex items-start justify-between gap-3">
-                <CardTitle>{plan.name}</CardTitle>
+                <div>
+                  <CardTitle>{plan.name}</CardTitle>
+                  {plan.name === "Business" ? (
+                    <p className="mt-1 text-xs font-semibold uppercase text-[#2d6f7f]">
+                      Demo default
+                    </p>
+                  ) : null}
+                </div>
                 {formatEnumLabel(subscription?.plan ?? membership.organization.plan) ===
                 plan.name ? (
                   <Badge tone="green">Current</Badge>
@@ -102,6 +145,9 @@ export default async function BillingPage() {
                 {plan.price}
               </p>
               <p className="mt-2 text-sm leading-6 text-[#5c6470]">{plan.audience}</p>
+              <p className="mt-3 text-xs font-semibold uppercase text-[#687384]">
+                V1 placeholder
+              </p>
               <ul className="mt-5 grid gap-3 text-sm text-[#34404a]">
                 {plan.features.map((feature) => (
                   <li className="flex items-center gap-2" key={feature}>
