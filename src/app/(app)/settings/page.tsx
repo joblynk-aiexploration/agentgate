@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import {
   AlertTriangle,
+  BookOpen,
   Building2,
   DatabaseZap,
   ShieldAlert,
@@ -71,6 +72,13 @@ export default async function SettingsPage() {
                 Data retention
               </Button>
             ) : null}
+            <Button
+              href="https://github.com/joblynk-aiexploration/agentgate/blob/main/docs/user-manual.md"
+              variant="secondary"
+            >
+              <BookOpen className="h-4 w-4" aria-hidden />
+              User manual
+            </Button>
             <Button href="/settings/access-review" variant="secondary">
               <ShieldCheck className="h-4 w-4" aria-hidden />
               Access review

@@ -193,6 +193,13 @@ export default async function DeveloperDocsPage() {
       <PageHeader
         actions={
           <div className="flex flex-wrap gap-2">
+            <Button
+              href="https://github.com/joblynk-aiexploration/agentgate/blob/main/docs/user-manual.md"
+              variant="secondary"
+            >
+              <BookOpen className="h-4 w-4" aria-hidden />
+              User manual
+            </Button>
             <Button href="/developer/api-keys" variant="secondary">
               <KeyRound className="h-4 w-4" aria-hidden />
               API keys

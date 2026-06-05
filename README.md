@@ -10,6 +10,8 @@ V1 is intentionally honest demo software: risk scoring is local TypeScript, poli
 decisions are deterministic, integrations are simulated, and no paid AI APIs or
 real business-tool side effects are required.
 
+For a non-technical walkthrough, see the [AgentGate User Manual](docs/user-manual.md).
+
 ## Quick Start
 
 Run these commands from a fresh clone:
