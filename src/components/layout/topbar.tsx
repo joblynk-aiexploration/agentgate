@@ -151,7 +151,7 @@ export function Topbar({
         </div>
       </div>
 
-      <MobileNav />
+      <MobileNav role={role} />
     </header>
   );
 }

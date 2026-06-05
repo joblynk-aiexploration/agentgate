@@ -16,6 +16,7 @@ const DEMO_USER_EMAILS = [
   "developer@agentgate.dev",
   "reviewer@agentgate.dev",
   "auditor@agentgate.dev",
+  "platform@agentgate.dev",
 ];
 
 type Check = {

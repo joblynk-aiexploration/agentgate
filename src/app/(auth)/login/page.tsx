@@ -98,6 +98,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 <span className="font-semibold text-white">Auditor:</span>{" "}
                 auditor@agentgate.dev / Password123!
               </p>
+              <p>
+                <span className="font-semibold text-white">Platform:</span>{" "}
+                platform@agentgate.dev / Password123!
+              </p>
             </div>
             <div className="grid gap-2 border-t border-[#31464b] pt-3 text-[#c8d6d8]">
               <p className="flex items-center gap-2">

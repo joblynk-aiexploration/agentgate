@@ -8,6 +8,7 @@ import {
   FileClock,
   Gauge,
   KeyRound,
+  MonitorCog,
   Plug,
   Settings,
   ShieldCheck,
@@ -29,6 +30,14 @@ const navItems = [
   { href: "/billing", label: "Billing", icon: CreditCard },
 ];
 
+const platformNavItems = [
+  { href: "/platform", label: "Platform", icon: MonitorCog },
+];
+
+function getNavItems(role: MembershipRole) {
+  return role === "platform_owner" ? [...navItems, ...platformNavItems] : navItems;
+}
+
 export function Sidebar({
   organizationName,
   role,
@@ -49,7 +58,7 @@ export function Sidebar({
       </div>
 
       <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
-        {navItems.map((item) => {
+        {getNavItems(role).map((item) => {
           const Icon = item.icon;
 
           return (
@@ -73,10 +82,10 @@ export function Sidebar({
   );
 }
 
-export function MobileNav() {
+export function MobileNav({ role }: { role: MembershipRole }) {
   return (
     <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:hidden">
-      {navItems.map((item) => (
+      {getNavItems(role).map((item) => (
         <Link
           className="whitespace-nowrap border border-[#d9dee8] bg-white px-3 py-2 text-sm font-medium text-[#172326]"
           href={item.href}

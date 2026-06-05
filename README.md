@@ -57,6 +57,7 @@ npm run dev
 ```text
 owner@agentgate.dev / Password123!
 reviewer@agentgate.dev / Password123!
+platform@agentgate.dev / Password123!
 ```
 
 8. Test the gateway:
@@ -405,6 +406,7 @@ Seeded demo users:
 - `developer@agentgate.dev` / `Password123!`
 - `reviewer@agentgate.dev` / `Password123!`
 - `auditor@agentgate.dev` / `Password123!`
+- `platform@agentgate.dev` / `Password123!` (demo platform owner)
 
 ## Demo API Key
 

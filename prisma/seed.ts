@@ -91,6 +91,11 @@ export async function seedAgentGateDemoData() {
         name: "Auditor",
         role: MembershipRole.auditor,
       },
+      {
+        email: "platform@agentgate.dev",
+        name: "Platform Owner",
+        role: MembershipRole.platform_owner,
+      },
     ].map((user) =>
       prisma.user.upsert({
         where: { email: user.email },
@@ -126,6 +131,7 @@ export async function seedAgentGateDemoData() {
             MembershipRole.developer,
             MembershipRole.reviewer,
             MembershipRole.auditor,
+            MembershipRole.platform_owner,
           ][index],
         })),
       },
