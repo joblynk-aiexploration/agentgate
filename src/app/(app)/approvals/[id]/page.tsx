@@ -7,9 +7,13 @@ import { JsonViewer } from "@/components/ui/json-viewer";
 import { PageHeader } from "@/components/ui/page-header";
 import { RiskBadge } from "@/components/ui/risk-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   canActOnApproval,
+  canCommentOnApproval,
+  createApprovalComment,
   getApprovalOrThrow,
+  listApprovalComments,
   requireApprovalViewer,
 } from "@/lib/approvals";
 import { redactSensitiveMetadata } from "@/server/audit/audit-service";
@@ -19,6 +23,7 @@ import {
   formatRelativeTime,
 } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
+import { approvalCommentSchema } from "@/lib/validators";
 
 type ApprovalDetailPageProps = {
   params: Promise<{
@@ -33,6 +38,26 @@ type HistoryRow = {
   metadataJson: unknown;
   time: Date;
 };
+
+type TimelineItem = {
+  actor?: string;
+  description: string;
+  id: string;
+  metadata?: unknown;
+  time: Date;
+  title: string;
+};
+
+async function addCommentAction(approvalId: string, formData: FormData) {
+  "use server";
+
+  const membership = await requireApprovalViewer();
+  const input = approvalCommentSchema.parse({
+    body: formData.get("body"),
+  });
+
+  await createApprovalComment(membership, approvalId, input);
+}
 
 function userLabel(user: { email: string; name: string | null } | null) {
   return user?.name ?? user?.email ?? "Unassigned";
@@ -50,6 +75,36 @@ function riskSignals(value: unknown) {
   return [];
 }
 
+function auditTimelineTitle(eventType: string) {
+  const labels: Record<string, string> = {
+    "approval.approved": "Approved",
+    "approval.rejected": "Rejected",
+    "approval.payload_edited": "Payload edited",
+    "gateway.action_executed": "Executed",
+    "gateway.action_cancelled": "Cancelled",
+    "action.blocked": "Blocked",
+    "gateway.action_checked": "Gateway checked action",
+    "approval.requested": "Approval requested",
+  };
+
+  return labels[eventType] ?? formatEnumLabel(eventType);
+}
+
+function auditTimelineDescription(eventType: string) {
+  const descriptions: Record<string, string> = {
+    "approval.approved": "A reviewer approved the request.",
+    "approval.rejected": "A reviewer rejected the request.",
+    "approval.payload_edited": "A reviewer saved an edited payload for review.",
+    "gateway.action_executed": "The gateway simulated execution for an approved or allowed action.",
+    "gateway.action_cancelled": "The gateway cancelled the pending action.",
+    "action.blocked": "The gateway blocked the action.",
+    "gateway.action_checked": "The gateway evaluated the request with local risk and policy logic.",
+    "approval.requested": "Policy required a human approval before execution.",
+  };
+
+  return descriptions[eventType] ?? "Audit event recorded.";
+}
+
 export default async function ApprovalDetailPage({
   params,
 }: ApprovalDetailPageProps) {
@@ -59,14 +114,23 @@ export default async function ApprovalDetailPage({
   const actionRequest = approval.actionRequest;
   const riskAssessment = actionRequest.riskAssessments.at(0);
   const canAct = canActOnApproval(membership, approval);
+  const canComment = canCommentOnApproval(membership.role);
   const isPendingApproval =
     approval.status === ApprovalStatus.PENDING ||
     approval.status === ApprovalStatus.EDITED;
+  const comments = await listApprovalComments(membership, approval.id);
 
   const auditLogs = await prisma.auditLog.findMany({
     where: {
       organizationId: membership.organizationId,
-      targetId: actionRequest.id,
+      OR: [
+        {
+          targetId: actionRequest.id,
+        },
+        {
+          targetId: approval.id,
+        },
+      ],
     },
     orderBy: {
       createdAt: "desc",
@@ -81,6 +145,67 @@ export default async function ApprovalDetailPage({
     metadataJson: redactSensitiveMetadata(log.metadataJson),
     time: log.createdAt,
   }));
+
+  const timelineItems: TimelineItem[] = [
+    {
+      description: `${actionRequest.agent.name} requested ${actionRequest.action} through ${formatEnumLabel(actionRequest.tool)}.`,
+      id: `action-requested-${actionRequest.id}`,
+      time: actionRequest.createdAt,
+      title: "Action requested",
+    },
+    ...(riskAssessment
+      ? [
+          {
+            description: riskAssessment.explanation,
+            id: `risk-assessed-${riskAssessment.id}`,
+            metadata: {
+              level: riskAssessment.level,
+              score: riskAssessment.score,
+              signals: riskAssessment.signalsJson,
+            },
+            time: riskAssessment.createdAt,
+            title: "Risk assessed",
+          },
+        ]
+      : []),
+    ...(actionRequest.policyMatched
+      ? [
+          {
+            description: `${actionRequest.policyMatched.name} matched this action.`,
+            id: `policy-matched-${actionRequest.policyMatched.id}`,
+            time: approval.createdAt,
+            title: "Policy matched",
+          },
+        ]
+      : []),
+    {
+      description: approval.requiredRole
+        ? `${formatEnumLabel(approval.requiredRole)} review is required.`
+        : "Human review is required.",
+      id: `approval-requested-${approval.id}`,
+      time: approval.createdAt,
+      title: "Approval requested",
+    },
+    ...comments.map((comment) => ({
+      actor: userLabel(comment.author),
+      description: comment.body,
+      id: `comment-${comment.id}`,
+      time: comment.createdAt,
+      title: "Comment added",
+    })),
+    ...auditLogs
+      .filter((log) => log.eventType !== "approval.comment_added")
+      .map((log) => ({
+        actor: log.actorId
+          ? `${log.actorType}:${log.actorId.slice(0, 8)}`
+          : log.actorType,
+        description: auditTimelineDescription(log.eventType),
+        id: `audit-${log.id}`,
+        metadata: redactSensitiveMetadata(log.metadataJson),
+        time: log.createdAt,
+        title: auditTimelineTitle(log.eventType),
+      })),
+  ].sort((first, second) => first.time.getTime() - second.time.getTime());
 
   const historyColumns: DataTableColumn<HistoryRow>[] = [
     {
@@ -261,14 +386,51 @@ export default async function ApprovalDetailPage({
 
           <Card>
             <CardHeader>
-              <CardTitle>Action history</CardTitle>
+              <CardTitle>Activity timeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {timelineItems.length > 0 ? (
+                <ol className="grid gap-4">
+                  {timelineItems.map((item) => (
+                    <li className="border-l-2 border-[#cbd3df] pl-4" key={item.id}>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-semibold">{item.title}</p>
+                        <time className="text-xs text-[#687384]">
+                          {formatDateTime(item.time)}
+                        </time>
+                      </div>
+                      {item.actor ? (
+                        <p className="mt-1 text-xs text-[#687384]">{item.actor}</p>
+                      ) : null}
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#34404a]">
+                        {item.description}
+                      </p>
+                      {item.metadata ? (
+                        <div className="mt-3">
+                          <JsonViewer previewOnly value={item.metadata} />
+                        </div>
+                      ) : null}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="text-sm text-[#687384]">
+                  Approval activity will appear here.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Audit history</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <DataTable
                 columns={historyColumns}
                 data={historyRows}
                 emptyDescription="Approval decisions and gateway events will appear here."
-                emptyTitle="No action history"
+                emptyTitle="No audit history"
                 rowKey={(row) => row.id}
               />
             </CardContent>
@@ -316,6 +478,58 @@ export default async function ApprovalDetailPage({
                 initialPayload={actionRequest.payloadJson}
                 isPendingApproval={isPendingApproval}
               />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Comments</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-5">
+              <div className="grid gap-4">
+                {comments.length > 0 ? (
+                  comments.map((comment) => (
+                    <article
+                      className="border border-[#d9dee8] bg-[#f8fafc] p-3"
+                      key={comment.id}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-semibold">{userLabel(comment.author)}</p>
+                        <time className="text-xs text-[#687384]">
+                          {formatRelativeTime(comment.createdAt)}
+                        </time>
+                      </div>
+                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#34404a]">
+                        {comment.body}
+                      </p>
+                    </article>
+                  ))
+                ) : (
+                  <p className="text-sm text-[#687384]">
+                    No comments yet. Reviewer discussion stays tenant-scoped and audited.
+                  </p>
+                )}
+              </div>
+
+              {canComment ? (
+                <form action={addCommentAction.bind(null, approval.id)} className="grid gap-3">
+                  <label className="grid gap-2 text-sm font-medium">
+                    Add comment
+                    <Textarea
+                      maxLength={2000}
+                      name="body"
+                      placeholder="Add review context, questions, or approval notes."
+                      required
+                      rows={4}
+                    />
+                  </label>
+                  <Button type="submit">Add comment</Button>
+                </form>
+              ) : (
+                <p className="border border-[#d9dee8] bg-[#f8fafc] p-3 text-sm text-[#687384]">
+                  Your role can view comments but cannot add new approval comments.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

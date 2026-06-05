@@ -164,6 +164,7 @@ model Organization {
   policyRules         PolicyRule[]
   actionRequests      ActionRequest[]
   approvalRequests    ApprovalRequest[]
+  approvalComments    ApprovalComment[]
   riskAssessments     RiskAssessment[]
   auditLogs           AuditLog[]
   incidents           Incident[]
@@ -185,6 +186,7 @@ model User {
   createdPolicies   Policy[]          @relation("PolicyCreator")
   assignedApprovals ApprovalRequest[] @relation("ApprovalAssignee")
   reviewedApprovals ApprovalRequest[] @relation("ApprovalReviewer")
+  approvalComments  ApprovalComment[] @relation("ApprovalCommentAuthor")
   createdIncidents  Incident[]        @relation("IncidentCreator")
 }
 
@@ -359,13 +361,31 @@ model ApprovalRequest {
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 
-  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  actionRequest ActionRequest @relation(fields: [actionRequestId], references: [id], onDelete: Cascade)
-  assignedTo    User?         @relation("ApprovalAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
-  reviewedBy    User?         @relation("ApprovalReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  organization  Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actionRequest ActionRequest     @relation(fields: [actionRequestId], references: [id], onDelete: Cascade)
+  assignedTo    User?             @relation("ApprovalAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  reviewedBy    User?             @relation("ApprovalReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  comments      ApprovalComment[]
 
   @@index([organizationId, status, createdAt])
   @@index([assignedToId])
+}
+
+model ApprovalComment {
+  id                String   @id @default(cuid())
+  organizationId    String
+  approvalRequestId String
+  authorUserId      String
+  body              String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  approvalRequest ApprovalRequest @relation(fields: [approvalRequestId], references: [id], onDelete: Cascade)
+  author          User            @relation("ApprovalCommentAuthor", fields: [authorUserId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, approvalRequestId, createdAt])
+  @@index([authorUserId])
 }
 
 model RiskAssessment {

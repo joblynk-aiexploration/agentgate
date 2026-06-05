@@ -12,6 +12,7 @@ import { hasRole } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import type {
   approvalEditSchema,
+  approvalCommentSchema,
   approvalListQuerySchema,
   approvalReviewSchema,
 } from "@/lib/validators";
@@ -23,6 +24,7 @@ export type ApprovalMembership = NonNullable<
 export type ApprovalListQuery = z.infer<typeof approvalListQuerySchema>;
 export type ApprovalReviewInput = z.infer<typeof approvalReviewSchema>;
 export type ApprovalEditInput = z.infer<typeof approvalEditSchema>;
+export type ApprovalCommentInput = z.infer<typeof approvalCommentSchema>;
 
 const approvalViewRoles: MembershipRole[] = [
   "platform_owner",
@@ -38,12 +40,23 @@ const elevatedReviewerRoles: MembershipRole[] = [
   "security_admin",
 ];
 
+const approvalCommenterRoles: MembershipRole[] = [
+  "platform_owner",
+  "org_owner",
+  "security_admin",
+  "reviewer",
+];
+
 export function canViewApprovals(role: MembershipRole) {
   return hasRole(role, approvalViewRoles);
 }
 
 export function isElevatedReviewer(role: MembershipRole) {
   return hasRole(role, elevatedReviewerRoles);
+}
+
+export function canCommentOnApproval(role: MembershipRole) {
+  return hasRole(role, approvalCommenterRoles);
 }
 
 export function canActOnApproval(
@@ -86,6 +99,28 @@ export async function getApiApprovalMembership() {
   }
 
   return membership;
+}
+
+async function getApprovalScopeOrThrow(
+  organizationId: string,
+  approvalId: string,
+) {
+  const approval = await prisma.approvalRequest.findFirst({
+    where: {
+      id: approvalId,
+      organizationId,
+    },
+    select: {
+      id: true,
+      actionRequestId: true,
+    },
+  });
+
+  if (!approval) {
+    throw new Error("Approval request not found.");
+  }
+
+  return approval;
 }
 
 function toJsonValue(value: unknown): Prisma.InputJsonValue {
@@ -187,6 +222,82 @@ export async function getApprovalOrThrow(
   }
 
   return approval;
+}
+
+export async function listApprovalComments(
+  membership: ApprovalMembership,
+  approvalId: string,
+) {
+  await getApprovalScopeOrThrow(membership.organizationId, approvalId);
+
+  return prisma.approvalComment.findMany({
+    where: {
+      organizationId: membership.organizationId,
+      approvalRequestId: approvalId,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    include: {
+      author: {
+        select: {
+          email: true,
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+}
+
+export async function createApprovalComment(
+  membership: ApprovalMembership,
+  approvalId: string,
+  input: ApprovalCommentInput,
+) {
+  if (!canCommentOnApproval(membership.role)) {
+    throw new Error("You are not allowed to comment on approval requests.");
+  }
+
+  const approval = await getApprovalScopeOrThrow(
+    membership.organizationId,
+    approvalId,
+  );
+
+  const comment = await prisma.approvalComment.create({
+    data: {
+      organizationId: membership.organizationId,
+      approvalRequestId: approval.id,
+      authorUserId: membership.userId,
+      body: input.body.trim(),
+    },
+    include: {
+      author: {
+        select: {
+          email: true,
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  await createAuditLog({
+    organizationId: membership.organizationId,
+    actorType: "user",
+    actorId: membership.userId,
+    eventType: "approval.comment_added",
+    targetType: "ApprovalRequest",
+    targetId: approval.id,
+    metadataJson: {
+      actionRequestId: approval.actionRequestId,
+      commentId: comment.id,
+    },
+  });
+
+  revalidatePath(`/approvals/${approval.id}`);
+
+  return comment;
 }
 
 async function getReviewableApproval(

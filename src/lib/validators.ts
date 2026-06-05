@@ -236,6 +236,10 @@ export const approvalEditSchema = z.object({
   comment: z.string().trim().max(2000).optional().nullable(),
 });
 
+export const approvalCommentSchema = z.object({
+  body: z.string().trim().min(1, "Comment is required.").max(2000),
+});
+
 const optionalFilterString = z
   .string()
   .trim()
