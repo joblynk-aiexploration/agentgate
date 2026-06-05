@@ -63,7 +63,8 @@ async function main() {
     assert(
       sessionSource.includes("httpOnly: true") &&
         sessionSource.includes('sameSite: "lax"') &&
-        sessionSource.includes('secure: process.env.NODE_ENV === "production"'),
+        (sessionSource.includes('secure: env.NODE_ENV === "production"') ||
+          sessionSource.includes('secure: process.env.NODE_ENV === "production"')),
       "Session cookie security flags are missing.",
     );
 
