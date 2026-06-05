@@ -141,6 +141,13 @@ export async function seedAgentGateDemoData() {
           status: BillingStatus.ACTIVE,
         },
       },
+      settings: {
+        create: {
+          auditLogRetentionDays: 365,
+          actionRetentionDays: 365,
+          approvalRetentionDays: 365,
+        },
+      },
     },
   });
 

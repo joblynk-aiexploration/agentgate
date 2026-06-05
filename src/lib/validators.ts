@@ -284,6 +284,16 @@ export const settingsUpdateSchema = z.object({
     .optional(),
 });
 
+export const dataRetentionSettingsSchema = z.object({
+  auditLogRetentionDays: z.coerce.number().int().min(30).max(3650),
+  actionRetentionDays: z.coerce.number().int().min(30).max(3650),
+  approvalRetentionDays: z.coerce.number().int().min(30).max(3650),
+});
+
+export const dataRetentionCleanupSchema = z.object({
+  confirm: z.boolean().default(false),
+});
+
 export const memberInviteSchema = z.object({
   email: emailSchema,
   name: z.string().trim().max(80).optional().nullable(),

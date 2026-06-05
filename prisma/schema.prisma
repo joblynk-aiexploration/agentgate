@@ -176,6 +176,19 @@ model Organization {
   webhookEndpoints    WebhookEndpoint[]
   incidents           Incident[]
   billingSubscription BillingSubscription?
+  settings            OrganizationSettings?
+}
+
+model OrganizationSettings {
+  id                    String   @id @default(cuid())
+  organizationId        String   @unique
+  auditLogRetentionDays Int      @default(365)
+  actionRetentionDays   Int      @default(365)
+  approvalRetentionDays Int      @default(365)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 }
 
 model User {

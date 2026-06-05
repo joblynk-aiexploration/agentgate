@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import {
   AlertTriangle,
   Building2,
+  DatabaseZap,
   ShieldAlert,
   ShieldCheck,
   Users,
@@ -19,6 +20,7 @@ import {
   setOrganizationKillSwitch,
   updateOrganizationSettings,
 } from "@/lib/settings";
+import { canManageDataRetention } from "@/lib/data-retention";
 import { formatEnumLabel } from "@/lib/format";
 import { settingsUpdateSchema } from "@/lib/validators";
 
@@ -56,12 +58,19 @@ export default async function SettingsPage() {
   const organization = membership.organization;
   const canManageOrg = canManageOrganizationSettings(membership.role);
   const canToggleKillSwitch = canManageKillSwitch(membership.role);
+  const canManageRetention = canManageDataRetention(membership.role);
 
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <PageHeader
         actions={
           <div className="flex flex-wrap gap-2">
+            {canManageRetention ? (
+              <Button href="/settings/data-retention" variant="secondary">
+                <DatabaseZap className="h-4 w-4" aria-hidden />
+                Data retention
+              </Button>
+            ) : null}
             <Button href="/settings/access-review" variant="secondary">
               <ShieldCheck className="h-4 w-4" aria-hidden />
               Access review
