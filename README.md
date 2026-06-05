@@ -82,6 +82,30 @@ Optional `Idempotency-Key` headers are scoped to the authenticated organization
 and API key. Reuse an idempotency key only for the exact same request body;
 AgentGate rejects mismatched replays.
 
+Tool Proxy mode lets a demo agent call AgentGate as if it were calling a tool.
+AgentGate runs the same gateway risk and policy check first, then blocks,
+creates approval, or simulates execution for immediately allowed demo actions.
+V1 never calls real Stripe, Gmail, Slack, Postgres, webhook, or external systems.
+
+```bash
+curl -X POST http://localhost:3000/api/tool-proxy/slack/message.send \
+  -H "Authorization: Bearer ag_test_seed_support_refund_demo_key" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: slack-proxy-demo-001" \
+  -d '{
+    "agentId": "support-refund-agent",
+    "environment": "internal",
+    "reason": "Notify the support team about a completed demo workflow",
+    "payload": {
+      "channel": "#support-demo",
+      "text": "Refund review is ready."
+    },
+    "metadata": {
+      "source": "tool-proxy-demo"
+    }
+  }'
+```
+
 ## Tech Stack
 
 - Next.js App Router
@@ -437,6 +461,40 @@ Expected result:
 - `decision`: `REQUIRE_APPROVAL`
 - `requiresApproval`: `true`
 - `status`: `PENDING_APPROVAL`
+
+## Test Tool Proxy Mode
+
+Run this after seeding the database:
+
+```bash
+curl -X POST http://localhost:3000/api/tool-proxy/slack/message.send \
+  -H "Authorization: Bearer ag_test_seed_support_refund_demo_key" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: slack-proxy-demo-001" \
+  -d '{
+    "agentId": "support-refund-agent",
+    "environment": "internal",
+    "reason": "Notify the support team about a completed demo workflow",
+    "payload": {
+      "channel": "#support-demo",
+      "text": "Refund review is ready."
+    },
+    "metadata": {
+      "source": "tool-proxy-demo"
+    }
+  }'
+```
+
+Expected result:
+
+- `mode`: `tool_proxy`
+- `decision`: `ALLOW` or `LOG_ONLY` for an allowed demo notification
+- `executed`: `true`
+- `result.simulated`: `true`
+
+Tool Proxy mode is demo-only in V1. It shares gateway authentication,
+tenant isolation, risk scoring, policy evaluation, approval creation, simulated
+execution, and audit logging, but it does not perform real external side effects.
 
 ## Approve an Action
 

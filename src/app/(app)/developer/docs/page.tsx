@@ -35,6 +35,23 @@ const executeCurlExample = `curl -X POST http://localhost:3000/api/gateway/execu
     "actionRequestId": "<allowed_or_approved_action_request_id>"
   }'`;
 
+const toolProxyCurlExample = `curl -X POST http://localhost:3000/api/tool-proxy/slack/message.send \\
+  -H "Authorization: Bearer <ag_test_api_key>" \\
+  -H "Content-Type: application/json" \\
+  -H "Idempotency-Key: slack-proxy-demo-001" \\
+  -d '{
+    "agentId": "support-refund-agent",
+    "environment": "internal",
+    "reason": "Notify the support team about a completed demo workflow",
+    "payload": {
+      "channel": "#support-demo",
+      "text": "Refund review is ready."
+    },
+    "metadata": {
+      "source": "tool-proxy-demo"
+    }
+  }'`;
+
 const webhookCurlExample = `curl -X POST http://localhost:3000/api/gateway/check \\
   -H "Authorization: Bearer <ag_test_api_key>" \\
   -H "Content-Type: application/json" \\
@@ -287,10 +304,41 @@ export default async function DeveloperDocsPage() {
                   Cancels pending actions and any pending approval request for the same organization.
                 </dd>
               </div>
+              <div>
+                <dt className="font-semibold">POST /api/tool-proxy/[tool]/[action]</dt>
+                <dd className="mt-1 text-[#5c6470]">
+                  V1 Tool Proxy mode accepts a demo tool call, runs the same
+                  gateway check first, then either blocks, creates approval, or
+                  simulates execution for immediately allowed demo actions. It
+                  never calls real Stripe, email, Slack, database, webhook, or
+                  external systems.
+                </dd>
+              </div>
             </dl>
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Check API Mode vs Tool Proxy Mode</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 text-sm leading-6 text-[#34404a]">
+          <p>
+            Use Check API mode when your agent or application wants a decision
+            first and will call execute later after approval. Use Tool Proxy mode
+            when a demo agent wants to call a simulated tool through AgentGate in
+            one request.
+          </p>
+          <p>
+            Tool Proxy mode still creates the same Action Request, Risk
+            Assessment, Approval Request when needed, and Audit Log trail as the
+            gateway check endpoint. Only immediately allowed or log-only actions
+            receive a simulated execution result.
+          </p>
+          <CodeBlock>{toolProxyCurlExample}</CodeBlock>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -456,14 +504,14 @@ export default async function DeveloperDocsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Future Tool Proxy and MCP Gateway</CardTitle>
+          <CardTitle>Future MCP Gateway</CardTitle>
         </CardHeader>
         <CardContent className="flex items-start gap-3 text-sm leading-6 text-[#34404a]">
           <Braces className="mt-0.5 h-4 w-4 shrink-0 text-[#2d6f7f]" aria-hidden />
           <p>
-            Future versions can proxy tool calls or act as an MCP gateway. V1 keeps execution
-            simulated so policies, approvals, and audit trails can be demonstrated without real
-            third-party side effects.
+            Future versions can act as a richer MCP gateway. V1 Tool Proxy mode
+            keeps execution simulated so policies, approvals, and audit trails
+            can be demonstrated without real third-party side effects.
           </p>
         </CardContent>
       </Card>

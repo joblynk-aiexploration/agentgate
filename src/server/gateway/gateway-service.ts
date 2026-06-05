@@ -29,6 +29,7 @@ import type {
   GatewayCheckRequest,
   GatewayDecisionResponse,
   GatewayExecutionResponse,
+  ToolProxyResponse,
 } from "@/server/gateway/types";
 import { getToolExecutor } from "@/server/integrations/tool-executor";
 import type { ToolExecutionResult } from "@/server/integrations/types";
@@ -148,6 +149,41 @@ function mergeExecutionMetadata(
 }
 
 export class GatewayService {
+  async proxyToolCall(
+    input: GatewayCheckRequest,
+    headers: Headers,
+    idempotencyKey?: string | null,
+  ): Promise<ToolProxyResponse> {
+    const decision = await this.check(input, headers, idempotencyKey);
+    const shouldExecute =
+      decision.status === ActionStatus.ALLOWED &&
+      (decision.decision === ActionDecision.ALLOW ||
+        decision.decision === ActionDecision.LOG_ONLY);
+
+    if (!shouldExecute) {
+      return {
+        ...decision,
+        executed: decision.status === ActionStatus.EXECUTED,
+        mode: "tool_proxy",
+      };
+    }
+
+    const execution = await this.execute(
+      {
+        actionRequestId: decision.actionRequestId,
+      },
+      headers,
+    );
+
+    return {
+      ...decision,
+      status: execution.status,
+      executed: execution.executed,
+      mode: "tool_proxy",
+      result: execution.result,
+    };
+  }
+
   async check(
     input: GatewayCheckRequest,
     headers: Headers,

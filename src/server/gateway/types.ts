@@ -39,8 +39,14 @@ export const gatewayActionRequestSchema = z.object({
   actionRequestId: z.string().trim().min(1),
 });
 
+export const toolProxyRequestBodySchema = gatewayCheckRequestSchema.omit({
+  tool: true,
+  action: true,
+});
+
 export type GatewayCheckRequest = z.infer<typeof gatewayCheckRequestSchema>;
 export type GatewayActionRequest = z.infer<typeof gatewayActionRequestSchema>;
+export type ToolProxyRequestBody = z.infer<typeof toolProxyRequestBodySchema>;
 
 export type GatewayRiskResponse = {
   score: number;
@@ -71,4 +77,10 @@ export type GatewayCancelResponse = {
   actionRequestId: string;
   status: ActionStatus;
   cancelled: boolean;
+};
+
+export type ToolProxyResponse = GatewayDecisionResponse & {
+  executed: boolean;
+  mode: "tool_proxy";
+  result?: ToolExecutionResult;
 };
