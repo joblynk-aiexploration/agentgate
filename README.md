@@ -148,6 +148,39 @@ NODE_ENV="development"
 
 `API_KEY_PEPPER` must remain stable for stored API key hashes to keep working.
 
+### Required Env Vars and Production Warnings
+
+AgentGate validates configuration at startup through `src/lib/env.ts`.
+
+Required variables:
+
+- `DATABASE_URL`: PostgreSQL connection string.
+- `APP_URL`: Public app URL, for example `http://localhost:3000` locally or an HTTPS production URL.
+- `SESSION_SECRET`: Long random secret for httpOnly human session cookies.
+- `API_KEY_PEPPER`: Long random pepper used to hash API keys before storage.
+- `ENCRYPTION_KEY`: Reserved V1 secret for future encrypted integration config.
+- `NODE_ENV`: `development`, `test`, or `production`.
+
+In production, these placeholder values are rejected:
+
+- `replace-with-a-long-random-secret`
+- `replace-with-32-byte-key`
+- `agentgate-development-seed-pepper`
+
+In development, placeholder values are allowed only to keep local setup easy, and
+AgentGate prints warnings without printing secret values. Replace placeholders
+before deployment.
+
+Secret generation examples:
+
+```bash
+openssl rand -base64 32
+openssl rand -hex 32
+```
+
+Keep `SESSION_SECRET`, `API_KEY_PEPPER`, and `ENCRYPTION_KEY` private. Changing
+`API_KEY_PEPPER` invalidates existing stored API key hashes.
+
 ## Docker Postgres Setup
 
 Start local PostgreSQL:

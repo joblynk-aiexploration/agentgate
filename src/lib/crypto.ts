@@ -1,15 +1,10 @@
 import { createHmac, randomBytes } from "node:crypto";
+import { env } from "@/lib/env";
 
 const API_KEY_PREFIX = "ag_test_";
 
 function getApiKeyPepper() {
-  const pepper = process.env.API_KEY_PEPPER;
-
-  if (!pepper) {
-    throw new Error("API_KEY_PEPPER is required for API key hashing.");
-  }
-
-  return pepper;
+  return env.API_KEY_PEPPER;
 }
 
 export function hashApiKey(apiKey: string) {

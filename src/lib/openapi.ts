@@ -1,3 +1,5 @@
+import { env } from "@/lib/env";
+
 const jsonContent = (schema: unknown) => ({
   content: {
     "application/json": {
@@ -74,7 +76,7 @@ export function getOpenApiSpec() {
     },
     servers: [
       {
-        url: process.env.APP_URL ?? "http://localhost:3000",
+        url: env.APP_URL,
         description: "Configured AgentGate app URL",
       },
     ],

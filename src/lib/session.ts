@@ -1,18 +1,13 @@
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
+import { env } from "@/lib/env";
 
 export const SESSION_COOKIE_NAME = "agentgate_session";
 
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
 function getSessionSecret() {
-  const secret = process.env.SESSION_SECRET;
-
-  if (!secret) {
-    throw new Error("SESSION_SECRET is required for authentication sessions.");
-  }
-
-  return new TextEncoder().encode(secret);
+  return new TextEncoder().encode(env.SESSION_SECRET);
 }
 
 export async function createSession(userId: string) {
@@ -28,7 +23,7 @@ export async function createSession(userId: string) {
   cookieStore.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: env.NODE_ENV === "production",
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,
   });
