@@ -597,6 +597,17 @@ AGENTGATE_DEMO_API_KEY="ag_test_seed_support_refund_demo_key" \
 npm run verify:gateway
 ```
 
+Browser E2E smoke tests:
+
+```bash
+npm run test:e2e
+```
+
+The E2E suite starts the app on `http://127.0.0.1:3100`. Public page tests run
+without a database. The authenticated demo flow requires a migrated and seeded
+database; if `/api/demo/status` reports missing seed data, that protected flow is
+skipped with a setup message instead of pretending the login demo passed.
+
 ## Final Demo Script
 
 1. Login as `owner@agentgate.dev`.
