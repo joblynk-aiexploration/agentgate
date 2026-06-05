@@ -27,6 +27,8 @@ export const roleRules = {
   viewAuditLogs: ["platform_owner", "org_owner", "security_admin", "auditor"],
   manageKillSwitch: ["platform_owner", "org_owner", "security_admin"],
   manageApiKeys: ["platform_owner", "org_owner", "developer"],
+  viewMembers: ["platform_owner", "org_owner", "security_admin", "auditor"],
+  manageMembers: ["platform_owner", "org_owner"],
   viewDeveloperDocs: ["platform_owner", "org_owner", "security_admin", "developer"],
   viewReports: ["platform_owner", "org_owner", "security_admin", "auditor"],
   manageBilling: ["platform_owner", "org_owner"],

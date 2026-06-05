@@ -258,3 +258,19 @@ export const settingsUpdateSchema = z.object({
     .enum(["DISABLED", "LOCAL_RULES_ONLY", "LOCAL_MODEL", "PREMIUM_MODEL"])
     .optional(),
 });
+
+export const memberInviteSchema = z.object({
+  email: emailSchema,
+  name: z.string().trim().max(80).optional().nullable(),
+  role: z.enum(membershipRoleValues).refine(
+    (role) => role !== MembershipRole.platform_owner,
+    "Platform owner cannot be assigned from organization settings.",
+  ),
+});
+
+export const memberRoleUpdateSchema = z.object({
+  role: z.enum(membershipRoleValues).refine(
+    (role) => role !== MembershipRole.platform_owner,
+    "Platform owner cannot be assigned from organization settings.",
+  ),
+});
