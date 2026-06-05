@@ -23,7 +23,15 @@
     "verify:v1": "tsx scripts/verify-v1-demo.ts",
     "verify:security": "tsx scripts/verify-security-basics.ts",
     "verify:demo": "tsx scripts/verify-v1-demo.ts",
-    "verify:demo-data": "tsx scripts/verify-demo-data.ts"
+    "verify:demo-data": "tsx scripts/verify-demo-data.ts",
+    "agent:support": "tsx scripts/run-support-ops-agent.ts",
+    "agent:support:small-refund": "tsx scripts/run-support-ops-agent.ts --scenario small-refund",
+    "agent:support:large-refund": "tsx scripts/run-support-ops-agent.ts --scenario large-refund",
+    "agent:support:blocked-delete": "tsx scripts/run-support-ops-agent.ts --scenario blocked-delete",
+    "agent:support:external-email": "tsx scripts/run-support-ops-agent.ts --scenario external-email",
+    "agent:support:database-write": "tsx scripts/run-support-ops-agent.ts --scenario database-write",
+    "agent:support:all": "tsx scripts/run-support-ops-agent.ts --all",
+    "agent:support:dry-run": "tsx scripts/run-support-ops-agent.ts --scenario large-refund --dry-run"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

@@ -25,6 +25,7 @@ import {
 } from "@/server/gateway/idempotency";
 import type {
   GatewayActionRequest,
+  GatewayActionStatusResponse,
   GatewayCancelResponse,
   GatewayCheckRequest,
   GatewayDecisionResponse,
@@ -709,6 +710,80 @@ export class GatewayService {
       actionRequestId: updated.id,
       status: updated.status,
       cancelled: true,
+    };
+  }
+
+  async getActionStatus(
+    input: GatewayActionRequest,
+    headers: Headers,
+  ): Promise<GatewayActionStatusResponse> {
+    const auth = await authenticateApiKey(headers);
+    const actionRequest = await prisma.actionRequest.findFirst({
+      where: {
+        id: input.actionRequestId,
+        organizationId: auth.apiKey.organizationId,
+        ...(auth.apiKey.agentId ? { agentId: auth.apiKey.agentId } : {}),
+      },
+      select: {
+        id: true,
+        decision: true,
+        reason: true,
+        status: true,
+        requiresApproval: true,
+        riskScore: true,
+        riskLevel: true,
+        approvalRequest: {
+          select: {
+            id: true,
+            requiredRole: true,
+            status: true,
+          },
+        },
+        riskAssessments: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
+          select: {
+            score: true,
+            level: true,
+            signalsJson: true,
+            explanation: true,
+          },
+        },
+      },
+    });
+
+    if (!actionRequest) {
+      throw gatewayNotFoundError("Action request not found.");
+    }
+
+    const riskAssessment = actionRequest.riskAssessments.at(0);
+    const signals = Array.isArray(riskAssessment?.signalsJson)
+      ? riskAssessment.signalsJson.filter(
+          (signal): signal is string => typeof signal === "string",
+        )
+      : [];
+
+    return {
+      actionRequestId: actionRequest.id,
+      decision: actionRequest.decision,
+      status: actionRequest.status,
+      requiresApproval: actionRequest.requiresApproval,
+      approvalRequest: actionRequest.approvalRequest
+        ? {
+            id: actionRequest.approvalRequest.id,
+            requiredRole: actionRequest.approvalRequest.requiredRole,
+            status: actionRequest.approvalRequest.status,
+          }
+        : null,
+      risk: {
+        score: riskAssessment?.score ?? actionRequest.riskScore,
+        level: riskAssessment?.level ?? actionRequest.riskLevel,
+        signals,
+        explanation: riskAssessment?.explanation ?? actionRequest.reason,
+      },
+      reason: actionRequest.reason,
     };
   }
 

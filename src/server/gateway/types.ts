@@ -73,6 +73,20 @@ export type GatewayExecutionResponse = {
   result: ToolExecutionResult;
 };
 
+export type GatewayActionStatusResponse = {
+  actionRequestId: string;
+  decision: ActionDecision;
+  status: ActionStatus;
+  requiresApproval: boolean;
+  approvalRequest?: {
+    id: string;
+    status: string;
+    requiredRole?: string | null;
+  } | null;
+  risk: GatewayRiskResponse;
+  reason: string;
+};
+
 export type GatewayCancelResponse = {
   actionRequestId: string;
   status: ActionStatus;

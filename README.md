@@ -90,6 +90,30 @@ curl -X POST http://localhost:3000/api/gateway/check \
 
 Expected: `REQUIRE_APPROVAL` with a pending approval in `/approvals`.
 
+## Testing AgentGate with the Support Operations Agent
+
+AgentGate includes a local TypeScript Support Operations Agent that reads support
+ticket scenarios, decides what business action it wants to take, calls AgentGate
+before doing anything, obeys the decision, and writes a JSON transcript.
+
+Dry run mode does not require a live server:
+
+```bash
+npm run agent:support:dry-run
+```
+
+Live mode requires the app and seeded demo database:
+
+```bash
+npm run agent:support:large-refund
+npm run agent:support:blocked-delete
+npm run agent:support:external-email
+```
+
+The agent never calls paid AI APIs and never touches real Stripe, Gmail, Slack,
+Postgres, or external webhook systems. See
+[examples/agents/support-ops-agent/README.md](examples/agents/support-ops-agent/README.md).
+
 Optional `Idempotency-Key` headers are scoped to the authenticated organization
 and API key. Reuse an idempotency key only for the exact same request body;
 AgentGate rejects mismatched replays.
