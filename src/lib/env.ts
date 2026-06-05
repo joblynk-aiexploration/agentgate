@@ -8,6 +8,14 @@ const placeholderValues = new Set([
 
 const warned = new Set<string>();
 
+const buildOnlyFallbacks = {
+  API_KEY_PEPPER: "agentgate-build-api-key-pepper-not-for-runtime",
+  APP_URL: "http://localhost:3000",
+  DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/agentgate",
+  ENCRYPTION_KEY: "agentgate-build-encryption-key-not-for-runtime",
+  SESSION_SECRET: "agentgate-build-session-secret-not-for-runtime",
+} satisfies Record<string, string>;
+
 const nodeEnvSchema = z
   .enum(["development", "test", "production"])
   .catch("development");
@@ -32,6 +40,19 @@ function isProduction() {
   return nodeEnv() === "production";
 }
 
+function isValidationSkippedForBuild() {
+  return process.env.AGENTGATE_SKIP_ENV_VALIDATION === "1";
+}
+
+function readBuildOnlyFallback(name: keyof typeof buildOnlyFallbacks) {
+  warnOnce(
+    "AGENTGATE_SKIP_ENV_VALIDATION",
+    "Environment validation is skipped for an image build. Runtime environment variables are still required.",
+  );
+
+  return buildOnlyFallbacks[name];
+}
+
 function parseRequired(name: string, schema: z.ZodType<string>, value: unknown) {
   const parsed = schema.safeParse(value);
 
@@ -42,8 +63,15 @@ function parseRequired(name: string, schema: z.ZodType<string>, value: unknown) 
   return parsed.data;
 }
 
-function readRequiredEnv(name: string, schema: z.ZodType<string> = requiredStringSchema) {
-  return parseRequired(name, schema, process.env[name]);
+function readRequiredEnv(
+  name: keyof typeof buildOnlyFallbacks,
+  schema: z.ZodType<string> = requiredStringSchema,
+) {
+  const value =
+    process.env[name] ??
+    (isValidationSkippedForBuild() ? readBuildOnlyFallback(name) : undefined);
+
+  return parseRequired(name, schema, value);
 }
 
 function readSecretEnv(name: "SESSION_SECRET" | "API_KEY_PEPPER" | "ENCRYPTION_KEY") {
@@ -65,6 +93,10 @@ function readSecretEnv(name: "SESSION_SECRET" | "API_KEY_PEPPER" | "ENCRYPTION_K
 
 function readAppUrl() {
   const value = process.env.APP_URL;
+
+  if (!value && isValidationSkippedForBuild()) {
+    return readBuildOnlyFallback("APP_URL");
+  }
 
   if (!value && !isProduction()) {
     warnOnce(

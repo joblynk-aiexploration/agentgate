@@ -196,6 +196,121 @@ The provided `docker-compose.yml` starts PostgreSQL 16 with:
 - database: `agentgate`
 - port: `5432`
 
+## Deployment
+
+AgentGate can run as a standard Next.js app with PostgreSQL. See
+[docs/deployment.md](docs/deployment.md) for provider-specific notes and a
+production readiness checklist.
+
+### Local Docker Postgres
+
+For local demos, use the included Compose file:
+
+```bash
+docker compose up -d
+npm install
+npm run prisma:migrate
+npm run prisma:seed
+npm run dev
+```
+
+The seed command is for demos only. Do not use the seeded demo API key in a real
+deployment.
+
+### Docker Image
+
+Build the app image:
+
+```bash
+docker build -t agentgate:local .
+```
+
+Run it with runtime environment variables:
+
+```bash
+docker run --rm -p 3000:3000 \
+  -e DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:5432/agentgate" \
+  -e APP_URL="http://localhost:3000" \
+  -e SESSION_SECRET="replace-with-a-real-random-secret" \
+  -e API_KEY_PEPPER="replace-with-a-real-random-secret" \
+  -e ENCRYPTION_KEY="replace-with-a-real-32-byte-key" \
+  agentgate:local
+```
+
+The Dockerfile does not include secrets. It skips build-time env validation only
+while building the image; AgentGate still validates runtime env when the app runs.
+
+### Vercel
+
+1. Create a Vercel project from this repository.
+2. Attach a managed PostgreSQL database or provide `DATABASE_URL`.
+3. Set all required environment variables in Vercel Project Settings.
+4. Run Prisma migrations during deployment or from a trusted admin shell:
+
+```bash
+npx prisma migrate deploy
+```
+
+Vercel should use the normal build command:
+
+```bash
+npm run build
+```
+
+### Render
+
+Use a Web Service with:
+
+```bash
+npm install && npx prisma generate && npm run build
+```
+
+Start command:
+
+```bash
+npm run start
+```
+
+Run migrations from Render Shell or a one-off job:
+
+```bash
+npx prisma migrate deploy
+```
+
+### Railway, Fly.io, And Similar Hosts
+
+Use the Dockerfile or standard Node build. Provide a PostgreSQL service, set the
+required env vars, run migrations with `npx prisma migrate deploy`, then start
+with `npm run start`.
+
+### Required Production Env Vars
+
+- `DATABASE_URL`
+- `APP_URL`
+- `SESSION_SECRET`
+- `API_KEY_PEPPER`
+- `ENCRYPTION_KEY`
+- `NODE_ENV=production`
+
+Generate production secrets with:
+
+```bash
+openssl rand -base64 32
+openssl rand -hex 32
+```
+
+### Production Readiness Checklist
+
+- Set `DATABASE_URL` to a production PostgreSQL database.
+- Set `SESSION_SECRET` to a long random value.
+- Set `API_KEY_PEPPER` to a long random value and keep it stable.
+- Set `ENCRYPTION_KEY` to a long random value.
+- Run `npx prisma migrate deploy`.
+- Create the first organization and user through onboarding or a controlled admin process.
+- Do not run the demo seed in real production.
+- Disable or revoke any demo seed API key before real customer use.
+- Confirm no real Stripe, email, Slack, webhook, or database side effects are enabled in V1.
+
 ## Prisma Commands
 
 Generate the Prisma client:

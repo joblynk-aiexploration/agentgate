@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.git
+.next
+Dockerfile
+README.md
+docs
+node_modules
+npm-debug.log
+coverage
+tsconfig.tsbuildinfo
+.DS_Store

@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 import { validateEnv } from "./src/lib/env";
 
-validateEnv();
+if (process.env.AGENTGATE_SKIP_ENV_VALIDATION !== "1") {
+  validateEnv();
+}
 
 const nextConfig: NextConfig = {
   async headers() {
