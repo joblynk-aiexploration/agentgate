@@ -4,12 +4,14 @@ import { formatEnumLabel } from "@/lib/format";
 export function RiskBadge({ risk }: { risk: string }) {
   const normalized = risk.toUpperCase();
   const tone =
-    normalized === "CRITICAL" || normalized === "HIGH"
+    normalized === "CRITICAL"
       ? "red"
-      : normalized === "MEDIUM"
+      : normalized === "HIGH"
         ? "amber"
+      : normalized === "MEDIUM"
+        ? "blue"
         : normalized === "LOW"
-          ? "blue"
+          ? "green"
           : "slate";
 
   return <Badge tone={tone}>{formatEnumLabel(risk)}</Badge>;

@@ -15,17 +15,23 @@ export function StatusBadge({ status }: { status: string | boolean }) {
     normalized.includes("ACTIVE") ||
     normalized.includes("ALLOW") ||
     normalized.includes("APPROVED") ||
-    normalized.includes("CONNECTED")
+    normalized.includes("CONNECTED") ||
+    normalized.includes("EXECUTED")
       ? "green"
-      : normalized.includes("PENDING") ||
-          normalized.includes("DRAFT") ||
-          normalized.includes("TRIAL")
-        ? "amber"
-        : normalized.includes("BLOCK") ||
-            normalized.includes("REJECT") ||
-            normalized.includes("DISABLED") ||
-            normalized.includes("ERROR") ||
-            normalized.includes("SUSPENDED")
+    : normalized.includes("PENDING") ||
+        normalized.includes("DRAFT") ||
+        normalized.includes("PAUSED") ||
+        normalized.includes("EDITED") ||
+        normalized.includes("TRIAL")
+      ? "amber"
+      : normalized.includes("BLOCK") ||
+          normalized.includes("REJECT") ||
+          normalized.includes("REVOKED") ||
+          normalized.includes("EXPIRED") ||
+          normalized.includes("CANCEL") ||
+          normalized.includes("DISABLED") ||
+          normalized.includes("ERROR") ||
+          normalized.includes("SUSPENDED")
           ? "red"
           : "slate";
 

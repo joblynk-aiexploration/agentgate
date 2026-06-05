@@ -201,6 +201,20 @@ export default async function DeveloperDocsPage() {
             AgentGate V1 uses deterministic local TypeScript rules only. It does not use
             OpenAI, Anthropic, Gemini, or paid AI APIs.
           </p>
+          <div className="grid gap-3 border border-[#d9dee8] bg-white p-4 md:grid-cols-3">
+            <div>
+              <p className="font-semibold text-[#172326]">1. Register</p>
+              <p className="mt-1 text-[#5c6470]">Create an agent and choose allowed demo tools.</p>
+            </div>
+            <div>
+              <p className="font-semibold text-[#172326]">2. Check</p>
+              <p className="mt-1 text-[#5c6470]">Send a gateway request with an `ag_test_` API key.</p>
+            </div>
+            <div>
+              <p className="font-semibold text-[#172326]">3. Decide</p>
+              <p className="mt-1 text-[#5c6470]">Handle ALLOW, REQUIRE_APPROVAL, or BLOCK before execute.</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -213,8 +227,14 @@ export default async function DeveloperDocsPage() {
             <ol className="grid gap-3 text-sm leading-6 text-[#34404a]">
               <li>1. Register an agent from the Agent Registry and assign allowed tools.</li>
               <li>2. Create an API key from Developer &gt; API Keys.</li>
-              <li>3. Copy the full `ag_test_` key immediately. It is shown once.</li>
-              <li>4. Send gateway checks with `Authorization: Bearer &lt;ag_test_api_key&gt;`.</li>
+              <li>
+                3. Copy the full <code className="font-mono">ag_test_</code> key immediately.
+                It is shown once.
+              </li>
+              <li>
+                4. Send gateway checks with{" "}
+                <code className="font-mono">Authorization: Bearer &lt;ag_test_api_key&gt;</code>.
+              </li>
               <li>5. Handle the decision response before calling execute or cancel.</li>
             </ol>
           </CardContent>

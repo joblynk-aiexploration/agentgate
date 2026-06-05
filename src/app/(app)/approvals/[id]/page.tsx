@@ -105,7 +105,7 @@ export default async function ApprovalDetailPage({
             Back to approvals
           </Button>
         }
-        description={actionRequest.reason}
+        description="Review the policy reason, risk signals, payload, and audit history before deciding whether this simulated action may proceed."
         eyebrow={membership.organization.slug}
         title={`${actionRequest.agent.name} approval`}
       />
@@ -148,6 +148,23 @@ export default async function ApprovalDetailPage({
 
       <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
         <div className="grid gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Decision context</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3 text-sm leading-6 text-[#34404a]">
+              <p>
+                <span className="font-semibold text-[#172326]">Reason:</span>{" "}
+                {actionRequest.reason}
+              </p>
+              <p>
+                <span className="font-semibold text-[#172326]">V1 behavior:</span>{" "}
+                approval changes the action status only. External tools are simulated
+                and no real refund, email, Slack message, webhook, or database write is sent.
+              </p>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Action request</CardTitle>

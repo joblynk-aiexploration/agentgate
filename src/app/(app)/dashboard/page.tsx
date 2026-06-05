@@ -444,7 +444,7 @@ export default async function DashboardPage() {
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <PageHeader
-        description={`Live V1 security posture for ${membership.organization.name}. All metrics are resolved server-side with organizationId=${organizationId}.`}
+        description={`Live V1 security posture for ${membership.organization.name}. Metrics are scoped to the current organization and powered by local rules, policies, approvals, and audit logs.`}
         eyebrow={membership.organization.slug}
         title="Dashboard"
       />
@@ -460,7 +460,7 @@ export default async function DashboardPage() {
           detail="Ready to accept gateway checks"
           icon={<ShieldCheck className="h-5 w-5" aria-hidden />}
           label="Active agents"
-          value={activeAgents}
+          value={`${activeAgents}/${totalAgents}`}
         />
         <MetricCard
           detail="Gateway checks since midnight"
@@ -499,6 +499,24 @@ export default async function DashboardPage() {
           value={<StatusBadge status={membership.organization.killSwitchEnabled} />}
         />
       </div>
+
+      <Card>
+        <CardContent className="grid gap-2 p-5 md:grid-cols-[1fr_auto] md:items-center">
+          <div>
+            <p className="text-sm font-semibold text-[#172326]">
+              Demo flow to verify
+            </p>
+            <p className="mt-1 text-sm leading-6 text-[#5c6470]">
+              Send the seeded $1,200 production refund through the gateway, review the
+              pending approval, approve or reject it, then pause the agent to confirm
+              the same request returns BLOCK.
+            </p>
+          </div>
+          <div className="text-sm font-semibold text-[#245f7b]">
+            Local rules only
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-5 xl:grid-cols-2">
         <Card>

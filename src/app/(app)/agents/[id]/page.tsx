@@ -348,6 +348,19 @@ export default async function AgentDetailPage({ params }: AgentDetailPageProps) 
         title={agent.name}
       />
 
+      <Card>
+        <CardContent className="grid gap-2 p-5 md:grid-cols-[1fr_auto] md:items-center">
+          <div>
+            <p className="text-sm font-semibold text-[#172326]">Gateway behavior</p>
+            <p className="mt-1 text-sm leading-6 text-[#5c6470]">
+              Active agents can submit checks with scoped API keys. Paused agents
+              force the gateway to return BLOCK before simulated execution.
+            </p>
+          </div>
+          <StatusBadge status={agent.status} />
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 lg:grid-cols-4">
         <Card>
           <CardContent>

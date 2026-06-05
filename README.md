@@ -4,6 +4,10 @@ AgentGate is an enterprise-grade multi-tenant SaaS demo: the safety, approval, a
 
 One-line pitch: AgentGate lets AI agents request sensitive actions through a governed gateway before anything is approved, blocked, simulated, or audited.
 
+V1 is intentionally honest demo software: risk scoring is local TypeScript, policy
+decisions are deterministic, integrations are simulated, and no paid AI APIs or
+real business-tool side effects are required.
+
 ## Quick Start
 
 Run these commands from a fresh clone:
@@ -123,6 +127,8 @@ V1 focuses on:
 ## What V1 Intentionally Does Not Do
 
 - No OpenAI, Anthropic, Gemini, or paid AI APIs
+- No model training claims
+- No SOC 2 claim
 - No real Stripe refunds
 - No real emails
 - No real Slack messages

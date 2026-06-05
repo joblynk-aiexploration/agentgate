@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
+import { ClipboardCheck, FileClock, ShieldCheck } from "lucide-react";
 import { createAuditLog } from "@/server/audit/audit-service";
 import { getMembershipForUser, verifyPasswordCredentials } from "@/lib/auth";
 import { createSession } from "@/lib/session";
@@ -83,14 +83,32 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Review high-risk agent actions, manage policies, and inspect audit
             trails from one protected workspace.
           </p>
-          <div className="mt-8 border border-[#31464b] bg-[#203236] p-4 text-sm">
-            <p className="font-semibold text-[#d8eeee]">Demo credentials</p>
-            <p className="mt-3 text-[#c8d6d8]">
-              owner@agentgate.dev / Password123!
-            </p>
-            <p className="mt-1 text-[#c8d6d8]">
-              reviewer@agentgate.dev / Password123!
-            </p>
+          <div className="mt-8 grid gap-3 border border-[#31464b] bg-[#203236] p-4 text-sm">
+            <p className="font-semibold text-[#d8eeee]">Final demo credentials</p>
+            <div className="grid gap-2 text-[#c8d6d8]">
+              <p>
+                <span className="font-semibold text-white">Owner:</span>{" "}
+                owner@agentgate.dev / Password123!
+              </p>
+              <p>
+                <span className="font-semibold text-white">Reviewer:</span>{" "}
+                reviewer@agentgate.dev / Password123!
+              </p>
+              <p>
+                <span className="font-semibold text-white">Auditor:</span>{" "}
+                auditor@agentgate.dev / Password123!
+              </p>
+            </div>
+            <div className="grid gap-2 border-t border-[#31464b] pt-3 text-[#c8d6d8]">
+              <p className="flex items-center gap-2">
+                <ClipboardCheck className="h-4 w-4 text-[#8fc7bd]" aria-hidden />
+                Use reviewer to approve the $1,200 refund.
+              </p>
+              <p className="flex items-center gap-2">
+                <FileClock className="h-4 w-4 text-[#8fc7bd]" aria-hidden />
+                Use auditor to inspect the trail.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -114,20 +132,22 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             <label className="flex flex-col gap-2 text-sm font-medium">
               Email
               <input
-                className="border border-[#cbd3df] px-3 py-3 font-normal outline-none transition focus:border-[#2d6f7f]"
+                className="border border-[#cbd3df] px-3 py-3 font-normal outline-none transition focus:border-[#2d6f7f] focus:ring-2 focus:ring-[#d9ecef]"
                 name="email"
                 type="email"
                 autoComplete="email"
+                placeholder="owner@agentgate.dev"
                 required
               />
             </label>
             <label className="flex flex-col gap-2 text-sm font-medium">
               Password
               <input
-                className="border border-[#cbd3df] px-3 py-3 font-normal outline-none transition focus:border-[#2d6f7f]"
+                className="border border-[#cbd3df] px-3 py-3 font-normal outline-none transition focus:border-[#2d6f7f] focus:ring-2 focus:ring-[#d9ecef]"
                 name="password"
                 type="password"
                 autoComplete="current-password"
+                placeholder="Password123!"
                 required
               />
             </label>

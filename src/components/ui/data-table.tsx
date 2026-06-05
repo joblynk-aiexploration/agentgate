@@ -28,7 +28,7 @@ export function DataTable<T>({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto border-t border-[#edf1f6]">
       <table className="w-full min-w-[720px] border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-[#e5e9ef] bg-[#f8fafc] text-xs uppercase text-[#687384]">
@@ -41,7 +41,10 @@ export function DataTable<T>({
         </thead>
         <tbody>
           {data.map((row, index) => (
-            <tr className="border-b border-[#edf1f6] last:border-0" key={rowKey(row, index)}>
+            <tr
+              className="border-b border-[#edf1f6] transition hover:bg-[#fbfcfe] last:border-0"
+              key={rowKey(row, index)}
+            >
               {columns.map((column) => {
                 const value =
                   typeof column.accessor === "function"
