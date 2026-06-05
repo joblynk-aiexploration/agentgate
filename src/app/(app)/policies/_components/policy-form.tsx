@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2 } from "lucide-react";
+import { FilePlus2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -75,9 +75,28 @@ type InitialPolicy = {
   }[];
 };
 
+type InitialTemplate = {
+  id: string;
+  policy: {
+    description: string | null;
+    name: string;
+    priority: number;
+    status: string;
+    rules: {
+      action: string | null;
+      conditionsJson: unknown;
+      decision: string;
+      requiredRole: string | null;
+      riskOverride: string | null;
+      tool: string | null;
+    }[];
+  };
+};
+
 type PolicyFormProps = {
   canManage: boolean;
   initialPolicy?: InitialPolicy;
+  initialTemplate?: InitialTemplate;
 };
 
 const emptyRule = (): RuleFormState => ({
@@ -90,156 +109,72 @@ const emptyRule = (): RuleFormState => ({
   conditionsText: "{\n  \"all\": []\n}",
 });
 
-const examplePolicies: {
-  label: string;
-  value: Omit<PolicyFormState, "rules"> & { rules: Omit<RuleFormState, "id">[] };
-}[] = [
-  {
-    label: "Refunds above $500 require approval.",
-    value: {
-      name: "Refunds above $500 require approval.",
-      description: "Production refunds above the V1 threshold require reviewer approval.",
-      status: "ACTIVE",
-      priority: 10,
-      rules: [
-        {
-          tool: "STRIPE",
-          action: "refund.create",
-          decision: "REQUIRE_APPROVAL",
-          requiredRole: "reviewer",
-          riskOverride: "HIGH",
-          conditionsText: JSON.stringify(
-            {
-              all: [
-                { field: "amount", operator: "gt", value: 500 },
-                { field: "environment", operator: "equals", value: "production" },
-              ],
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    },
-  },
-  {
-    label: "Delete actions are blocked.",
-    value: {
-      name: "Delete actions are blocked.",
-      description: "Destructive delete actions are blocked by default in V1.",
-      status: "ACTIVE",
-      priority: 20,
-      rules: [
-        {
-          tool: "",
-          action: "delete",
-          decision: "BLOCK",
-          requiredRole: "",
-          riskOverride: "CRITICAL",
-          conditionsText: JSON.stringify(
-            {
-              any: [{ field: "action", operator: "contains", value: "delete" }],
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    },
-  },
-  {
-    label: "External customer emails require approval.",
-    value: {
-      name: "External customer emails require approval.",
-      description: "Customer-facing outbound messages must be reviewed before simulated execution.",
-      status: "ACTIVE",
-      priority: 30,
-      rules: [
-        {
-          tool: "EMAIL_PREVIEW",
-          action: "email.send",
-          decision: "REQUIRE_APPROVAL",
-          requiredRole: "reviewer",
-          riskOverride: "MEDIUM",
-          conditionsText: JSON.stringify(
-            {
-              all: [{ field: "externalCommunication", operator: "equals", value: true }],
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    },
-  },
-  {
-    label: "Production database writes require approval.",
-    value: {
-      name: "Production database writes require approval.",
-      description: "Production database write operations require security admin review.",
-      status: "ACTIVE",
-      priority: 40,
-      rules: [
-        {
-          tool: "POSTGRES",
-          action: "write",
-          decision: "REQUIRE_APPROVAL",
-          requiredRole: "security_admin",
-          riskOverride: "CRITICAL",
-          conditionsText: JSON.stringify(
-            {
-              all: [
-                { field: "environment", operator: "equals", value: "production" },
-                { field: "action", operator: "contains", value: "write" },
-              ],
-            },
-            null,
-            2,
-          ),
-        },
-      ],
-    },
-  },
-];
-
 function stringifyConditions(value: unknown) {
   return JSON.stringify(value ?? {}, null, 2);
 }
 
-function getInitialState(initialPolicy?: InitialPolicy): PolicyFormState {
-  if (!initialPolicy) {
+function getInitialState(
+  initialPolicy?: InitialPolicy,
+  initialTemplate?: InitialTemplate,
+): PolicyFormState {
+  if (initialPolicy) {
     return {
-      description: "",
-      name: "",
-      priority: 100,
-      status: "DRAFT",
-      rules: [emptyRule()],
+      description: initialPolicy.description ?? "",
+      name: initialPolicy.name,
+      priority: initialPolicy.priority,
+      status: initialPolicy.status,
+      rules: initialPolicy.rules.map((rule) => ({
+        id: rule.id,
+        tool: rule.tool ?? "",
+        action: rule.action ?? "",
+        decision: rule.decision,
+        requiredRole: rule.requiredRole ?? "",
+        riskOverride: rule.riskOverride ?? "",
+        conditionsText: stringifyConditions(rule.conditionsJson),
+      })),
+    };
+  }
+
+  if (initialTemplate) {
+    return {
+      description: initialTemplate.policy.description ?? "",
+      name: initialTemplate.policy.name,
+      priority: initialTemplate.policy.priority,
+      status: initialTemplate.policy.status,
+      rules: initialTemplate.policy.rules.map((rule) => ({
+        id: crypto.randomUUID(),
+        tool: rule.tool ?? "",
+        action: rule.action ?? "",
+        decision: rule.decision,
+        requiredRole: rule.requiredRole ?? "",
+        riskOverride: rule.riskOverride ?? "",
+        conditionsText: stringifyConditions(rule.conditionsJson),
+      })),
     };
   }
 
   return {
-    description: initialPolicy.description ?? "",
-    name: initialPolicy.name,
-    priority: initialPolicy.priority,
-    status: initialPolicy.status,
-    rules: initialPolicy.rules.map((rule) => ({
-      id: rule.id,
-      tool: rule.tool ?? "",
-      action: rule.action ?? "",
-      decision: rule.decision,
-      requiredRole: rule.requiredRole ?? "",
-      riskOverride: rule.riskOverride ?? "",
-      conditionsText: stringifyConditions(rule.conditionsJson),
-    })),
+    description: "",
+    name: "",
+    priority: 100,
+    status: "DRAFT",
+    rules: [emptyRule()],
   };
 }
 
-export function PolicyForm({ canManage, initialPolicy }: PolicyFormProps) {
+export function PolicyForm({
+  canManage,
+  initialPolicy,
+  initialTemplate,
+}: PolicyFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [state, setState] = useState(() => getInitialState(initialPolicy));
+  const [state, setState] = useState(() =>
+    getInitialState(initialPolicy, initialTemplate),
+  );
   const isEditing = Boolean(initialPolicy);
+  const templateId = initialTemplate?.id ?? null;
   const title = useMemo(
     () => (isEditing ? "Edit policy" : "Create policy"),
     [isEditing],
@@ -252,19 +187,6 @@ export function PolicyForm({ canManage, initialPolicy }: PolicyFormProps) {
         rule.id === ruleId ? { ...rule, ...patch } : rule,
       ),
     }));
-  }
-
-  function applyExample(index: number) {
-    const example = examplePolicies[index];
-
-    setState({
-      ...example.value,
-      rules: example.value.rules.map((rule) => ({
-        ...rule,
-        id: crypto.randomUUID(),
-      })),
-    });
-    setError(null);
   }
 
   function submitPolicy() {
@@ -287,16 +209,29 @@ export function PolicyForm({ canManage, initialPolicy }: PolicyFormProps) {
         return;
       }
 
+      const policyPayload = {
+        name: state.name,
+        description: state.description || null,
+        status: state.status,
+        priority: state.priority,
+        rules,
+      };
+
       const response = await fetch(
-        isEditing ? `/api/policies/${initialPolicy?.id}` : "/api/policies",
+        isEditing
+          ? `/api/policies/${initialPolicy?.id}`
+          : templateId
+            ? "/api/policies/from-template"
+            : "/api/policies",
         {
-          body: JSON.stringify({
-            name: state.name,
-            description: state.description || null,
-            status: state.status,
-            priority: state.priority,
-            rules,
-          }),
+          body: JSON.stringify(
+            templateId
+              ? {
+                  policy: policyPayload,
+                  templateId,
+                }
+              : policyPayload,
+          ),
           headers: {
             "Content-Type": "application/json",
           },
@@ -353,20 +288,15 @@ export function PolicyForm({ canManage, initialPolicy }: PolicyFormProps) {
           </div>
         ) : null}
 
-        <div className="mb-5 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-          {examplePolicies.map((example, index) => (
-            <Button
-              className="h-auto justify-start whitespace-normal px-3 py-2 text-left"
-              disabled={!canManage || isPending}
-              key={example.label}
-              onClick={() => applyExample(index)}
-              type="button"
-              variant="secondary"
-            >
-              {example.label}
-            </Button>
-          ))}
-        </div>
+        {initialTemplate ? (
+          <div className="mb-5 flex items-start gap-3 border border-[#b9d2e4] bg-[#eef6fb] px-4 py-3 text-sm leading-6 text-[#245f7b]">
+            <FilePlus2 className="mt-1 h-4 w-4 shrink-0" aria-hidden />
+            <p>
+              Template loaded: <span className="font-semibold">{initialTemplate.policy.name}</span>.
+              Review and edit the fields below before saving it to this organization.
+            </p>
+          </div>
+        ) : null}
 
         <form action={submitPolicy} className="grid gap-5">
           <div className="grid gap-5 md:grid-cols-[1fr_160px_160px]">

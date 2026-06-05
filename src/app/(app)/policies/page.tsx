@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { FilePlus2, Plus } from "lucide-react";
+import { PolicyTemplateCard } from "@/components/policies/policy-template-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
@@ -8,6 +9,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { canManagePolicies, requirePolicyViewer } from "@/lib/policies";
 import { formatRelativeTime } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
+import { policyTemplates } from "@/server/policies/templates";
 
 type PolicyRow = {
   actions: string;
@@ -110,10 +112,16 @@ export default async function PoliciesPage() {
       <PageHeader
         actions={
           canManage ? (
-            <Button href="/policies/new">
-              <Plus className="h-4 w-4" aria-hidden />
-              New policy
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button href="#policy-templates" variant="secondary">
+                <FilePlus2 className="h-4 w-4" aria-hidden />
+                Create from template
+              </Button>
+              <Button href="/policies/new">
+                <Plus className="h-4 w-4" aria-hidden />
+                New policy
+              </Button>
+            </div>
           ) : null
         }
         description="Manage deterministic organization policies for approvals, blocks, sandbox-only decisions, and audit-only controls."
@@ -133,6 +141,28 @@ export default async function PoliciesPage() {
             emptyTitle="No policies configured"
             rowKey={(row) => row.id}
           />
+        </CardContent>
+      </Card>
+
+      <Card id="policy-templates">
+        <CardHeader>
+          <CardTitle>Policy templates</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-5 max-w-3xl text-sm leading-6 text-[#5c6470]">
+            Start with a built-in V1 policy template, then edit the assisted fields
+            and JSON conditions before saving. Templates use deterministic local
+            rules only.
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {policyTemplates.map((template) => (
+              <PolicyTemplateCard
+                canManage={canManage}
+                key={template.id}
+                template={template}
+              />
+            ))}
+          </div>
         </CardContent>
       </Card>
     </section>

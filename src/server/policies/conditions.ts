@@ -58,6 +58,8 @@ function getFieldValue(input: PolicyEvaluationInput, field: string) {
       return input.agent.id;
     case "department":
       return input.agent.department;
+    case "agentRiskTier":
+      return input.agent.riskTier;
     case "tool":
       return input.tool;
     case "action":
@@ -194,6 +196,13 @@ export function evaluateConditions(
   if (
     conditions.department &&
     normalizeString(conditions.department) !== normalizeString(input.agent.department)
+  ) {
+    return false;
+  }
+
+  if (
+    conditions.agentRiskTier &&
+    normalizeString(conditions.agentRiskTier) !== normalizeString(input.agent.riskTier)
   ) {
     return false;
   }

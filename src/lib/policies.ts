@@ -126,11 +126,11 @@ export async function getPolicyOrThrow(organizationId: string, policyId: string)
   return policy;
 }
 
-export async function createPolicy(
+async function createPolicyRecord(
   membership: PolicyMembership,
   input: PolicyInput,
 ) {
-  const policy = await prisma.$transaction(async (tx) =>
+  return prisma.$transaction(async (tx) =>
     tx.policy.create({
       data: {
         organizationId: membership.organizationId,
@@ -151,6 +151,13 @@ export async function createPolicy(
       },
     }),
   );
+}
+
+export async function createPolicy(
+  membership: PolicyMembership,
+  input: PolicyInput,
+) {
+  const policy = await createPolicyRecord(membership, input);
 
   await createAuditLog({
     organizationId: membership.organizationId,
@@ -160,6 +167,34 @@ export async function createPolicy(
     targetType: "Policy",
     targetId: policy.id,
     metadataJson: {
+      name: policy.name,
+      status: policy.status,
+      priority: policy.priority,
+      rulesCount: policy.rules.length,
+    },
+  });
+
+  revalidatePath("/policies");
+
+  return policy;
+}
+
+export async function createPolicyFromTemplate(
+  membership: PolicyMembership,
+  templateId: string,
+  input: PolicyInput,
+) {
+  const policy = await createPolicyRecord(membership, input);
+
+  await createAuditLog({
+    organizationId: membership.organizationId,
+    actorType: "user",
+    actorId: membership.userId,
+    eventType: "policy.created_from_template",
+    targetType: "Policy",
+    targetId: policy.id,
+    metadataJson: {
+      templateId,
       name: policy.name,
       status: policy.status,
       priority: policy.priority,

@@ -40,6 +40,7 @@ export type MetadataFieldMatch = {
 export type PolicyConditions = {
   agentId?: string;
   department?: string;
+  agentRiskTier?: AgentRiskTier | string;
   tool?: ToolType | string | Array<ToolType | string>;
   action?: string;
   environment?: string;
