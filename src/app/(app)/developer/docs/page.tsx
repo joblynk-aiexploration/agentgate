@@ -251,6 +251,10 @@ export default async function DeveloperDocsPage() {
                 <dd className="mt-1 text-[#5c6470]">
                   Authenticates the API key, resolves the agent, scores risk, evaluates policies,
                   creates approval requests when needed, and writes audit logs.
+                  If you send an <code className="font-mono">Idempotency-Key</code>,
+                  reuse it only for the exact same request body. AgentGate rejects
+                  mismatched replays to avoid returning a prior decision for a
+                  different action.
                 </dd>
               </div>
               <div>

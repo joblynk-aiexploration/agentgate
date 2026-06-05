@@ -78,6 +78,10 @@ curl -X POST http://localhost:3000/api/gateway/check \
 
 Expected: `REQUIRE_APPROVAL` with a pending approval in `/approvals`.
 
+Optional `Idempotency-Key` headers are scoped to the authenticated organization
+and API key. Reuse an idempotency key only for the exact same request body;
+AgentGate rejects mismatched replays.
+
 ## Tech Stack
 
 - Next.js App Router

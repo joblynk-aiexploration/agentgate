@@ -15,7 +15,12 @@ import {
   gatewayForbiddenError,
   gatewayNotFoundError,
 } from "@/server/gateway/errors";
-import { getRequestIp } from "@/server/gateway/idempotency";
+import {
+  createGatewayCheckFingerprint,
+  getRequestIp,
+  getStoredIdempotencyFingerprint,
+  metadataWithIdempotencyFingerprint,
+} from "@/server/gateway/idempotency";
 import type {
   GatewayActionRequest,
   GatewayCancelResponse,
@@ -74,6 +79,7 @@ function responseFromActionRequest(actionRequest: {
   status: ActionStatus;
   riskScore: number;
   riskLevel: RiskLevel;
+  metadataJson?: PrismaTypes.JsonValue | null;
   requiresApproval: boolean;
   approvalRequest?: { id: string } | null;
   riskAssessments?: {
@@ -148,6 +154,9 @@ export class GatewayService {
     const auth = await authenticateApiKey(headers);
     const ipAddress = getRequestIp(headers);
     const userAgent = headers.get("user-agent");
+    const idempotencyFingerprint = idempotencyKey
+      ? createGatewayCheckFingerprint(input)
+      : null;
 
     const agent = await prisma.agent.findFirst({
       where: {
@@ -177,6 +186,22 @@ export class GatewayService {
       );
 
       if (existing) {
+        const storedFingerprint = getStoredIdempotencyFingerprint(
+          existing.metadataJson,
+        );
+
+        if (
+          storedFingerprint &&
+          idempotencyFingerprint &&
+          storedFingerprint !== idempotencyFingerprint
+        ) {
+          throw new GatewayError(
+            409,
+            "Idempotency key was already used for a different gateway request.",
+            "state",
+          );
+        }
+
         return responseFromActionRequest(existing);
       }
     }
@@ -251,7 +276,12 @@ export class GatewayService {
             action: input.action,
             environment: input.environment,
             payloadJson: toJsonValue(evaluationPayload),
-            metadataJson: toJsonValue(input.metadata),
+            metadataJson: toJsonValue(
+              metadataWithIdempotencyFingerprint(
+                input.metadata,
+                idempotencyFingerprint,
+              ),
+            ),
             riskScore: riskResult.score,
             riskLevel: riskResult.level,
             decision: policyResult.decision,
@@ -314,6 +344,22 @@ export class GatewayService {
         );
 
         if (existing) {
+          const storedFingerprint = getStoredIdempotencyFingerprint(
+            existing.metadataJson,
+          );
+
+          if (
+            storedFingerprint &&
+            idempotencyFingerprint &&
+            storedFingerprint !== idempotencyFingerprint
+          ) {
+            throw new GatewayError(
+              409,
+              "Idempotency key was already used for a different gateway request.",
+              "state",
+            );
+          }
+
           return responseFromActionRequest(existing);
         }
       }
@@ -561,6 +607,7 @@ export class GatewayService {
         status: true,
         riskScore: true,
         riskLevel: true,
+        metadataJson: true,
         requiresApproval: true,
         approvalRequest: {
           select: {
