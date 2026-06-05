@@ -7,6 +7,7 @@ import {
 } from "@/generated/prisma/client";
 import type { Prisma as PrismaTypes } from "@/generated/prisma/client";
 import { createAuditLog } from "@/server/audit/audit-service";
+import { createRoleNotifications } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { authenticateApiKey } from "@/server/gateway/authenticate-api-key";
 import { mapGatewayDecisionToStatus } from "@/server/gateway/decision";
@@ -402,6 +403,23 @@ export class GatewayService {
         ipAddress,
         userAgent,
       });
+
+      await createRoleNotifications(
+        auth.apiKey.organizationId,
+        [policyResult.requiredRole ?? "reviewer", "org_owner"],
+        {
+          type: "approval.requested",
+          title: "Approval requested",
+          body: `${agent.name} requested ${actionRequest.action} through ${actionRequest.tool}.`,
+          metadataJson: {
+            actionRequestId: actionRequest.id,
+            approvalRequestId: actionRequest.approvalRequest.id,
+            agentId: agent.id,
+            riskLevel: actionRequest.riskLevel,
+            requiredRole: policyResult.requiredRole,
+          },
+        },
+      );
     }
 
     if (actionRequest.status === ActionStatus.BLOCKED) {
@@ -420,6 +438,22 @@ export class GatewayService {
         ipAddress,
         userAgent,
       });
+
+      await createRoleNotifications(
+        auth.apiKey.organizationId,
+        ["org_owner", "security_admin"],
+        {
+          type: "action.blocked",
+          title: "Action blocked",
+          body: `${agent.name} was blocked from ${actionRequest.action} in ${actionRequest.environment}.`,
+          metadataJson: {
+            actionRequestId: actionRequest.id,
+            agentId: agent.id,
+            decision: actionRequest.decision,
+            riskLevel: actionRequest.riskLevel,
+          },
+        },
+      );
     }
 
     return responseFromActionRequest(actionRequest);

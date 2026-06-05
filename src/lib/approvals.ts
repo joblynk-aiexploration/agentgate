@@ -8,6 +8,10 @@ import {
 } from "@/generated/prisma/client";
 import { createAuditLog } from "@/server/audit/audit-service";
 import { getCurrentMembership } from "@/lib/auth";
+import {
+  createRoleNotifications,
+  createUserNotification,
+} from "@/lib/notifications";
 import { hasRole } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import type {
@@ -393,6 +397,38 @@ export async function approveApproval(
     },
   });
 
+  await createRoleNotifications(
+    membership.organizationId,
+    [
+      "org_owner",
+      "security_admin",
+      ...(existing.requiredRole ? [existing.requiredRole] : []),
+    ],
+    {
+      type: "approval.approved",
+      title: "Approval request approved",
+      body: `${existing.actionRequest.action} was approved for ${existing.actionRequest.tool}.`,
+      metadataJson: {
+        approvalRequestId: approval.id,
+        actionRequestId: existing.actionRequestId,
+        action: existing.actionRequest.action,
+        tool: existing.actionRequest.tool,
+      },
+    },
+  );
+
+  if (existing.assignedToId && existing.assignedToId !== membership.userId) {
+    await createUserNotification(membership.organizationId, existing.assignedToId, {
+      type: "approval.approved",
+      title: "Assigned approval approved",
+      body: `${existing.actionRequest.action} was approved.`,
+      metadataJson: {
+        approvalRequestId: approval.id,
+        actionRequestId: existing.actionRequestId,
+      },
+    });
+  }
+
   revalidatePath("/approvals");
   revalidatePath(`/approvals/${approval.id}`);
 
@@ -447,6 +483,38 @@ export async function rejectApproval(
       comment: input.comment?.trim() || null,
     },
   });
+
+  await createRoleNotifications(
+    membership.organizationId,
+    [
+      "org_owner",
+      "security_admin",
+      ...(existing.requiredRole ? [existing.requiredRole] : []),
+    ],
+    {
+      type: "approval.rejected",
+      title: "Approval request rejected",
+      body: `${existing.actionRequest.action} was rejected for ${existing.actionRequest.tool}.`,
+      metadataJson: {
+        approvalRequestId: approval.id,
+        actionRequestId: existing.actionRequestId,
+        action: existing.actionRequest.action,
+        tool: existing.actionRequest.tool,
+      },
+    },
+  );
+
+  if (existing.assignedToId && existing.assignedToId !== membership.userId) {
+    await createUserNotification(membership.organizationId, existing.assignedToId, {
+      type: "approval.rejected",
+      title: "Assigned approval rejected",
+      body: `${existing.actionRequest.action} was rejected.`,
+      metadataJson: {
+        approvalRequestId: approval.id,
+        actionRequestId: existing.actionRequestId,
+      },
+    });
+  }
 
   revalidatePath("/approvals");
   revalidatePath(`/approvals/${approval.id}`);

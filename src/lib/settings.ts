@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import type { MembershipRole } from "@/generated/prisma/client";
 import { getCurrentMembership } from "@/lib/auth";
+import { createRoleNotifications } from "@/lib/notifications";
 import { hasRole, roleRules } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import type { settingsUpdateSchema } from "@/lib/validators";
@@ -135,6 +136,23 @@ export async function setOrganizationKillSwitch(
       killSwitchEnabled: organization.killSwitchEnabled,
     },
   });
+
+  if (enabled) {
+    await createRoleNotifications(
+      membership.organizationId,
+      ["org_owner", "security_admin"],
+      {
+        type: "organization.kill_switch_enabled",
+        title: "Organization kill switch enabled",
+        body: `${organization.name} will now block incoming gateway actions.`,
+        metadataJson: {
+          organizationId: organization.id,
+          slug: organization.slug,
+          killSwitchEnabled: organization.killSwitchEnabled,
+        },
+      },
+    );
+  }
 
   revalidatePath("/settings");
   revalidatePath("/dashboard");

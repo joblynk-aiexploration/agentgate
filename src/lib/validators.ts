@@ -278,3 +278,5 @@ export const memberRoleUpdateSchema = z.object({
     "Platform owner cannot be assigned from organization settings.",
   ),
 });
+
+export const notificationIdSchema = z.string().trim().min(1).max(160);

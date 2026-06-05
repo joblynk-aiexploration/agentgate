@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { requireMembership } from "@/lib/auth";
+import { getNotificationSnapshot } from "@/lib/notifications";
 
 export default async function AppLayout({
   children,
@@ -8,6 +9,7 @@ export default async function AppLayout({
   children: React.ReactNode;
 }>) {
   const membership = await requireMembership();
+  const notificationSnapshot = await getNotificationSnapshot(membership);
 
   return (
     <div className="flex min-h-screen bg-[#f5f7fb] text-[#16181d]">
@@ -18,8 +20,10 @@ export default async function AppLayout({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
+          notifications={notificationSnapshot.notifications}
           organizationName={membership.organization.name}
           role={membership.role}
+          unreadNotificationCount={notificationSnapshot.unreadCount}
           userDisplayName={membership.user.name ?? membership.user.email}
           userEmail={membership.user.email}
         />

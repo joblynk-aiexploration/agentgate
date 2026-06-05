@@ -7,6 +7,7 @@ import {
 } from "@/generated/prisma/client";
 import { createAuditLog } from "@/server/audit/audit-service";
 import { getCurrentMembership } from "@/lib/auth";
+import { createRoleNotifications } from "@/lib/notifications";
 import { hasRole, roleRules } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import type { agentInputSchema, agentPatchSchema } from "@/lib/validators";
@@ -160,6 +161,20 @@ export async function createAgent(
       riskTier: agent.riskTier,
     },
   });
+
+  await createRoleNotifications(
+    membership.organizationId,
+    ["org_owner", "security_admin"],
+    {
+      type: "agent.paused",
+      title: "Agent paused",
+      body: `${agent.name} was paused. Gateway requests from this agent will be blocked.`,
+      metadataJson: {
+        agentId: agent.id,
+        agentName: agent.name,
+      },
+    },
+  );
 
   revalidatePath("/agents");
   redirect(`/agents/${agent.id}`);

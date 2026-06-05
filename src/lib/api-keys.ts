@@ -6,6 +6,7 @@ import {
 import { createAuditLog } from "@/server/audit/audit-service";
 import { getCurrentMembership } from "@/lib/auth";
 import { generateApiKeyMaterial } from "@/lib/crypto";
+import { createRoleNotifications } from "@/lib/notifications";
 import { hasRole } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import type { apiKeyCreateSchema } from "@/lib/validators";
@@ -155,6 +156,21 @@ export async function createApiKey(
     },
   });
 
+  await createRoleNotifications(
+    membership.organizationId,
+    ["org_owner", "security_admin", "developer"],
+    {
+      type: "api_key.created",
+      title: "API key created",
+      body: `${apiKey.name} was created${apiKey.agent ? ` for ${apiKey.agent.name}` : ""}.`,
+      metadataJson: {
+        apiKeyId: apiKey.id,
+        keyPrefix: apiKey.keyPrefix,
+        agentId: apiKey.agent?.id ?? null,
+      },
+    },
+  );
+
   revalidatePath("/developer/api-keys");
 
   return {
@@ -213,6 +229,21 @@ export async function revokeApiKey(
       previousStatus: existing.status,
     },
   });
+
+  await createRoleNotifications(
+    membership.organizationId,
+    ["org_owner", "security_admin", "developer"],
+    {
+      type: "api_key.revoked",
+      title: "API key revoked",
+      body: `${apiKey.name} was revoked.`,
+      metadataJson: {
+        apiKeyId: apiKey.id,
+        keyPrefix: apiKey.keyPrefix,
+        previousStatus: existing.status,
+      },
+    },
+  );
 
   revalidatePath("/developer/api-keys");
 
