@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  checks:
+    name: AgentGate checks
+    runs-on: ubuntu-latest
+
+    env:
+      AGENTGATE_SKIP_ENV_VALIDATION: "1"
+      API_KEY_PEPPER: agentgate-ci-api-key-pepper-not-for-runtime
+      APP_URL: http://localhost:3000
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agentgate_ci
+      ENCRYPTION_KEY: agentgate-ci-encryption-key-not-for-runtime
+      SESSION_SECRET: agentgate-ci-session-secret-not-for-runtime
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build

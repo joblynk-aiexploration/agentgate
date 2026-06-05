@@ -1,5 +1,7 @@
 # AgentGate
 
+[![CI](https://github.com/joblynk-aiexploration/agentgate/actions/workflows/ci.yml/badge.svg)](https://github.com/joblynk-aiexploration/agentgate/actions/workflows/ci.yml)
+
 AgentGate is an enterprise-grade multi-tenant SaaS demo: the safety, approval, and audit layer for AI agents.
 
 One-line pitch: AgentGate lets AI agents request sensitive actions through a governed gateway before anything is approved, blocked, simulated, or audited.
