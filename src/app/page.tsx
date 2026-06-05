@@ -69,6 +69,12 @@ export default function Home() {
                 Login to demo
               </Link>
               <Link
+                className="inline-flex h-11 items-center justify-center border border-[#2d6f7f] bg-[#eef6fb] px-4 text-sm font-semibold text-[#245f7b] transition hover:bg-[#dceff6]"
+                href="/demo"
+              >
+                Guided demo
+              </Link>
+              <Link
                 className="inline-flex h-11 items-center justify-center border border-[#cbd3df] bg-white px-4 text-sm font-semibold text-[#172326] transition hover:bg-[#f5f7fb]"
                 href="/developer/docs"
               >
