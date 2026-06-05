@@ -227,6 +227,31 @@ npm run dev
 The seed command is for demos only. Do not use the seeded demo API key in a real
 deployment.
 
+## Resetting The Demo
+
+Use these commands whenever you want to return AgentGate to a clean V1 demo
+state:
+
+```bash
+npm run demo:reset
+npm run demo:check
+```
+
+`npm run demo:reset` resets only the AgentGate demo tenant:
+
+- Acme AI Operations organization
+- demo users
+- demo agents
+- demo policies
+- demo API key hash
+- sample action requests
+- sample approvals
+- sample risk assessments
+- sample audit logs
+
+It does not delete unrelated organizations. The local-only seeded demo key is
+still `ag_test_seed_support_refund_demo_key`, and only its hash is stored.
+
 ### Docker Image
 
 Build the app image:

@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { pathToFileURL } from "node:url";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hash } from "bcryptjs";
 import "dotenv/config";
@@ -35,12 +36,14 @@ const prisma = new PrismaClient({
 
 const DEMO_API_KEY = "ag_test_seed_support_refund_demo_key";
 const DEVELOPMENT_API_KEY_PEPPER = "agentgate-development-seed-pepper";
+const DEMO_ORGANIZATION_SLUG = "acme";
+const DEMO_ORGANIZATION_NAME = "Acme AI Operations";
 
 function hashApiKey(key: string, pepper: string) {
   return createHmac("sha256", pepper).update(key).digest("hex");
 }
 
-async function main() {
+export async function seedAgentGateDemoData() {
   const apiKeyPepper = process.env.API_KEY_PEPPER ?? DEVELOPMENT_API_KEY_PEPPER;
 
   if (!process.env.API_KEY_PEPPER) {
@@ -49,9 +52,13 @@ async function main() {
     );
   }
 
+  console.warn(
+    "Resetting only the AgentGate Acme AI Operations demo tenant. Unrelated organizations are not touched.",
+  );
+
   await prisma.organization.deleteMany({
     where: {
-      slug: "acme",
+      slug: DEMO_ORGANIZATION_SLUG,
     },
   });
 
@@ -106,8 +113,8 @@ async function main() {
 
   const organization = await prisma.organization.create({
     data: {
-      name: "Acme AI Operations",
-      slug: "acme",
+      name: DEMO_ORGANIZATION_NAME,
+      slug: DEMO_ORGANIZATION_SLUG,
       plan: BillingPlan.BUSINESS,
       status: OrganizationStatus.ACTIVE,
       memberships: {
@@ -668,16 +675,24 @@ async function main() {
     ],
   });
 
-  console.log("Seeded AgentGate demo tenant: Acme AI Operations (slug: acme)");
+  console.log(
+    `Seeded AgentGate demo tenant: ${DEMO_ORGANIZATION_NAME} (slug: ${DEMO_ORGANIZATION_SLUG})`,
+  );
   console.log(`Local demo API key: ${DEMO_API_KEY}`);
   console.log("The demo API key is printed for local development only and only its hash is stored.");
 }
 
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+export async function disconnectSeedPrisma() {
+  await prisma.$disconnect();
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  seedAgentGateDemoData()
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await disconnectSeedPrisma();
+    });
+}
