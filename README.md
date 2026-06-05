@@ -624,12 +624,11 @@ Near-term:
 - More report filters
 - Better API docs and typed examples
 - Webhook notifications
+- MCP gateway architecture notes in `docs/mcp-gateway.md`
 
 Future:
 
-- TypeScript SDK
-- Tool proxy
-- MCP gateway
+- Full MCP gateway for controlled MCP-compatible tool calls
 - Local model reviewer option
 - Premium model reviewer option
 - SSO and enterprise identity

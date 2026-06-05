@@ -506,12 +506,28 @@ export default async function DeveloperDocsPage() {
         <CardHeader>
           <CardTitle>Future MCP Gateway</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-start gap-3 text-sm leading-6 text-[#34404a]">
-          <Braces className="mt-0.5 h-4 w-4 shrink-0 text-[#2d6f7f]" aria-hidden />
+        <CardContent className="grid gap-4 text-sm leading-6 text-[#34404a]">
+          <div className="flex items-start gap-3">
+            <Braces className="mt-0.5 h-4 w-4 shrink-0 text-[#2d6f7f]" aria-hidden />
+            <p>
+              Future versions can expose controlled tools to MCP-compatible AI
+              agents with this flow: AI Agent -&gt; MCP Client -&gt; AgentGate MCP
+              Gateway -&gt; Policy/Risk/Approval -&gt; Tool Executor.
+            </p>
+          </div>
           <p>
-            Future versions can act as a richer MCP gateway. V1 Tool Proxy mode
-            keeps execution simulated so policies, approvals, and audit trails
-            can be demonstrated without real third-party side effects.
+            AI agents should not receive direct credentials to business tools.
+            MCP tool calls should flow through AgentGate authentication, tenant
+            isolation, policy checks, local risk scoring, approvals, simulated
+            or controlled execution, and audit logs.
+          </p>
+          <p>
+            V1 does not run a full MCP server. Use Gateway API mode or Tool
+            Proxy mode for current demos.
+          </p>
+          <p>
+            Repo architecture notes live in{" "}
+            <code className="font-mono">docs/mcp-gateway.md</code>.
           </p>
         </CardContent>
       </Card>
