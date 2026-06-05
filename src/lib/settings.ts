@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import type { MembershipRole } from "@/generated/prisma/client";
 import { getCurrentMembership } from "@/lib/auth";
 import { createRoleNotifications } from "@/lib/notifications";
+import { dispatchWebhookEvent } from "@/lib/webhooks";
 import { hasRole, roleRules } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import type { settingsUpdateSchema } from "@/lib/validators";
@@ -152,6 +153,18 @@ export async function setOrganizationKillSwitch(
         },
       },
     );
+
+    await dispatchWebhookEvent({
+      organizationId: membership.organizationId,
+      event: "organization.kill_switch_enabled",
+      targetType: "Organization",
+      targetId: organization.id,
+      metadata: {
+        name: organization.name,
+        slug: organization.slug,
+        enabledById: membership.userId,
+      },
+    });
   }
 
   revalidatePath("/settings");

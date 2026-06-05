@@ -8,6 +8,7 @@ import {
 import type { Prisma as PrismaTypes } from "@/generated/prisma/client";
 import { createAuditLog } from "@/server/audit/audit-service";
 import { createRoleNotifications } from "@/lib/notifications";
+import { dispatchWebhookEvent } from "@/lib/webhooks";
 import { prisma } from "@/lib/prisma";
 import { authenticateApiKey } from "@/server/gateway/authenticate-api-key";
 import { mapGatewayDecisionToStatus } from "@/server/gateway/decision";
@@ -386,6 +387,19 @@ export class GatewayService {
       userAgent,
     });
 
+    await dispatchWebhookEvent({
+      organizationId: auth.apiKey.organizationId,
+      event: "gateway.action_checked",
+      targetType: "ActionRequest",
+      targetId: actionRequest.id,
+      metadata: {
+        agentId: agent.id,
+        decision: actionRequest.decision,
+        status: actionRequest.status,
+        riskLevel: actionRequest.riskLevel,
+      },
+    });
+
     if (actionRequest.approvalRequest) {
       await createAuditLog({
         organizationId: auth.apiKey.organizationId,
@@ -420,6 +434,20 @@ export class GatewayService {
           },
         },
       );
+
+      await dispatchWebhookEvent({
+        organizationId: auth.apiKey.organizationId,
+        event: "approval.requested",
+        targetType: "ApprovalRequest",
+        targetId: actionRequest.approvalRequest.id,
+        metadata: {
+          actionRequestId: actionRequest.id,
+          agentId: agent.id,
+          requiredRole: policyResult.requiredRole,
+          decision: actionRequest.decision,
+          riskLevel: actionRequest.riskLevel,
+        },
+      });
     }
 
     if (actionRequest.status === ActionStatus.BLOCKED) {
@@ -454,6 +482,19 @@ export class GatewayService {
           },
         },
       );
+
+      await dispatchWebhookEvent({
+        organizationId: auth.apiKey.organizationId,
+        event: "action.blocked",
+        targetType: "ActionRequest",
+        targetId: actionRequest.id,
+        metadata: {
+          agentId: agent.id,
+          decision: actionRequest.decision,
+          reason: actionRequest.reason,
+          riskLevel: actionRequest.riskLevel,
+        },
+      });
     }
 
     return responseFromActionRequest(actionRequest);
@@ -540,6 +581,18 @@ export class GatewayService {
       },
       ipAddress,
       userAgent,
+    });
+
+    await dispatchWebhookEvent({
+      organizationId: auth.apiKey.organizationId,
+      event: "action.executed",
+      targetType: "ActionRequest",
+      targetId: updated.id,
+      metadata: {
+        agentId: updated.agentId,
+        simulated: true,
+        result: executionResult,
+      },
     });
 
     return {

@@ -8,6 +8,7 @@ import {
 import { createAuditLog } from "@/server/audit/audit-service";
 import { getCurrentMembership } from "@/lib/auth";
 import { createRoleNotifications } from "@/lib/notifications";
+import { dispatchWebhookEvent } from "@/lib/webhooks";
 import { hasRole, roleRules } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import type { agentInputSchema, agentPatchSchema } from "@/lib/validators";
@@ -175,6 +176,17 @@ export async function createAgent(
       },
     },
   );
+
+  await dispatchWebhookEvent({
+    organizationId: membership.organizationId,
+    event: "agent.paused",
+    targetType: "Agent",
+    targetId: agent.id,
+    metadata: {
+      name: agent.name,
+      pausedById: membership.userId,
+    },
+  });
 
   revalidatePath("/agents");
   redirect(`/agents/${agent.id}`);

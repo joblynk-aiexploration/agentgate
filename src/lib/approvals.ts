@@ -12,6 +12,7 @@ import {
   createRoleNotifications,
   createUserNotification,
 } from "@/lib/notifications";
+import { dispatchWebhookEvent } from "@/lib/webhooks";
 import { hasRole } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 import type {
@@ -429,6 +430,19 @@ export async function approveApproval(
     });
   }
 
+  await dispatchWebhookEvent({
+    organizationId: membership.organizationId,
+    event: "approval.approved",
+    targetType: "ApprovalRequest",
+    targetId: approval.id,
+    metadata: {
+      actionRequestId: existing.actionRequestId,
+      action: existing.actionRequest.action,
+      tool: existing.actionRequest.tool,
+      reviewedById: membership.userId,
+    },
+  });
+
   revalidatePath("/approvals");
   revalidatePath(`/approvals/${approval.id}`);
 
@@ -515,6 +529,19 @@ export async function rejectApproval(
       },
     });
   }
+
+  await dispatchWebhookEvent({
+    organizationId: membership.organizationId,
+    event: "approval.rejected",
+    targetType: "ApprovalRequest",
+    targetId: approval.id,
+    metadata: {
+      actionRequestId: existing.actionRequestId,
+      action: existing.actionRequest.action,
+      tool: existing.actionRequest.tool,
+      reviewedById: membership.userId,
+    },
+  });
 
   revalidatePath("/approvals");
   revalidatePath(`/approvals/${approval.id}`);

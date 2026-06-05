@@ -8,6 +8,7 @@ import {
   PolicyStatus,
   RiskLevel,
   ToolType,
+  WebhookEndpointStatus,
 } from "@/generated/prisma/client";
 
 export const emailSchema = z
@@ -89,6 +90,10 @@ const membershipRoleValues = Object.values(MembershipRole) as [
   ...MembershipRole[],
 ];
 const riskLevelValues = Object.values(RiskLevel) as [RiskLevel, ...RiskLevel[]];
+const webhookEndpointStatusValues = Object.values(WebhookEndpointStatus) as [
+  WebhookEndpointStatus,
+  ...WebhookEndpointStatus[],
+];
 
 const jsonValueSchema: z.ZodType<unknown> = z.lazy(() =>
   z.union([
@@ -280,3 +285,50 @@ export const memberRoleUpdateSchema = z.object({
 });
 
 export const notificationIdSchema = z.string().trim().min(1).max(160);
+
+export const outboundWebhookEventValues = [
+  "gateway.action_checked",
+  "action.blocked",
+  "approval.requested",
+  "approval.approved",
+  "approval.rejected",
+  "action.executed",
+  "agent.paused",
+  "organization.kill_switch_enabled",
+] as const;
+
+const webhookEventsSchema = z
+  .array(z.enum(outboundWebhookEventValues))
+  .min(1, "Select at least one event.")
+  .max(outboundWebhookEventValues.length);
+
+const webhookUrlSchema = z
+  .string()
+  .trim()
+  .url("Enter a valid webhook URL.")
+  .refine((value) => {
+    const url = new URL(value);
+
+    return url.protocol === "https:" || url.hostname === "localhost" || url.hostname === "127.0.0.1";
+  }, "Use HTTPS URLs, except localhost is allowed for local demos.");
+
+export const webhookEndpointInputSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  url: webhookUrlSchema,
+  secret: z.string().trim().min(12).max(200).optional().nullable(),
+  status: z.enum(webhookEndpointStatusValues).default(WebhookEndpointStatus.ACTIVE),
+  events: webhookEventsSchema,
+});
+
+export const webhookEndpointPatchSchema = z
+  .object({
+    name: z.string().trim().min(2).max(120).optional(),
+    url: webhookUrlSchema.optional(),
+    secret: z.string().trim().min(12).max(200).optional().nullable(),
+    status: z.enum(webhookEndpointStatusValues).optional(),
+    events: webhookEventsSchema.optional(),
+  })
+  .refine(
+    (value) => Object.keys(value).length > 0,
+    "At least one field is required.",
+  );

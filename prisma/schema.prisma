@@ -146,6 +146,11 @@ enum BillingStatus {
   INCOMPLETE
 }
 
+enum WebhookEndpointStatus {
+  ACTIVE
+  DISABLED
+}
+
 model Organization {
   id                String             @id @default(cuid())
   name              String
@@ -168,6 +173,7 @@ model Organization {
   riskAssessments     RiskAssessment[]
   auditLogs           AuditLog[]
   notifications       Notification[]
+  webhookEndpoints    WebhookEndpoint[]
   incidents           Incident[]
   billingSubscription BillingSubscription?
 }
@@ -185,6 +191,7 @@ model User {
   ownedAgents       Agent[]           @relation("AgentOwner")
   createdApiKeys    ApiKey[]          @relation("ApiKeyCreator")
   createdPolicies   Policy[]          @relation("PolicyCreator")
+  createdWebhooks   WebhookEndpoint[] @relation("WebhookEndpointCreator")
   assignedApprovals ApprovalRequest[] @relation("ApprovalAssignee")
   reviewedApprovals ApprovalRequest[] @relation("ApprovalReviewer")
   approvalComments  ApprovalComment[] @relation("ApprovalCommentAuthor")
@@ -444,6 +451,26 @@ model Notification {
   @@index([organizationId, userId, readAt, createdAt])
   @@index([organizationId, role, readAt, createdAt])
   @@index([organizationId, type, createdAt])
+}
+
+model WebhookEndpoint {
+  id             String                @id @default(cuid())
+  organizationId String
+  name           String
+  url            String
+  secretHash     String?
+  status         WebhookEndpointStatus @default(ACTIVE)
+  eventsJson     Json
+  createdById    String?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation("WebhookEndpointCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, name])
+  @@index([organizationId, status])
+  @@index([createdById])
 }
 
 model Incident {

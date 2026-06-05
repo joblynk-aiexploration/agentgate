@@ -5,6 +5,7 @@ import {
   FileJson,
   KeyRound,
   Route,
+  Webhook,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -125,6 +126,17 @@ if (decision.requiresApproval) {
   await agentgate.execute(decision.actionRequestId);
 }`;
 
+const webhookCallbackPayloadExample = `{
+  "event": "approval.requested",
+  "organizationId": "org_...",
+  "timestamp": "2026-06-05T00:00:00.000Z",
+  "targetType": "ApprovalRequest",
+  "targetId": "apr_...",
+  "metadata": {
+    "summary": "actionRequestId: act_..., riskLevel: HIGH"
+  }
+}`;
+
 const decisionRows = [
   {
     decision: "ALLOW",
@@ -167,6 +179,10 @@ export default async function DeveloperDocsPage() {
             <Button href="/developer/api-keys" variant="secondary">
               <KeyRound className="h-4 w-4" aria-hidden />
               API keys
+            </Button>
+            <Button href="/developer/webhooks" variant="secondary">
+              <Webhook className="h-4 w-4" aria-hidden />
+              Webhooks
             </Button>
             <Button href="/api/openapi" variant="secondary">
               <FileJson className="h-4 w-4" aria-hidden />
@@ -320,6 +336,35 @@ export default async function DeveloperDocsPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Outbound Webhook Callbacks</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 text-sm leading-6 text-[#34404a]">
+          <p>
+            Developer &gt; Webhooks lets org owners and developers configure
+            callback endpoints for gateway decisions, blocked actions, approval
+            requests, approval decisions, simulated executions, agent pauses, and
+            organization kill-switch events. Security admins can view and disable
+            endpoints; auditors can view only.
+          </p>
+          <p>
+            V1 stores endpoint configuration and simulates test deliveries by
+            default. Real external delivery is disabled unless a deployment
+            explicitly opts in with{" "}
+            <code className="font-mono">AGENTGATE_ENABLE_OUTBOUND_WEBHOOKS=true</code>.
+            When enabled, AgentGate uses a short timeout and sends no secrets in
+            the payload.
+          </p>
+          <CodeBlock>{webhookCallbackPayloadExample}</CodeBlock>
+          <p>
+            If a signing secret is configured, AgentGate stores only a hash and
+            includes an <code className="font-mono">X-AgentGate-Signature</code>{" "}
+            HMAC value on outbound attempts.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>curl Example</CardTitle>
         </CardHeader>
         <CardContent>
@@ -399,11 +444,12 @@ export default async function DeveloperDocsPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Future Webhooks</CardTitle>
+            <CardTitle>Webhook Callbacks</CardTitle>
           </CardHeader>
           <CardContent className="text-sm leading-6 text-[#34404a]">
-            Webhook placeholders will notify external systems about approvals, blocks, executions,
-            and audit events after V1.
+            Configure outbound callback endpoints from Developer &gt; Webhooks.
+            V1 simulates delivery by default and supports opt-in external sends
+            with signed payloads.
           </CardContent>
         </Card>
       </div>
