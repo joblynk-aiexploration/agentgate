@@ -5,6 +5,7 @@ import {
   canExportAuditLogs,
   getApiAuditLogMembership,
 } from "@/server/audit/audit-service";
+import { csvResponse } from "@/lib/csv";
 import { prisma } from "@/lib/prisma";
 import { auditLogQuerySchema } from "@/lib/validators";
 
@@ -51,10 +52,8 @@ export async function GET(request: Request) {
 
   const csv = auditLogToCsv(logs);
 
-  return new NextResponse(csv, {
-    headers: {
-      "Content-Disposition": `attachment; filename="agentgate-audit-logs-${new Date().toISOString().slice(0, 10)}.csv"`,
-      "Content-Type": "text/csv; charset=utf-8",
-    },
-  });
+  return csvResponse(
+    csv,
+    `agentgate-audit-logs-${new Date().toISOString().slice(0, 10)}.csv`,
+  );
 }

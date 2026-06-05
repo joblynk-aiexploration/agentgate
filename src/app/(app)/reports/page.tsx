@@ -4,6 +4,7 @@ import {
   ApprovalStatus,
   RiskLevel,
 } from "@/generated/prisma/client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
@@ -11,7 +12,7 @@ import { MetricCard } from "@/components/ui/metric-card";
 import { PageHeader } from "@/components/ui/page-header";
 import { RiskBadge } from "@/components/ui/risk-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { requireRole, roleRules } from "@/lib/permissions";
+import { hasRole, requireRole, roleRules } from "@/lib/permissions";
 import { formatDate, formatEnumLabel, formatRelativeTime } from "@/lib/format";
 import { prisma } from "@/lib/prisma";
 
@@ -69,6 +70,7 @@ function riskWeight(level: string) {
 export default async function ReportsPage() {
   const membership = await requireRole(roleRules.viewReports);
   const organizationId = membership.organizationId;
+  const canExportReports = hasRole(membership.role, roleRules.viewReports);
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   thirtyDaysAgo.setHours(0, 0, 0, 0);
@@ -320,9 +322,17 @@ export default async function ReportsPage() {
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <PageHeader
         actions={
-          <Button href="/api/audit-logs/export" variant="secondary">
-            Audit export
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button href="/api/reports/actions/export" variant="secondary">
+              Export actions
+            </Button>
+            <Button href="/api/reports/approvals/export" variant="secondary">
+              Export approvals
+            </Button>
+            <Button href="/api/audit-logs/export" variant="secondary">
+              Export audit logs
+            </Button>
+          </div>
         }
         description="Organization-scoped operational reporting for V1 gateway activity, approvals, risk, and audit posture."
         eyebrow={membership.organization.slug}
@@ -334,6 +344,23 @@ export default async function ReportsPage() {
         <MetricCard label="Blocked actions" value={totalBlocked} detail="Policy or kill-switch stops" />
         <MetricCard label="Pending approvals" value={totalPendingApprovals} detail="Awaiting reviewer action" />
       </div>
+
+      <Card>
+        <CardContent className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-[#172326]">Compliance exports</p>
+              <Badge tone={canExportReports ? "green" : "slate"}>
+                {canExportReports ? "Available" : "Unavailable"}
+              </Badge>
+            </div>
+            <p className="mt-1 text-sm text-[#687384]">
+              CSV exports are limited to the current organization and available to org owners,
+              security admins, and auditors. Your role is {formatEnumLabel(membership.role)}.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-5 xl:grid-cols-2">
         <Card>

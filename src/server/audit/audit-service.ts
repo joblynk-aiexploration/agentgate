@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import type { MembershipRole, Prisma } from "@/generated/prisma/client";
 import { getCurrentMembership } from "@/lib/auth";
+import { toCsv } from "@/lib/csv";
 import { hasRole, roleRules } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
@@ -208,7 +209,7 @@ export function auditLogToCsv(logs: {
     "actorId",
     "targetType",
     "targetId",
-    "metadataJson",
+    "metadataSummary",
   ];
 
   const rows = logs.map((log) => [
@@ -218,16 +219,8 @@ export function auditLogToCsv(logs: {
     log.actorId ?? "",
     log.targetType ?? "",
     log.targetId ?? "",
-    JSON.stringify(redactSensitiveMetadata(log.metadataJson ?? null)),
+    summarizeAuditMetadata(log.metadataJson ?? null),
   ]);
 
-  return [header, ...rows].map((row) => row.map(escapeCsv).join(",")).join("\n");
-}
-
-function escapeCsv(value: string) {
-  if (/[",\n\r]/.test(value)) {
-    return `"${value.replaceAll('"', '""')}"`;
-  }
-
-  return value;
+  return toCsv([header, ...rows]);
 }
