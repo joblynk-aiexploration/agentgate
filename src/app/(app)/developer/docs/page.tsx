@@ -20,6 +20,13 @@ const curlExample = `curl -X POST http://localhost:3000/api/gateway/check \\
     "metadata": {}
   }'`;
 
+const executeCurlExample = `curl -X POST http://localhost:3000/api/gateway/execute \\
+  -H "Authorization: Bearer <ag_test_api_key>" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "actionRequestId": "<allowed_or_approved_action_request_id>"
+  }'`;
+
 const typescriptExample = `type GatewayDecision =
   | "ALLOW"
   | "REQUIRE_APPROVAL"
@@ -171,8 +178,9 @@ export default async function DeveloperDocsPage() {
               <div>
                 <dt className="font-semibold">POST /api/gateway/execute</dt>
                 <dd className="mt-1 text-[#5c6470]">
-                  Simulates execution only after the action is allowed or approved. V1 never calls
-                  Stripe, email providers, Slack, databases, or external tools.
+                  Simulates execution only after the action is allowed or approved. V1 chooses a
+                  demo executor by tool and never calls Stripe, email providers, Slack, databases,
+                  webhooks, or external tools.
                 </dd>
               </div>
               <div>
@@ -201,6 +209,19 @@ export default async function DeveloperDocsPage() {
         </CardHeader>
         <CardContent>
           <CodeBlock>{curlExample}</CodeBlock>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Execute curl Example</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <CodeBlock>{executeCurlExample}</CodeBlock>
+          <p className="text-sm leading-6 text-[#34404a]">
+            Execute returns a safe simulated result. Stripe refunds, emails, Slack messages,
+            database writes, and webhook deliveries are not performed in V1.
+          </p>
         </CardContent>
       </Card>
 

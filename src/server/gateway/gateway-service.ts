@@ -23,6 +23,8 @@ import type {
   GatewayDecisionResponse,
   GatewayExecutionResponse,
 } from "@/server/gateway/types";
+import { getToolExecutor } from "@/server/integrations/tool-executor";
+import type { ToolExecutionResult } from "@/server/integrations/types";
 import { policyEngine } from "@/server/policies/policy-engine";
 import { localRiskEngine } from "@/server/risk/risk-engine";
 
@@ -113,6 +115,28 @@ function isUniqueConstraintError(error: unknown) {
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2002"
   );
+}
+
+function mergeExecutionMetadata(
+  metadata: PrismaTypes.JsonValue | null,
+  execution: ToolExecutionResult,
+) {
+  const base =
+    metadata && typeof metadata === "object" && !Array.isArray(metadata)
+      ? (metadata as Record<string, unknown>)
+      : {};
+
+  return toJsonValue({
+    ...base,
+    execution: {
+      executedAt: new Date().toISOString(),
+      executor: execution.executor,
+      message: execution.message,
+      output: execution.output,
+      simulated: true,
+      success: execution.success,
+    },
+  });
 }
 
 export class GatewayService {
@@ -375,12 +399,31 @@ export class GatewayService {
       throw new GatewayError(400, "Action is not approved for execution.", "state");
     }
 
+    const executor = getToolExecutor(actionRequest.tool);
+    const executionPayload =
+      actionRequest.approvalRequest?.editedPayloadJson ?? actionRequest.payloadJson;
+    const executionResult = await executor.execute({
+      action: actionRequest.action,
+      actionRequestId: actionRequest.id,
+      agentId: actionRequest.agentId,
+      environment: actionRequest.environment,
+      metadata: actionRequest.metadataJson ?? {},
+      organizationId: auth.apiKey.organizationId,
+      payload: executionPayload,
+      reason: actionRequest.reason,
+      tool: actionRequest.tool,
+    });
+
     const updated = await prisma.actionRequest.update({
       where: {
         id: actionRequest.id,
         organizationId: auth.apiKey.organizationId,
       },
       data: {
+        metadataJson: mergeExecutionMetadata(
+          actionRequest.metadataJson,
+          executionResult,
+        ),
         status: ActionStatus.EXECUTED,
       },
       select: {
@@ -400,6 +443,7 @@ export class GatewayService {
       metadataJson: {
         simulated: true,
         apiKeyId: auth.apiKey.id,
+        execution: toJsonValue(executionResult),
       },
       ipAddress,
       userAgent,
@@ -409,10 +453,7 @@ export class GatewayService {
       actionRequestId: updated.id,
       status: updated.status,
       executed: true,
-      result: {
-        simulated: true,
-        message: "V1 simulated execution only. No external action was performed.",
-      },
+      result: executionResult,
     };
   }
 
@@ -542,7 +583,18 @@ export class GatewayService {
       select: {
         id: true,
         agentId: true,
+        action: true,
+        environment: true,
+        metadataJson: true,
+        payloadJson: true,
+        reason: true,
         status: true,
+        tool: true,
+        approvalRequest: {
+          select: {
+            editedPayloadJson: true,
+          },
+        },
       },
     });
 

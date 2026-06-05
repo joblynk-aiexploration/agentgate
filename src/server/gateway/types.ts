@@ -5,6 +5,7 @@ import {
   RiskLevel,
   ToolType,
 } from "@/generated/prisma/client";
+import type { ToolExecutionResult } from "@/server/integrations/types";
 
 const toolValues = Object.values(ToolType) as [ToolType, ...ToolType[]];
 
@@ -63,10 +64,7 @@ export type GatewayExecutionResponse = {
   actionRequestId: string;
   status: ActionStatus;
   executed: boolean;
-  result: {
-    simulated: true;
-    message: string;
-  };
+  result: ToolExecutionResult;
 };
 
 export type GatewayCancelResponse = {
