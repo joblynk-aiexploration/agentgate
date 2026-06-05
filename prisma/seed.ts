@@ -222,6 +222,16 @@ async function main() {
         status: ToolConnectionStatus.DEMO,
         configJson: { execution: "simulated" },
       },
+      {
+        organizationId: organization.id,
+        toolType: ToolType.WEBHOOK,
+        name: "Webhook Demo",
+        status: ToolConnectionStatus.DEMO,
+        configJson: {
+          description: "Demo-only webhook delivery for arbitrary future tools.",
+          name: "Webhook Demo",
+        },
+      },
     ],
   });
 

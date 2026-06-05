@@ -12,8 +12,15 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { WebhookDemoCard } from "@/app/(app)/integrations/_components/webhook-demo-card";
+import {
+  parseWebhookDemoConfig,
+  webhookDemoExamplePayload,
+  webhookDemoManagerRoles,
+} from "@/server/integrations/webhook-demo";
 import { requireMembership } from "@/lib/auth";
 import { formatEnumLabel } from "@/lib/format";
+import { hasRole } from "@/lib/permissions";
 import { prisma } from "@/lib/prisma";
 
 const integrationCards = [
@@ -82,6 +89,7 @@ export default async function IntegrationsPage() {
       organizationId: membership.organizationId,
     },
     select: {
+      configJson: true,
       name: true,
       status: true,
       toolType: true,
@@ -89,6 +97,8 @@ export default async function IntegrationsPage() {
     },
   });
   const connectionByTool = new Map(connections.map((connection) => [connection.toolType, connection]));
+  const webhookConnection = connectionByTool.get("WEBHOOK");
+  const canManageWebhookDemo = hasRole(membership.role, webhookDemoManagerRoles);
 
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -102,6 +112,18 @@ export default async function IntegrationsPage() {
         {integrationCards.map((integration) => {
           const connection = connectionByTool.get(integration.toolType);
           const Icon = integration.icon;
+
+          if (integration.toolType === "WEBHOOK") {
+            return (
+              <WebhookDemoCard
+                canManage={canManageWebhookDemo}
+                config={parseWebhookDemoConfig(webhookConnection?.configJson)}
+                examplePayload={webhookDemoExamplePayload}
+                key={integration.name}
+                status={webhookConnection?.status ?? "DEMO"}
+              />
+            );
+          }
 
           return (
             <Card key={integration.name}>

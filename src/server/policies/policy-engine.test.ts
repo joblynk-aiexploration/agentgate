@@ -72,6 +72,25 @@ const policies: PolicyForEvaluation[] = [
       },
     ],
   },
+  {
+    id: "policy_webhook",
+    name: "Production webhooks require approval",
+    status: PolicyStatus.ACTIVE,
+    priority: 40,
+    rules: [
+      {
+        id: "rule_webhook",
+        policyId: "policy_webhook",
+        tool: ToolType.WEBHOOK,
+        action: "webhook.trigger",
+        conditionsJson: {
+          productionEnvironment: true,
+        },
+        decision: ActionDecision.REQUIRE_APPROVAL,
+        requiredRole: MembershipRole.security_admin,
+      },
+    ],
+  },
 ];
 
 function input(overrides: Partial<PolicyEvaluationInput>): PolicyEvaluationInput {
@@ -179,5 +198,24 @@ describe("PolicyEngine", () => {
 
     expect(result.decision).toBe(ActionDecision.BLOCK);
     expect(result.reason).toBe("Organization-level kill switch is active.");
+  });
+
+  it("supports webhook demo policy matching", async () => {
+    const result = await engine.evaluate(
+      input({
+        tool: ToolType.WEBHOOK,
+        action: "webhook.trigger",
+        amount: null,
+        productionEnvironment: true,
+        toolConnection: {
+          toolType: ToolType.WEBHOOK,
+          status: ToolConnectionStatus.DEMO,
+        },
+      }),
+    );
+
+    expect(result.decision).toBe(ActionDecision.REQUIRE_APPROVAL);
+    expect(result.requiredRole).toBe(MembershipRole.security_admin);
+    expect(result.matchedPolicyRuleId).toBe("rule_webhook");
   });
 });

@@ -33,6 +33,9 @@ const commonActions = new Set([
   "ticket.update",
   "note.create",
   "notification.send",
+  "webhook.enqueue",
+  "webhook.notify",
+  "webhook.trigger",
 ]);
 
 const highRiskTools: ToolType[] = [
@@ -114,6 +117,12 @@ function isPaymentOrRefund(input: RiskAssessmentInput, searchable: string) {
     searchable.includes("refund") ||
     searchable.includes("payment")
   );
+}
+
+function isProductionWebhook(input: RiskAssessmentInput, searchable: string) {
+  const tool = input.tool.toString().toUpperCase();
+
+  return tool === ToolType.WEBHOOK && isProduction(input, searchable);
 }
 
 function hasLegalLanguage(searchable: string) {
@@ -241,6 +250,14 @@ export class RulesBasedRiskReviewer implements RiskReviewer {
     addSignal(
       { key: "tool_risk_level", label: "High risk tool", points: 15 },
       highRiskTools.includes(input.tool as ToolType),
+    );
+    addSignal(
+      {
+        key: "production_webhook_action",
+        label: "Production webhook action",
+        points: 10,
+      },
+      isProductionWebhook(input, searchable),
     );
     addSignal(
       { key: "unusual_action_type", label: "Unusual action type", points: 10 },

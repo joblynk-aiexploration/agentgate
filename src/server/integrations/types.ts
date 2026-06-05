@@ -10,6 +10,7 @@ export type ToolExecutionInput = {
   payload: unknown;
   reason: string;
   tool: ToolType;
+  toolConnectionConfig?: unknown;
 };
 
 export type ToolExecutionResult = {

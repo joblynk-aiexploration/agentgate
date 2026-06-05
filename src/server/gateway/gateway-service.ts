@@ -400,6 +400,18 @@ export class GatewayService {
     }
 
     const executor = getToolExecutor(actionRequest.tool);
+    const toolConnection = await prisma.toolConnection.findFirst({
+      where: {
+        organizationId: auth.apiKey.organizationId,
+        toolType: actionRequest.tool,
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      select: {
+        configJson: true,
+      },
+    });
     const executionPayload =
       actionRequest.approvalRequest?.editedPayloadJson ?? actionRequest.payloadJson;
     const executionResult = await executor.execute({
@@ -412,6 +424,7 @@ export class GatewayService {
       payload: executionPayload,
       reason: actionRequest.reason,
       tool: actionRequest.tool,
+      toolConnectionConfig: toolConnection?.configJson,
     });
 
     const updated = await prisma.actionRequest.update({

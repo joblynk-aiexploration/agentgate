@@ -94,4 +94,26 @@ describe("RulesBasedRiskReviewer", () => {
     expect([RiskLevel.HIGH, RiskLevel.CRITICAL]).toContain(result.level);
     expect(result.signals).toContain("database_write");
   });
+
+  it("scores production webhook actions as at least medium risk", async () => {
+    const result = await reviewer.assess({
+      organization: { killSwitchEnabled: false },
+      agent: { riskTier: AgentRiskTier.STANDARD },
+      tool: ToolType.WEBHOOK,
+      action: "webhook.trigger",
+      environment: "production",
+      payload: {
+        event: "workflow.notify",
+      },
+      productionEnvironment: true,
+      reversible: true,
+    });
+
+    expect([
+      RiskLevel.MEDIUM,
+      RiskLevel.HIGH,
+      RiskLevel.CRITICAL,
+    ]).toContain(result.level);
+    expect(result.signals).toContain("production_webhook_action");
+  });
 });

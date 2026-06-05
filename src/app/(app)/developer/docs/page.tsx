@@ -27,6 +27,30 @@ const executeCurlExample = `curl -X POST http://localhost:3000/api/gateway/execu
     "actionRequestId": "<allowed_or_approved_action_request_id>"
   }'`;
 
+const webhookCurlExample = `curl -X POST http://localhost:3000/api/gateway/check \\
+  -H "Authorization: Bearer <ag_test_api_key>" \\
+  -H "Content-Type: application/json" \\
+  -H "Idempotency-Key: webhook-demo-001" \\
+  -d '{
+    "agentId": "support-refund-agent",
+    "tool": "webhook",
+    "action": "webhook.trigger",
+    "environment": "production",
+    "reason": "Notify an internal workflow after approval",
+    "payload": {
+      "event": "refund.approved",
+      "target": "demo-workflow",
+      "body": {
+        "action": "refund.create",
+        "amount": 1200,
+        "currency": "USD"
+      }
+    },
+    "metadata": {
+      "source": "agentgate-demo"
+    }
+  }'`;
+
 const typescriptExample = `type GatewayDecision =
   | "ALLOW"
   | "REQUIRE_APPROVAL"
@@ -222,6 +246,21 @@ export default async function DeveloperDocsPage() {
             Execute returns a safe simulated result. Stripe refunds, emails, Slack messages,
             database writes, and webhook deliveries are not performed in V1.
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Webhook Demo Example</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <p className="text-sm leading-6 text-[#34404a]">
+            The Webhook Demo integration supports `webhook.trigger`,
+            `webhook.notify`, and `webhook.enqueue`. Production webhook actions
+            are scored at least MEDIUM risk by local rules, and execute returns a
+            fake delivery id without calling any external URL.
+          </p>
+          <CodeBlock>{webhookCurlExample}</CodeBlock>
         </CardContent>
       </Card>
 
