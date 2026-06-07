@@ -1,6 +1,11 @@
 import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
+const webServerURL = process.env.PLAYWRIGHT_WEBSERVER_URL ?? baseURL;
+const webServerHost = new URL(webServerURL).hostname;
+const webServerPort = new URL(webServerURL).port || "3100";
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -8,16 +13,16 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [["list"]],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100",
+    baseURL,
     trace: "on-first-retry",
   },
   webServer: {
-    command: "npm run dev -- -p 3100 -H 127.0.0.1",
+    command: `npm run dev -- -p ${webServerPort} -H ${webServerHost}`,
     env: {
       AGENTGATE_SKIP_ENV_VALIDATION: "1",
       API_KEY_PEPPER:
         process.env.API_KEY_PEPPER ?? "agentgate-e2e-api-key-pepper-not-for-runtime",
-      APP_URL: process.env.APP_URL ?? "http://127.0.0.1:3100",
+      APP_URL: process.env.APP_URL ?? webServerURL,
       DATABASE_URL:
         process.env.DATABASE_URL ??
         "postgresql://postgres:postgres@localhost:5432/agentgate",
@@ -30,7 +35,7 @@ export default defineConfig({
     },
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
-    url: "http://127.0.0.1:3100",
+    url: webServerURL,
   },
   projects: [
     {

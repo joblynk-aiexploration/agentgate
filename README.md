@@ -12,6 +12,11 @@ real business-tool side effects are required.
 
 For a non-technical walkthrough, see the [AgentGate User Manual](docs/user-manual.md).
 
+## Visual Demo Screenshots
+
+If you cannot access the local dev server directly, review the generated
+screenshots and walkthrough in [docs/visual-demo.md](docs/visual-demo.md).
+
 Founder demo package:
 
 - [Live demo script](docs/demo-script.md)
