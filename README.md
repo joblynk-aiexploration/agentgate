@@ -363,8 +363,65 @@ The provided `docker-compose.yml` starts PostgreSQL 16 with:
 ## Deployment
 
 AgentGate can run as a standard Next.js app with PostgreSQL. See
-[docs/deployment.md](docs/deployment.md) for provider-specific notes and a
-production readiness checklist.
+[docs/deployment-guide.md](docs/deployment-guide.md) for hosted preview steps
+and [docs/deployment.md](docs/deployment.md) for additional provider-specific
+notes and a production readiness checklist.
+
+## Hosted Preview Checklist
+
+Use this when deploying AgentGate somewhere you can open from your browser, such
+as Vercel, Render, or Railway.
+
+1. Create or attach a hosted PostgreSQL database.
+2. Add required environment variables in the provider UI:
+   - `DATABASE_URL`
+   - `APP_URL`
+   - `SESSION_SECRET`
+   - `API_KEY_PEPPER`
+   - `ENCRYPTION_KEY`
+   - `NODE_ENV=production`
+3. Use real generated secrets. Do not use placeholder values from
+   `.env.example`.
+4. Use build command:
+
+```bash
+npm run build
+```
+
+5. Use start command for full-stack Node hosts:
+
+```bash
+npm run start
+```
+
+6. Run production migrations after the database is available:
+
+```bash
+npm run db:deploy
+```
+
+7. For a hosted demo preview only, seed demo data:
+
+```bash
+npm run db:seed
+```
+
+Do not run the demo seed against real customer production data.
+
+Provider clicks:
+
+- Vercel: import this GitHub repo, keep Next.js defaults, attach hosted Postgres
+  or add `DATABASE_URL`, add env vars in Project Settings, deploy, then run
+  `npm run db:deploy`.
+- Render: create a Web Service plus PostgreSQL service, set build command
+  `npm ci && npm run build`, start command `npm run start`, add env vars, deploy,
+  then run migrations from Render Shell or a one-off job.
+- Railway: create a GitHub project, add Postgres, add env vars, deploy, then run
+  migrations from the service shell or a deploy command.
+
+After seeding a preview database, log in with `owner@agentgate.dev` /
+`Password123!`, open Developer -> Agent Lab, run `large-refund`, then approve it
+as `reviewer@agentgate.dev`.
 
 ### Local Docker Postgres
 
