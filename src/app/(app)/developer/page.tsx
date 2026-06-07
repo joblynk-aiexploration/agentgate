@@ -1,5 +1,13 @@
 import Link from "next/link";
-import { BookOpen, Braces, KeyRound, RadioTower, Route, Webhook } from "lucide-react";
+import {
+  BookOpen,
+  Braces,
+  FlaskConical,
+  KeyRound,
+  RadioTower,
+  Route,
+  Webhook,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/ui/metric-card";
@@ -88,6 +96,19 @@ export default async function DeveloperPage() {
         </Link>
         <Link
           className="border border-[#d9dee8] bg-white p-6 shadow-sm transition hover:border-[#2d6f7f]"
+          href="/developer/agent-lab"
+        >
+          <div className="flex items-center gap-3">
+            <FlaskConical className="h-5 w-5 text-[#2d6f7f]" aria-hidden />
+            <h2 className="text-lg font-semibold">Agent Lab</h2>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-[#5c6470]">
+            Run the local Support Operations Agent from the browser and inspect
+            decisions, risk signals, approvals, blocks, and simulated execution.
+          </p>
+        </Link>
+        <Link
+          className="border border-[#d9dee8] bg-white p-6 shadow-sm transition hover:border-[#2d6f7f]"
           href="/developer/webhooks"
         >
           <div className="flex items-center gap-3">
@@ -148,6 +169,10 @@ export default async function DeveloperPage() {
               <Button href="/developer/docs" variant="secondary">
                 <Braces className="h-4 w-4" aria-hidden />
                 Read docs
+              </Button>
+              <Button href="/developer/agent-lab" variant="secondary">
+                <FlaskConical className="h-4 w-4" aria-hidden />
+                Agent Lab
               </Button>
               <Button href="/developer/webhooks" variant="secondary">
                 <Webhook className="h-4 w-4" aria-hidden />

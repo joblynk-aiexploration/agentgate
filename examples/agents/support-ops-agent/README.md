@@ -72,6 +72,31 @@ npm run agent:support:database-write
 npm run agent:support:all
 ```
 
+## Browser Agent Lab
+
+The same deterministic Support Operations Agent can be run from the AgentGate UI:
+
+```text
+/developer/agent-lab
+```
+
+Log in with a seeded demo user, open Developer -> Agent Lab, and choose a
+scenario card. The browser lab runs through a server-side demo route that uses
+the existing Gateway service, risk engine, policy engine, approval workflow, and
+audit logging. It never exposes the full demo API key to the browser.
+
+Available browser scenarios:
+
+- `small-refund`
+- `large-refund`
+- `blocked-delete`
+- `external-email`
+- `database-write`
+
+The result panel shows the ticket input, intended action, payload, metadata,
+AgentGate decision, risk score and signals, action/approval IDs, transcript
+summary, simulated execution result when allowed, and links back into the app.
+
 ## Large Refund Approval Test
 
 Run:

@@ -3,6 +3,7 @@ import {
   Braces,
   ClipboardCheck,
   FileJson,
+  FlaskConical,
   KeyRound,
   Route,
   Webhook,
@@ -204,6 +205,10 @@ export default async function DeveloperDocsPage() {
               <KeyRound className="h-4 w-4" aria-hidden />
               API keys
             </Button>
+            <Button href="/developer/agent-lab" variant="secondary">
+              <FlaskConical className="h-4 w-4" aria-hidden />
+              Agent Lab
+            </Button>
             <Button href="/developer/webhooks" variant="secondary">
               <Webhook className="h-4 w-4" aria-hidden />
               Webhooks
@@ -254,6 +259,31 @@ export default async function DeveloperDocsPage() {
               <p className="font-semibold text-[#172326]">3. Decide</p>
               <p className="mt-1 text-[#5c6470]">Handle ALLOW, REQUIRE_APPROVAL, or BLOCK before execute.</p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Browser Agent Lab</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 text-sm leading-6 text-[#34404a]">
+          <p>
+            The Agent Lab runs the seeded Support Operations Agent from the
+            browser. Choose a scenario, then inspect the ticket input, intended
+            action, payload, metadata, AgentGate decision, risk signals, approval
+            request, and transcript summary.
+          </p>
+          <p>
+            The lab uses the local-only seeded demo API key only on the server.
+            The full key is never sent to the browser, shown in the UI, or stored
+            in client state.
+          </p>
+          <div>
+            <Button href="/developer/agent-lab" variant="secondary">
+              <FlaskConical className="h-4 w-4" aria-hidden />
+              Open Agent Lab
+            </Button>
           </div>
         </CardContent>
       </Card>

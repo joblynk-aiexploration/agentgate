@@ -114,6 +114,29 @@ The agent never calls paid AI APIs and never touches real Stripe, Gmail, Slack,
 Postgres, or external webhook systems. See
 [examples/agents/support-ops-agent/README.md](examples/agents/support-ops-agent/README.md).
 
+### Testing the Support Operations Agent in the Browser
+
+AgentGate also includes a browser-based Agent Lab for the same Support Operations
+Agent. After seeding the demo database and logging in, open:
+
+```text
+http://localhost:3000/developer/agent-lab
+```
+
+The Agent Lab lets you run five safe scenarios from the UI:
+
+- Small refund
+- Large refund
+- Blocked customer delete
+- External customer email
+- Production database write
+
+Each run uses the seeded local-only demo API key on the server side, calls the
+same Gateway service as `/api/gateway/check`, and displays the decision, risk
+signals, action request, approval request, transcript summary, payload, metadata,
+and audit/action links. The full API key is never sent to the browser, stored in
+the UI, or logged.
+
 ### Full Support Operations Agent Integration Test
 
 Use this flow to prove AgentGate actually controls the local Support Operations
