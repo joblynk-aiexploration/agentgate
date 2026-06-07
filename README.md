@@ -114,6 +114,72 @@ The agent never calls paid AI APIs and never touches real Stripe, Gmail, Slack,
 Postgres, or external webhook systems. See
 [examples/agents/support-ops-agent/README.md](examples/agents/support-ops-agent/README.md).
 
+### Full Support Operations Agent Integration Test
+
+Use this flow to prove AgentGate actually controls the local Support Operations
+Agent across allow/approval/block paths. V1 still uses simulated execution only:
+no paid AI APIs and no real Stripe, Gmail, Slack, Postgres, or external webhook
+actions.
+
+Dry-run checks:
+
+```bash
+npm run agent:support:dry-run
+npm run agent:support:small-refund -- --dry-run
+npm run agent:support:large-refund -- --dry-run
+npm run agent:support:blocked-delete -- --dry-run
+npm run agent:support:external-email -- --dry-run
+npm run agent:support:database-write -- --dry-run
+```
+
+Live scenario checks after the app is running and the demo DB is seeded:
+
+```bash
+npm run agent:support:small-refund
+npm run agent:support:large-refund
+npm run agent:support:blocked-delete
+npm run agent:support:external-email
+npm run agent:support:database-write
+```
+
+Expected decisions:
+
+- `small-refund`: `ALLOW`, `LOG_ONLY`, or `REQUIRE_APPROVAL` depending on current risk and policy rules.
+- `large-refund`: `REQUIRE_APPROVAL`; the agent must not execute before approval.
+- `blocked-delete`: `BLOCK`; the agent must not execute.
+- `external-email`: `REQUIRE_APPROVAL`; the agent must not execute before approval.
+- `database-write`: `REQUIRE_APPROVAL` or `BLOCK`; the agent must obey the returned decision.
+
+Approve the latest large-refund demo approval and resume execution:
+
+```bash
+npm run demo:approve-latest
+npm run agent:support -- --resume <actionRequestId>
+```
+
+Test paused-agent behavior:
+
+```bash
+npm run demo:pause-support-agent
+npm run agent:support:large-refund
+npm run demo:resume-support-agent
+```
+
+Test organization kill-switch behavior:
+
+```bash
+npm run demo:enable-org-kill-switch
+npm run agent:support:small-refund
+npm run demo:disable-org-kill-switch
+```
+
+Verify database records, audit logs, risk assessments, approval behavior, blocked
+behavior, and transcript secret safety:
+
+```bash
+npm run verify:agent-integration
+```
+
 Optional `Idempotency-Key` headers are scoped to the authenticated organization
 and API key. Reuse an idempotency key only for the exact same request body;
 AgentGate rejects mismatched replays.

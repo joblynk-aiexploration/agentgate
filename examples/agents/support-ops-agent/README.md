@@ -139,3 +139,76 @@ examples/agents/support-ops-agent/run-logs
 ```
 
 Transcripts include the ticket, intended action, AgentGate decision, action request ID, approval request ID when present, simulated execution result when present, and notes.
+
+## Full Integration Test
+
+This flow verifies that AgentGate actually controls the Support Operations Agent
+across dry-run, live approval, blocked action, paused agent, and organization
+kill-switch scenarios.
+
+Dry-run scenarios:
+
+```bash
+npm run agent:support:dry-run
+npm run agent:support:small-refund -- --dry-run
+npm run agent:support:large-refund -- --dry-run
+npm run agent:support:blocked-delete -- --dry-run
+npm run agent:support:external-email -- --dry-run
+npm run agent:support:database-write -- --dry-run
+```
+
+Live scenarios:
+
+```bash
+npm run agent:support:small-refund
+npm run agent:support:large-refund
+npm run agent:support:blocked-delete
+npm run agent:support:external-email
+npm run agent:support:database-write
+```
+
+Expected live decisions:
+
+- `small-refund`: `ALLOW`, `LOG_ONLY`, or `REQUIRE_APPROVAL`, depending on current rules.
+- `large-refund`: `REQUIRE_APPROVAL`.
+- `blocked-delete`: `BLOCK`.
+- `external-email`: `REQUIRE_APPROVAL`.
+- `database-write`: `REQUIRE_APPROVAL` or `BLOCK`.
+
+Approve and resume the latest large-refund approval:
+
+```bash
+npm run demo:approve-latest
+npm run agent:support -- --resume <actionRequestId>
+```
+
+The resume command calls `GET /api/gateway/actions/[id]`, confirms the action is
+approved, then calls `POST /api/gateway/execute`. It must not execute while the
+action is still pending approval.
+
+Paused-agent test:
+
+```bash
+npm run demo:pause-support-agent
+npm run agent:support:large-refund
+npm run demo:resume-support-agent
+```
+
+Organization kill-switch test:
+
+```bash
+npm run demo:enable-org-kill-switch
+npm run agent:support:small-refund
+npm run demo:disable-org-kill-switch
+```
+
+Final verification:
+
+```bash
+npm run verify:agent-integration
+```
+
+The verifier checks recent action requests, risk assessments, approval requests,
+audit logs, blocked-action behavior, executed-after-approval behavior, paused
+agent behavior, organization kill-switch behavior, transcripts, and transcript
+secret leakage. Full API keys must not appear in transcripts.

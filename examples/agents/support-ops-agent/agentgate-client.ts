@@ -35,10 +35,12 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 export class AgentGateClient {
   private readonly apiKey: string;
   private readonly baseUrl: string;
+  private readonly runId: string;
 
   constructor(options: ClientOptions) {
     this.apiKey = options.apiKey;
     this.baseUrl = trimTrailingSlash(options.baseUrl);
+    this.runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   }
 
   async check(intent: ToolIntent): Promise<GatewayDecisionResponse> {
@@ -47,7 +49,7 @@ export class AgentGateClient {
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
         "Content-Type": "application/json",
-        "Idempotency-Key": `${intent.metadata.ticketId}-${intent.action}`,
+        "Idempotency-Key": `${intent.metadata.ticketId}-${intent.action}-${this.runId}`,
       },
       method: "POST",
     });
@@ -104,13 +106,14 @@ export class MockAgentGateClient {
       : requiresApproval
         ? "PENDING_APPROVAL"
         : "ALLOWED";
+    const actuallyRequiresApproval = !isBlocked && requiresApproval;
 
     return {
       actionRequestId: `dry-run-${intent.metadata.ticketId}`,
       decision,
       allowed: status === "ALLOWED",
-      requiresApproval,
-      approvalRequestId: requiresApproval
+      requiresApproval: actuallyRequiresApproval,
+      approvalRequestId: actuallyRequiresApproval
         ? `dry-run-approval-${intent.metadata.ticketId}`
         : undefined,
       risk: {

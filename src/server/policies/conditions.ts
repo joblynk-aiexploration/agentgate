@@ -141,6 +141,27 @@ function matchesActionContains(expected: string | string[], action: string) {
   return expectedItems.some((item) => normalizedAction.includes(normalizeString(item)));
 }
 
+function matchesAction(expected: string | undefined | null, actual: string) {
+  if (!expected) {
+    return true;
+  }
+
+  const normalizedExpected = normalizeString(expected);
+  const normalizedActual = normalizeString(actual);
+
+  if (!normalizedExpected.includes("*")) {
+    return normalizedExpected === normalizedActual;
+  }
+
+  const escaped = normalizedExpected
+    .split("*")
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join(".*");
+  const pattern = new RegExp(`^${escaped}$`);
+
+  return pattern.test(normalizedActual);
+}
+
 function matchesMetadata(
   expected: Record<string, unknown> | undefined,
   metadata: unknown,
@@ -170,7 +191,7 @@ export function policyRuleMatchesContext(
     return false;
   }
 
-  if (rule.action && normalizeString(rule.action) !== normalizeString(input.action)) {
+  if (!matchesAction(rule.action, input.action)) {
     return false;
   }
 
