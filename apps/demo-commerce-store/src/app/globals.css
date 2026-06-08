@@ -114,6 +114,10 @@ textarea {
   margin-top: 26px;
 }
 
+.button-row.compact {
+  margin-top: 14px;
+}
+
 .button {
   align-items: center;
   background: var(--brand);
@@ -217,6 +221,12 @@ textarea {
   gap: 14px;
 }
 
+.inline-form {
+  align-items: end;
+  display: inline-flex;
+  gap: 10px;
+}
+
 .input,
 .textarea,
 .select {
@@ -230,6 +240,76 @@ textarea {
 
 .textarea {
   min-height: 110px;
+}
+
+.qty-input {
+  max-width: 92px;
+}
+
+.stack {
+  display: grid;
+  gap: 12px;
+}
+
+.line-item {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr auto auto auto;
+  padding: 12px 0;
+}
+
+.line-item:last-child {
+  border-bottom: 0;
+}
+
+.summary-list {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.summary-list div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.summary-list dt {
+  color: var(--muted);
+}
+
+.summary-list dd {
+  font-weight: 700;
+  margin: 0;
+}
+
+.summary-total {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.empty {
+  align-items: flex-start;
+  display: grid;
+  gap: 10px;
+}
+
+.alert {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+  padding: 10px 12px;
+}
+
+.event {
+  border-left: 3px solid var(--brand-2);
+  padding-left: 12px;
+}
+
+.event p {
+  margin: 4px 0;
 }
 
 .admin-shell {
@@ -318,6 +398,17 @@ textarea {
   background: #134e4a;
   color: #fff;
   justify-self: end;
+}
+
+.debug-box {
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: #334155;
+  font-size: 11px;
+  margin-top: 8px;
+  padding: 7px;
+  word-break: break-word;
 }
 
 .quick-actions {

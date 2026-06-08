@@ -99,6 +99,23 @@ test("created AgentGate key bridges Northstar admin, chat, approvals, and audit 
   await page.goto(commerceBaseUrl);
   await expect(page.getByRole("link", { name: "Northstar Outdoor Supply" })).toBeVisible();
   await expect(page.getByText("SummitPro Backpack")).toBeVisible();
+  await page.goto(`${commerceBaseUrl}/login`);
+  await page.locator('input[name="email"]').fill("customer@northstar-demo.dev");
+  await page.locator('input[name="password"]').fill("Password123!");
+  await page.getByRole("button", { name: "Login" }).click();
+  await expect(page).toHaveURL(/\/account$/);
+  await page.goto(`${commerceBaseUrl}/products/summitpro-backpack`);
+  await page.getByRole("button", { name: "Add to cart" }).click();
+  await expect(page).toHaveURL(/\/cart/);
+  await page.goto(`${commerceBaseUrl}/products/alpineshell-jacket`);
+  await page.getByRole("button", { name: "Add to cart" }).click();
+  await page.goto(`${commerceBaseUrl}/checkout`);
+  await page.getByRole("button", { name: "Place demo order" }).click();
+  await expect(page).toHaveURL(/\/checkout\/success\?order=NS-/);
+  const orderNumber = new URL(page.url()).searchParams.get("order");
+  expect(orderNumber).toBeTruthy();
+
+  await page.goto(commerceBaseUrl);
   await page.getByRole("button", { name: "Open Northstar Assistant" }).click();
 
   await page.locator(".chat-form input").fill("What backpacks do you sell?");
@@ -107,34 +124,26 @@ test("created AgentGate key bridges Northstar admin, chat, approvals, and audit 
 
   await page
     .locator(".chat-form input")
-    .fill("Cancel my order NS-1002. My email is sarah@example.com.");
+    .fill("Cancel my latest order.");
   await page.locator('.chat-form button[type="submit"]').click();
   await expect(page.locator(".message.assistant").last()).toContainText(
     "I need approval before I can complete that",
   );
   await expect(page.locator(".message.assistant").last()).toContainText(
-    "AgentGate action:",
+    "Action:",
   );
 
   await page
     .locator(".chat-form input")
-    .fill("Cancel my order NS-1003. My email is sarah@example.com.");
+    .fill("Please resend my receipt for my latest order.");
   await page.locator('.chat-form button[type="submit"]').click();
   await expect(page.locator(".message.assistant").last()).toContainText(
-    "AgentGate blocked",
+    /Action:|needs reviewer approval|simulated a receipt preview/,
   );
 
   await page
     .locator(".chat-form input")
-    .fill("Please resend my receipt for NS-1001 to sarah@example.com.");
-  await page.locator('.chat-form button[type="submit"]').click();
-  await expect(page.locator(".message.assistant").last()).toContainText(
-    /AgentGate action:|needs reviewer approval|simulated a receipt preview/,
-  );
-
-  await page
-    .locator(".chat-form input")
-    .fill("Delete my customer record. My email is sarah@example.com.");
+    .fill("Delete my customer record.");
   await page.locator('.chat-form button[type="submit"]').click();
   await expect(page.locator(".message.assistant").last()).toContainText(
     "blocked",

@@ -30,23 +30,23 @@ export async function runCommerceAgent(input: AgentChatInput): Promise<AgentChat
     } else if (routed.intent === "order_status") {
       response = {
         intent: routed.intent,
-        reply: answerOrderStatus(routed.orderNumber, routed.email),
+        reply: answerOrderStatus(routed, input.customer),
         orderUpdate: null,
       };
     } else if (routed.intent === "cancel_order") {
-      const result = await cancelOrder(routed.orderNumber, routed.email);
+      const result = await cancelOrder(routed, input.customer);
       response = { intent: routed.intent, ...result };
     } else if (routed.intent === "resend_receipt") {
-      const result = await resendReceipt(routed.orderNumber, routed.email);
+      const result = await resendReceipt(routed, input.customer);
       response = { intent: routed.intent, ...result };
     } else if (routed.intent === "return_request") {
-      const result = await requestReturn(routed.orderNumber, routed.email);
+      const result = await requestReturn(routed, input.customer);
       response = { intent: routed.intent, ...result };
     } else if (routed.intent === "update_shipping_address") {
-      const result = await updateShippingAddress(routed.orderNumber, routed.email);
+      const result = await updateShippingAddress(routed, input.customer);
       response = { intent: routed.intent, ...result };
     } else if (routed.intent === "delete_customer_data") {
-      const result = await deleteCustomerData(routed.email);
+      const result = await deleteCustomerData(input.customer?.email ?? routed.email);
       response = { intent: routed.intent, ...result };
     } else {
       response = {

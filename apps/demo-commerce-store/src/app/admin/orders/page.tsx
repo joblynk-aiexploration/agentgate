@@ -2,12 +2,36 @@ import { AdminShell } from "@/components/admin-shell";
 import { formatCurrency, formatDate, titleCase } from "@/lib/format";
 import { readStore } from "@/lib/store";
 
-export default function AdminOrdersPage() {
-  const orders = readStore().orders;
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const params = await searchParams;
+  const store = readStore();
+  const statuses = Array.from(new Set(store.orders.map((order) => order.status)));
+  const orders = params.status
+    ? store.orders.filter((order) => order.status === params.status)
+    : store.orders;
 
   return (
     <AdminShell>
-      <h1>Orders</h1>
+      <div className="section-title">
+        <div>
+          <h1>Orders</h1>
+          <p className="muted">Real local checkout orders and their AgentGate-aware support state.</p>
+        </div>
+      </div>
+      <div className="button-row" style={{ marginBottom: 18 }}>
+        <a className="badge" href="/admin/orders">
+          All
+        </a>
+        {statuses.map((status) => (
+          <a className="badge" href={`/admin/orders?status=${status}`} key={status}>
+            {titleCase(status)}
+          </a>
+        ))}
+      </div>
       <table className="table card">
         <thead>
           <tr>
@@ -16,7 +40,8 @@ export default function AdminOrdersPage() {
             <th>Status</th>
             <th>Total</th>
             <th>Items</th>
-            <th>Agent actions</th>
+            <th>AgentGate state</th>
+            <th>Events</th>
           </tr>
         </thead>
         <tbody>
@@ -26,6 +51,8 @@ export default function AdminOrdersPage() {
                 <strong>{order.number}</strong>
                 <br />
                 <span className="muted">{formatDate(order.createdAt)}</span>
+                <br />
+                <span className="badge">{order.createdThroughCheckout ? "Checkout" : "Fixture"}</span>
               </td>
               <td>
                 {order.customerName}
@@ -36,8 +63,37 @@ export default function AdminOrdersPage() {
                 <span className="badge">{titleCase(order.status)}</span>
               </td>
               <td>{formatCurrency(order.total)}</td>
-              <td>{order.items.map((item) => item.name).join(", ")}</td>
-              <td>{order.agentActions.length ? order.agentActions.join("; ") : "None yet"}</td>
+              <td>{order.items.map((item) => `${item.name} x ${item.quantity}`).join(", ")}</td>
+              <td>
+                {order.pendingApprovalRequestId ? (
+                  <>
+                    <strong>Pending approval</strong>
+                    <br />
+                    <span className="muted">{order.pendingApprovalRequestId}</span>
+                  </>
+                ) : (
+                  "No pending approval"
+                )}
+                {order.agentActions.length ? (
+                  <>
+                    <br />
+                    <span className="muted">{order.agentActions.join("; ")}</span>
+                  </>
+                ) : null}
+              </td>
+              <td>
+                {order.events.length ? (
+                  order.events.slice(0, 3).map((event) => (
+                    <div key={event.id}>
+                      <strong>{titleCase(event.type)}</strong>
+                      <br />
+                      <span className="muted">{event.message}</span>
+                    </div>
+                  ))
+                ) : (
+                  "None"
+                )}
+              </td>
             </tr>
           ))}
         </tbody>

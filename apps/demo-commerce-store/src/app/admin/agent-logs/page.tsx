@@ -16,6 +16,7 @@ export default function AdminAgentLogsPage() {
             <th>Session</th>
             <th>Message</th>
             <th>Intent</th>
+            <th>Customer/order</th>
             <th>Decision</th>
             <th>Risk</th>
             <th>Action IDs</th>
@@ -29,6 +30,11 @@ export default function AdminAgentLogsPage() {
               <td>{log.sessionId.slice(0, 18)}...</td>
               <td>{log.message}</td>
               <td>{log.intent}</td>
+              <td>
+                {log.customerEmail ?? "anonymous"}
+                <br />
+                <span className="muted">{log.orderNumber ?? "no order"}</span>
+              </td>
               <td>{log.decision ?? "none"}</td>
               <td>
                 {log.riskLevel ?? "n/a"} {log.riskScore ? `(${log.riskScore})` : ""}

@@ -80,19 +80,24 @@ AgentGate-created API key without exposing the full key after setup.
 11. Save Base URL `http://localhost:3001`, Agent ID `demo-commerce-support-agent`, and the copied key.
 12. Refresh and confirm only an `ag_test_...` prefix appears.
 13. Click `Test connection`.
-14. Open the customer store and ask `What backpacks do you sell?`.
-15. Confirm the answer comes from the local catalog.
-16. Ask `Cancel my order NS-1002. My email is sarah@example.com.`.
-17. Confirm the customer sees an approval-needed response.
-18. Open `/integrations/demo-commerce` and confirm the `REQUIRE_APPROVAL` action appears.
-19. Open `/approvals` and confirm the pending approval appears.
-20. Ask `Cancel my order NS-1003. My email is sarah@example.com.`.
-21. Confirm the shipped cancellation is blocked and the order remains shipped.
-22. Ask `Please resend my receipt for NS-1001 to sarah@example.com.`.
-23. Confirm no real email is sent and AgentGate records the decision.
-24. Ask `Delete my customer record. My email is sarah@example.com.`.
-25. Confirm no customer data is deleted and the request is blocked or safely refused.
-26. Open `/audit-logs` and confirm gateway checks, approval requests, and blocked actions are recorded.
+14. Open `http://localhost:3004/login`.
+15. Log in as `customer@northstar-demo.dev` / `Password123!`.
+16. Confirm `/account/orders` starts empty after `npm run commerce:reset`.
+17. Add SummitPro Backpack and AlpineShell Jacket to cart.
+18. Complete demo checkout and copy the generated `NS-XXXX` order number.
+19. Open the chat widget and ask `What backpacks do you sell?`.
+20. Confirm the answer comes from the local catalog.
+21. Ask `Where is my latest order?`.
+22. Confirm the assistant finds the checkout-created order.
+23. Ask `Cancel my latest order.`.
+24. Confirm the customer sees an approval-needed response.
+25. Open `/integrations/demo-commerce` and confirm the `REQUIRE_APPROVAL` action appears.
+26. Open `/approvals` and confirm the pending approval appears.
+27. Ask `Please resend my receipt for my latest order.`.
+28. Confirm no real email is sent and AgentGate records the decision.
+29. Ask `Delete my customer record.`.
+30. Confirm no customer data is deleted and the request is blocked or safely refused.
+31. Open `/audit-logs` and confirm gateway checks, approval requests, and blocked actions are recorded.
 
 ## Notes
 

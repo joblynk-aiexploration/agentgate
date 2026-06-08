@@ -7,6 +7,7 @@ export default function AdminHomePage() {
   const store = readStore();
   const config = safeAdminConfig();
   const totalRevenue = store.orders.reduce((sum, order) => sum + order.total, 0);
+  const checkoutOrders = store.orders.filter((order) => order.createdThroughCheckout);
 
   return (
     <AdminShell>
@@ -18,12 +19,12 @@ export default function AdminHomePage() {
       </div>
       <div className="grid three">
         <section className="card">
-          <h2>{store.orders.length}</h2>
-          <p className="muted">Demo orders</p>
+          <h2>{checkoutOrders.length}</h2>
+          <p className="muted">Checkout-created orders</p>
         </section>
         <section className="card">
           <h2>{formatCurrency(totalRevenue)}</h2>
-          <p className="muted">Seeded order value</p>
+          <p className="muted">Local demo order value</p>
         </section>
         <section className="card">
           <h2>{config.keyConfigured ? "Configured" : "Missing key"}</h2>

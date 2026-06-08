@@ -1,17 +1,29 @@
 "use client";
 
-import { FormEvent, useId, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
 type Message = {
   role: "assistant" | "user";
   text: string;
+  debug?: {
+    decision?: string;
+    riskLevel?: string;
+    actionRequestId?: string;
+    approvalRequestId?: string;
+  };
+};
+
+type SessionState = {
+  loggedIn: boolean;
+  customer: { name: string; email: string } | null;
+  cartCount: number;
 };
 
 const quickActions = [
-  "Where is my order NS-1001? sarah@example.com",
-  "Cancel my order NS-1002. My email is sarah@example.com.",
-  "Can you resend my receipt for NS-1001 to sarah@example.com?",
+  "Cancel my latest order.",
+  "Where is my latest order?",
+  "Can you resend my receipt for my latest order?",
   "What is your return policy?",
   "What backpacks do you sell?",
 ];
@@ -21,13 +33,21 @@ export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [session, setSession] = useState<SessionState | null>(null);
+  const [sessionId] = useState(() => `northstar-${Math.random().toString(16).slice(2)}`);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      text: "Hi, I’m Northstar Assistant. I can answer product and policy questions, or help with demo order requests after AgentGate checks them.",
+      text: "Hi, I’m Northstar Assistant. I can answer product and policy questions, or help with orders created through this local checkout.",
     },
   ]);
-  const sessionId = `northstar-${useId().replaceAll(":", "")}`;
+
+  useEffect(() => {
+    void fetch("/api/customer/session")
+      .then((response) => response.json())
+      .then((body: SessionState) => setSession(body))
+      .catch(() => setSession(null));
+  }, [pathname]);
 
   if (pathname.startsWith("/admin")) {
     return null;
@@ -48,13 +68,23 @@ export function ChatWidget() {
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
-      const body = (await response.json()) as { reply?: string; agentGateDecision?: { actionRequestId?: string } };
-      const actionLine = body.agentGateDecision?.actionRequestId
-        ? `\n\nAgentGate action: ${body.agentGateDecision.actionRequestId}`
-        : "";
+      const body = (await response.json()) as {
+        reply?: string;
+        agentGateDecision?: {
+          decision?: string;
+          riskLevel?: string;
+          actionRequestId?: string;
+          approvalRequestId?: string;
+        };
+      };
+
       setMessages((current) => [
         ...current,
-        { role: "assistant", text: `${body.reply ?? "I could not answer that."}${actionLine}` },
+        {
+          role: "assistant",
+          text: body.reply ?? "I could not answer that.",
+          debug: body.agentGateDecision,
+        },
       ]);
     } catch {
       setMessages((current) => [
@@ -78,13 +108,23 @@ export function ChatWidget() {
           <div className="chat-head">
             <strong>Northstar Assistant</strong>
             <div style={{ color: "#cbded5", fontSize: 13 }}>
-              Business actions route through AgentGate.
+              {session?.loggedIn && session.customer
+                ? `I can help with orders for ${session.customer.email}.`
+                : "For order help, log in or provide order number and email."}
             </div>
           </div>
           <div className="chat-messages">
             {messages.map((message, index) => (
               <div className={`message ${message.role}`} key={`${message.role}-${index}`}>
-                {message.text}
+                <div>{message.text}</div>
+                {message.debug?.decision ? (
+                  <div className="debug-box">
+                    <div>Decision: {message.debug.decision}</div>
+                    <div>Risk: {message.debug.riskLevel ?? "n/a"}</div>
+                    {message.debug.actionRequestId ? <div>Action: {message.debug.actionRequestId}</div> : null}
+                    {message.debug.approvalRequestId ? <div>Approval: {message.debug.approvalRequestId}</div> : null}
+                  </div>
+                ) : null}
               </div>
             ))}
             {loading ? <div className="message assistant">Checking...</div> : null}
@@ -92,7 +132,7 @@ export function ChatWidget() {
           <div className="quick-actions">
             {quickActions.map((action) => (
               <button key={action} onClick={() => void send(action)} type="button">
-                {action.split(".")[0]}
+                {action}
               </button>
             ))}
           </div>
@@ -115,7 +155,7 @@ export function ChatWidget() {
         onClick={() => setOpen((value) => !value)}
         type="button"
       >
-        {open ? "×" : "?"}
+        {open ? "x" : "?"}
       </button>
     </>
   );

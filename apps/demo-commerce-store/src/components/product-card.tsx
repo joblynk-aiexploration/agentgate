@@ -12,9 +12,18 @@ export function ProductCard({ product }: { product: Product }) {
       <p>
         <strong>{formatCurrency(product.price)}</strong> · {product.inventory} in stock
       </p>
-      <Link className="button secondary" href={`/products/${product.slug}`}>
-        View product
-      </Link>
+      <div className="button-row compact">
+        <Link className="button secondary" href={`/products/${product.slug}`}>
+          View
+        </Link>
+        <form action="/api/cart/add" method="post">
+          <input name="productId" type="hidden" value={product.id} />
+          <input name="quantity" type="hidden" value="1" />
+          <button className="button" type="submit">
+            Add
+          </button>
+        </form>
+      </div>
     </article>
   );
 }

@@ -12,6 +12,7 @@ export function routeIntent(message: string): RoutedIntent {
   const text = message.toLowerCase();
   const base = {
     email: extractEmail(message),
+    latestOrder: text.includes("latest order") || text.includes("last order") || text.includes("most recent order"),
     orderNumber: extractOrderNumber(message),
     query: message,
   };
@@ -36,7 +37,7 @@ export function routeIntent(message: string): RoutedIntent {
     return { ...base, intent: "update_shipping_address" };
   }
 
-  if (base.orderNumber || text.includes("where is my order") || text.includes("track")) {
+  if (base.orderNumber || base.latestOrder || text.includes("where is my order") || text.includes("track")) {
     return { ...base, intent: "order_status" };
   }
 

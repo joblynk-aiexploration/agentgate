@@ -130,18 +130,26 @@ Open `http://localhost:3004/admin/api` and configure:
 The commerce app stores the full API key only in ignored local server config and
 shows only a prefix after save. The customer browser never receives the key.
 
-Try the storefront chat widget:
+Customer login:
 
 ```text
-Cancel my order NS-1002. My email is sarah@example.com.
-Cancel my order NS-1003. My email is sarah@example.com.
-Can you resend my receipt for NS-1001 to sarah@example.com?
+customer@northstar-demo.dev / Password123!
+```
+
+After `npm run commerce:reset`, this account starts with no active orders. Add
+products to the cart, complete the demo checkout, then try the storefront chat
+widget:
+
+```text
+Where is my latest order?
+Cancel my latest order.
+Can you resend my receipt for my latest order?
+Delete my customer record.
 ```
 
 Expected AgentGate results:
 
-- `NS-1002` high-value processing cancellation returns `REQUIRE_APPROVAL`.
-- `NS-1003` shipped cancellation returns `BLOCK`.
+- High-value checkout order cancellation returns `REQUIRE_APPROVAL`.
 - Receipt resend is checked through AgentGate and simulated only when allowed or logged.
 - `/admin/agent-logs` shows decision, risk, action request ID, and approval ID.
 
@@ -153,15 +161,15 @@ After AgentGate is running on `3001` and the commerce store is running on `3004`
 run the live verification script:
 
 ```bash
-npm run verify:commerce-agent
+npm run verify:commerce-checkout-agent
 ```
 
 The script logs in to the commerce admin, saves the AgentGate connection through
 the real admin API route, confirms the browser-safe config only exposes
-`ag_test_seed_demo`, runs customer chat scenarios, checks AgentGate action status
-records, verifies approval/audit records in Prisma, and scans rendered/admin
-surfaces for the full local-only API key. The script does not execute real
-Stripe, Gmail, Slack, Postgres, or webhook actions.
+`ag_test_seed_demo`, logs in as the customer, creates a real local checkout order,
+runs customer chat scenarios, verifies approval/audit records in Prisma when
+available, and scans rendered/admin surfaces for the full local-only API key. The
+script does not execute real Stripe, Gmail, Slack, Postgres, or webhook actions.
 
 ### Testing the Ecommerce Agent with an AgentGate API Key
 
@@ -204,17 +212,16 @@ Customer chat messages to test:
 
 ```text
 What backpacks do you sell?
-Cancel my order NS-1002. My email is sarah@example.com.
-Cancel my order NS-1003. My email is sarah@example.com.
-Please resend my receipt for NS-1001 to sarah@example.com.
-Delete my customer record. My email is sarah@example.com.
+Where is my latest order?
+Cancel my latest order.
+Please resend my receipt for my latest order.
+Delete my customer record.
 ```
 
 Expected decisions:
 
 - Product questions answer from the local catalog and do not need a business action.
-- `NS-1002` cancellation calls AgentGate and returns `REQUIRE_APPROVAL`.
-- `NS-1003` shipped cancellation calls AgentGate and returns `BLOCK`.
+- Checkout-created high-value cancellation calls AgentGate and returns `REQUIRE_APPROVAL`.
 - Receipt resend calls AgentGate and is simulated only after an allowed/logged decision or held for approval.
 - Customer data deletion calls AgentGate and returns `BLOCK`; no customer data is deleted.
 

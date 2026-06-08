@@ -14,11 +14,14 @@ export default function HomePage() {
             <h1>Trail gear with a support agent AgentGate can control.</h1>
             <p>
               Northstar Outdoor Supply is a fake ecommerce site for testing AI support
-              agents against real-looking orders, policies, approvals, and audit trails.
+              agents against checkout-created local orders, policies, approvals, and audit trails.
             </p>
             <div className="button-row">
               <Link className="button" href="/products">
                 Shop demo products
+              </Link>
+              <Link className="button secondary" href="/login">
+                Login as customer
               </Link>
               <Link className="button secondary" href="/admin/api">
                 Configure AgentGate
@@ -28,12 +31,12 @@ export default function HomePage() {
           <div className="hero-panel">
             <h2>Customer → Chat agent → AgentGate → simulated store action</h2>
             <p className="muted">
-              Try: “Cancel my order NS-1002. My email is sarah@example.com.” The
-              backend support agent checks AgentGate before touching local order state.
+              Login as Sarah, add products, checkout, then try: “Cancel my latest order.”
+              The backend support agent checks AgentGate before touching local order state.
             </p>
             <ul>
+              <li>Customer starts with no active orders after reset.</li>
               <li>High-value cancellation requires approval.</li>
-              <li>Shipped cancellation is blocked.</li>
               <li>Receipt resend is checked before preview simulation.</li>
             </ul>
           </div>

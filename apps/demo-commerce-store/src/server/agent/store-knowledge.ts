@@ -1,5 +1,5 @@
 import { formatCurrency } from "@/lib/format";
-import { findOrder, readStore } from "@/lib/store";
+import { findLatestOrderForCustomer, findOrder, findOrderForCustomer, readStore } from "@/lib/store";
 import type { RoutedIntent } from "@/server/agent/types";
 
 export function answerProductQuestion(intent: RoutedIntent) {
@@ -36,15 +36,27 @@ export function answerPolicyQuestion(message: string) {
   return "Demo shipping is free over $100, processing orders can be cancelled, shipped orders cannot be cancelled, and delivered orders may request a simulated return.";
 }
 
-export function answerOrderStatus(orderNumber: string | undefined, email: string | undefined) {
-  if (!orderNumber || !email) {
-    return "I can look that up. Please send the order number and email, for example: Where is my order NS-1001? sarah@example.com";
+export function answerOrderStatus(intent: RoutedIntent, customer?: { id: string; email: string }) {
+  const order = customer
+    ? intent.orderNumber
+      ? findOrderForCustomer(intent.orderNumber, customer.id)
+      : intent.latestOrder
+        ? findLatestOrderForCustomer(customer.id)
+        : undefined
+    : intent.orderNumber && intent.email
+      ? findOrder(intent.orderNumber, intent.email)
+      : undefined;
+
+  if (!order && customer && !intent.orderNumber && !intent.latestOrder) {
+    return "I can help with your orders. Ask about a specific order number or say “Where is my latest order?”";
   }
 
-  const order = findOrder(orderNumber, email);
+  if (!order && !customer) {
+    return "I can look that up after you log in, or send both your order number and email address.";
+  }
 
   if (!order) {
-    return "I could not find a matching demo order for that order number and email.";
+    return "I could not find a matching local checkout order for that customer.";
   }
 
   return `${order.number} is currently ${order.status}. Total: ${formatCurrency(order.total)}. Items: ${order.items

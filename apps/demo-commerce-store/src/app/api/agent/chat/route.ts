@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getCurrentCustomer } from "@/lib/customer-auth";
 import { runCommerceAgent } from "@/server/agent/commerce-agent";
 
 const chatSchema = z.object({
@@ -15,6 +16,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid chat request." }, { status: 400 });
   }
 
-  const result = await runCommerceAgent(parsed.data);
+  const customer = await getCurrentCustomer();
+  const result = await runCommerceAgent({
+    ...parsed.data,
+    customer: customer
+      ? {
+          id: customer.id,
+          email: customer.email,
+          name: customer.name,
+        }
+      : undefined,
+  });
   return NextResponse.json(result);
 }

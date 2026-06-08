@@ -33,9 +33,16 @@ export default async function ProductDetailPage({
             ))}
           </ul>
           <div className="button-row">
-            <Link className="button" href="/cart">
-              Add to demo cart
-            </Link>
+            <form action="/api/cart/add" method="post" className="inline-form">
+              <input name="productId" type="hidden" value={product.id} />
+              <label>
+                Qty
+                <input className="input qty-input" min="1" max={product.inventory} name="quantity" type="number" defaultValue="1" />
+              </label>
+              <button className="button" type="submit">
+                Add to cart
+              </button>
+            </form>
             <Link className="button secondary" href="/help">
               Ask assistant
             </Link>

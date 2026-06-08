@@ -14,6 +14,7 @@ export type RoutedIntent = {
   intent: AgentIntent;
   orderNumber?: string;
   email?: string;
+  latestOrder?: boolean;
   query: string;
 };
 
@@ -28,6 +29,11 @@ export type AgentGateDecisionSummary = {
 export type AgentChatInput = {
   sessionId: string;
   message: string;
+  customer?: {
+    id: string;
+    name: string;
+    email: string;
+  };
 };
 
 export type AgentChatResponse = {

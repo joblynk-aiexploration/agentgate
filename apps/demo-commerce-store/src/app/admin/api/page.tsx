@@ -67,6 +67,11 @@ export default async function AdminApiPage({
               Test connection
             </button>
           </form>
+          <form method="post" action="/api/admin/config/demo" style={{ marginTop: 12 }}>
+            <button className="button secondary" type="submit">
+              Use local demo AgentGate config
+            </button>
+          </form>
           <form method="post" action="/api/admin/config/clear" style={{ marginTop: 12 }}>
             <button className="button secondary" type="submit">
               Clear configuration

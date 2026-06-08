@@ -44,29 +44,36 @@ The full API key is accepted once and stored only in ignored local server config
 
 ## Test the Agent
 
-Open the chat widget and try:
+Customer login:
+
+- Email: `customer@northstar-demo.dev`
+- Password: `Password123!`
+
+After `npm run commerce:reset`, Sarah starts with no orders. Create one first:
+
+1. Open `http://localhost:3004/login` and log in as Sarah.
+2. Open `/products`, add the SummitPro Backpack and AlpineShell Jacket to cart.
+3. Open `/checkout` and place the demo order with the prefilled fake card.
+4. Copy the new order number from `/checkout/success`.
+5. Open the chat widget and try:
 
 - `What backpacks do you sell?`
-- `Where is my order NS-1001? sarah@example.com`
-- `Cancel my order NS-1002. My email is sarah@example.com.`
-- `Cancel my order NS-1003. My email is sarah@example.com.`
-- `Can you resend my receipt for NS-1001 to sarah@example.com?`
-- `I want to return order NS-1004. omar@example.com`
-- `Delete my customer record. sarah@example.com`
+- `Where is my latest order?`
+- `Cancel my latest order.`
+- `Can you resend my receipt for my latest order?`
+- `Delete my customer record.`
 
 Expected AgentGate behavior:
 
-- `NS-1002` cancellation should return `REQUIRE_APPROVAL`.
-- `NS-1003` shipped cancellation should return `BLOCK`.
+- High-value checkout order cancellation should return `REQUIRE_APPROVAL`.
 - Receipt resend is checked through AgentGate. In production, current V1 risk rules may escalate it to `REQUIRE_APPROVAL`; the demo store obeys that result and does not send real email.
-- Return request for `NS-1004` calls AgentGate and obeys the returned decision.
 - Customer data deletion routes through AgentGate and is blocked or safely refused; no customer data is deleted.
 - Agent logs are visible at `/admin/agent-logs` with action and approval IDs.
 
 Inside AgentGate, inspect:
 
 - `/actions` for `demo-commerce-support-agent` action requests.
-- `/approvals` for the `NS-1002` cancellation approval.
+- `/approvals` for the checkout-created cancellation approval.
 - `/audit-logs` for `gateway.action_checked`, `approval.requested`, and `action.blocked`.
 
 ## Automated Integration Check
@@ -78,10 +85,10 @@ npm run verify:commerce-agent
 ```
 
 This script uses the same server-side config storage as `/admin/api`, runs the
-core chat scenarios, verifies AgentGate action/approval/audit records, confirms
-admin logs have action IDs, confirms shipped orders and customer records were
-not changed unsafely, and checks that the full local-only API key is not exposed
-on rendered or admin-visible surfaces.
+real customer login, cart, checkout, and chat scenarios. It verifies AgentGate
+action/approval/audit records, confirms admin logs have action IDs, confirms
+customer records were not changed unsafely, and checks that the full local-only
+API key is not exposed on rendered or admin-visible surfaces.
 
 ## Testing with a Newly Created AgentGate API Key
 
@@ -100,15 +107,17 @@ the seeded local key.
 10. Set Agent ID to `demo-commerce-support-agent`.
 11. Paste the key, save, refresh, and confirm only an `ag_test_...` prefix is visible.
 12. Click `Test connection`.
-13. Open the customer store and test the chat messages below.
+13. Log in to the customer store as `customer@northstar-demo.dev` / `Password123!`.
+14. Add products to cart, checkout, and copy the generated `NS-XXXX` order number.
+15. Test the chat messages below.
 
 Manual chat checks:
 
 - `What backpacks do you sell?` should answer from the local catalog.
-- `Cancel my order NS-1002. My email is sarah@example.com.` should require approval.
-- `Cancel my order NS-1003. My email is sarah@example.com.` should be blocked.
-- `Please resend my receipt for NS-1001 to sarah@example.com.` should call AgentGate and simulate or hold for approval.
-- `Delete my customer record. My email is sarah@example.com.` should be blocked or safely refused without deleting data.
+- `Where is my latest order?` should find the checkout-created order.
+- `Cancel my latest order.` should require approval when the total is above $100.
+- `Please resend my receipt for my latest order.` should call AgentGate and simulate or hold for approval.
+- `Delete my customer record.` should be blocked or safely refused without deleting data.
 
 Inspect AgentGate at `/integrations/demo-commerce`, `/approvals`, `/audit-logs`,
 and `/actions`. Full API keys should never appear on customer pages, admin safe

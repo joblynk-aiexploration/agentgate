@@ -28,6 +28,7 @@
     "verify:demo": "tsx scripts/verify-v1-demo.ts",
     "verify:demo-data": "tsx scripts/verify-demo-data.ts",
     "verify:commerce-agent": "tsx scripts/verify-demo-commerce-integration.ts",
+    "verify:commerce-checkout-agent": "tsx scripts/verify-commerce-real-checkout-agent.ts",
     "verify:agent-integration": "tsx scripts/verify-agentgate-agent-integration.ts",
     "demo:approve-latest": "tsx scripts/approve-latest-demo-approval.ts",
     "demo:pause-support-agent": "tsx scripts/demo-pause-support-agent.ts",
