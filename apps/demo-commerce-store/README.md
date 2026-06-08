@@ -11,12 +11,20 @@ Customer → ecommerce chat widget → ecommerce support backend → AgentGate G
 From the AgentGate repo root:
 
 ```bash
+npm run demo:reset
+npm run demo:check
 npm run commerce:install
-npm run commerce:seed
+npm run commerce:reset
+npm run dev -- -p 3001
+```
+
+In another terminal:
+
+```bash
 npm run commerce:dev
 ```
 
-Open `http://localhost:3004`.
+Open AgentGate at `http://localhost:3001` and Northstar at `http://localhost:3004`.
 
 ## Admin
 
@@ -50,8 +58,30 @@ Expected AgentGate behavior:
 
 - `NS-1002` cancellation should return `REQUIRE_APPROVAL`.
 - `NS-1003` shipped cancellation should return `BLOCK`.
-- Receipt resend is checked through AgentGate and simulated only if allowed or logged.
+- Receipt resend is checked through AgentGate. In production, current V1 risk rules may escalate it to `REQUIRE_APPROVAL`; the demo store obeys that result and does not send real email.
+- Return request for `NS-1004` calls AgentGate and obeys the returned decision.
+- Customer data deletion routes through AgentGate and is blocked or safely refused; no customer data is deleted.
 - Agent logs are visible at `/admin/agent-logs` with action and approval IDs.
+
+Inside AgentGate, inspect:
+
+- `/actions` for `demo-commerce-support-agent` action requests.
+- `/approvals` for the `NS-1002` cancellation approval.
+- `/audit-logs` for `gateway.action_checked`, `approval.requested`, and `action.blocked`.
+
+## Automated Integration Check
+
+With both apps running and the demo database seeded:
+
+```bash
+npm run verify:commerce-agent
+```
+
+This script uses the same server-side config storage as `/admin/api`, runs the
+core chat scenarios, verifies AgentGate action/approval/audit records, confirms
+admin logs have action IDs, confirms shipped orders and customer records were
+not changed unsafely, and checks that the full local-only API key is not exposed
+on rendered or admin-visible surfaces.
 
 ## Safety
 

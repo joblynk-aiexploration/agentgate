@@ -147,6 +147,22 @@ Expected AgentGate results:
 
 See [apps/demo-commerce-store/README.md](apps/demo-commerce-store/README.md).
 
+### Ecommerce AgentGate Integration Test
+
+After AgentGate is running on `3001` and the commerce store is running on `3004`,
+run the live verification script:
+
+```bash
+npm run verify:commerce-agent
+```
+
+The script logs in to the commerce admin, saves the AgentGate connection through
+the real admin API route, confirms the browser-safe config only exposes
+`ag_test_seed_demo`, runs customer chat scenarios, checks AgentGate action status
+records, verifies approval/audit records in Prisma, and scans rendered/admin
+surfaces for the full local-only API key. The script does not execute real
+Stripe, Gmail, Slack, Postgres, or webhook actions.
+
 ## Testing AgentGate with the Support Operations Agent
 
 AgentGate includes a local TypeScript Support Operations Agent that reads support

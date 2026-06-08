@@ -109,7 +109,12 @@ export function ChatWidget() {
           </form>
         </section>
       ) : null}
-      <button className="chat-button" onClick={() => setOpen((value) => !value)} type="button">
+      <button
+        aria-label={open ? "Close Northstar Assistant" : "Open Northstar Assistant"}
+        className="chat-button"
+        onClick={() => setOpen((value) => !value)}
+        type="button"
+      >
         {open ? "×" : "?"}
       </button>
     </>
