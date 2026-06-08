@@ -90,6 +90,32 @@ test("reviewer approves real approval UI flow and gateway executes after approva
   await login(page, "owner@agentgate.dev");
   const { actionRequestId, approvalRequestId } =
     await runLargeRefundFromAgentLab(page);
+  const ownerApproval = await runLargeRefundFromAgentLab(page);
+  const ownerApprovalAttempt = await page.evaluate(async (id) => {
+    const response = await fetch(`/api/approvals/${id}/approve`, {
+      body: JSON.stringify({ comment: "Owner approval verified through E2E." }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+    const body = await response.json();
+
+    return {
+      status: response.status,
+      ok: body.ok as boolean | undefined,
+      approvalStatus: body.status as string | undefined,
+      actionStatus: body.actionStatus as string | undefined,
+    };
+  }, ownerApproval.approvalRequestId);
+  expect(ownerApprovalAttempt).toMatchObject({
+    status: 200,
+    ok: true,
+    approvalStatus: approvalStatus.APPROVED,
+    actionStatus: actionStatus.APPROVED,
+  });
+
+  const securityApproval = await runLargeRefundFromAgentLab(page);
 
   await page.goto("/approvals");
   await expect(
@@ -103,6 +129,33 @@ test("reviewer approves real approval UI flow and gateway executes after approva
     },
   });
   expect(pendingExecute.status()).toBe(400);
+
+  await logout(page);
+
+  await login(page, "security@agentgate.dev");
+  const securityApprovalAttempt = await page.evaluate(async (id) => {
+    const response = await fetch(`/api/approvals/${id}/approve`, {
+      body: JSON.stringify({ comment: "Security admin approval verified through E2E." }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+    const body = await response.json();
+
+    return {
+      status: response.status,
+      ok: body.ok as boolean | undefined,
+      approvalStatus: body.status as string | undefined,
+      actionStatus: body.actionStatus as string | undefined,
+    };
+  }, securityApproval.approvalRequestId);
+  expect(securityApprovalAttempt).toMatchObject({
+    status: 200,
+    ok: true,
+    approvalStatus: approvalStatus.APPROVED,
+    actionStatus: actionStatus.APPROVED,
+  });
 
   await logout(page);
 
@@ -149,6 +202,7 @@ test("reviewer approves real approval UI flow and gateway executes after approva
     .getByLabel("Review comment")
     .fill("Reviewer approval verified through browser E2E.");
   await page.getByRole("button", { name: "Approve" }).click();
+  await expect(page.getByText("Workspace error")).toHaveCount(0);
 
   await expect
     .poll(async () =>
@@ -183,6 +237,28 @@ test("reviewer approves real approval UI flow and gateway executes after approva
     ok: true,
     approvalStatus: approvalStatus.APPROVED,
     actionStatus: actionStatus.APPROVED,
+  });
+  await expect(page.getByText("Workspace error")).toHaveCount(0);
+  await expect(page.locator("main").getByText("APPROVED").first()).toBeVisible();
+
+  const alreadyApprovedAttempt = await page.evaluate(async (id) => {
+    const response = await fetch(`/api/approvals/${id}/approve`, {
+      body: JSON.stringify({ comment: "Second approval should be rejected safely." }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+    const body = await response.json();
+
+    return {
+      status: response.status,
+      error: body.error as string | undefined,
+    };
+  }, approvalRequestId);
+  expect(alreadyApprovedAttempt).toMatchObject({
+    status: 409,
+    error: "Approval request is no longer pending review.",
   });
 
   const approvedActionAudit = await page.evaluate(async (id) => {

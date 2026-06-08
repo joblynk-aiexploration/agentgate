@@ -145,10 +145,22 @@ test("created AgentGate key bridges Northstar admin, chat, approvals, and audit 
   await expect(page.locator("table", { hasText: "order.cancel" }).first()).toBeVisible();
   await expect(page.locator("table", { hasText: "REQUIRE_APPROVAL" }).first()).toBeVisible();
   await expect(page.locator("table", { hasText: "customer.delete" }).first()).toBeVisible();
+  const commerceApprovalHref = await page
+    .locator('main a[href^="/approvals/"]')
+    .first()
+    .getAttribute("href");
+  expect(commerceApprovalHref).toBeTruthy();
+  await page.goto(commerceApprovalHref!);
+  await expect(page.getByRole("heading", { name: /approval/i })).toBeVisible();
+  await page.getByLabel("Review comment").fill("Owner approved ecommerce cancellation through real UI.");
+  await page.getByRole("button", { name: "Approve" }).click();
+  await expect(page.getByText("Workspace error")).toHaveCount(0);
+  await expect(page.locator("main").getByText("APPROVED").first()).toBeVisible();
 
   await page.goto("/approvals");
   await expect(page.locator("table", { hasText: "order.cancel" }).first()).toBeVisible();
 
   await page.goto("/audit-logs");
+  await expect(page.locator("table", { hasText: "approval.approved" }).first()).toBeVisible();
   await expect(page.locator("table", { hasText: "gateway.action_checked" }).first()).toBeVisible();
 });

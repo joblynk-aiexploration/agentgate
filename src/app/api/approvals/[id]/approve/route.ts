@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { approveApproval, getApiApprovalMembership } from "@/lib/approvals";
+import {
+  ApprovalActionError,
+  approveApproval,
+  getApiApprovalMembership,
+} from "@/lib/approvals";
 import { approvalReviewSchema } from "@/lib/validators";
 
 type ApprovalActionContext = {
@@ -27,17 +31,33 @@ export async function POST(request: Request, context: ApprovalActionContext) {
 
   try {
     const { id } = await context.params;
-    const approval = await approveApproval(membership, id, parsed.data);
+    const result = await approveApproval(membership, id, parsed.data);
 
-    return NextResponse.json({ approval });
+    return NextResponse.json({
+      ok: true,
+      approvalId: result.approval.id,
+      status: result.approval.status,
+      actionRequestId: result.actionRequestId,
+      actionStatus: result.actionStatus,
+    });
   } catch (error) {
     console.error("Approval failed", {
+      approvalId: (await context.params).id,
       errorType: error instanceof Error ? error.name : typeof error,
+      organizationId: membership.organizationId,
+      userId: membership.userId,
     });
+
+    if (error instanceof ApprovalActionError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status },
+      );
+    }
 
     return NextResponse.json(
       { error: "Approval failed." },
-      { status: 403 },
+      { status: 500 },
     );
   }
 }

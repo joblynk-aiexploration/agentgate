@@ -31,6 +31,22 @@ export type ApprovalReviewInput = z.infer<typeof approvalReviewSchema>;
 export type ApprovalEditInput = z.infer<typeof approvalEditSchema>;
 export type ApprovalCommentInput = z.infer<typeof approvalCommentSchema>;
 
+export class ApprovalActionError extends Error {
+  code: "not_found" | "forbidden" | "state";
+  status: number;
+
+  constructor(
+    status: number,
+    message: string,
+    code: ApprovalActionError["code"],
+  ) {
+    super(message);
+    this.name = "ApprovalActionError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 const approvalViewRoles: MembershipRole[] = [
   "platform_owner",
   "org_owner",
@@ -333,11 +349,19 @@ async function getReviewableApproval(
   });
 
   if (!approval) {
-    throw new Error("Approval request not found.");
+    throw new ApprovalActionError(
+      404,
+      "Approval request not found.",
+      "not_found",
+    );
   }
 
   if (!canActOnApproval(membership, approval)) {
-    throw new Error("You are not allowed to review this approval request.");
+    throw new ApprovalActionError(
+      403,
+      "You are not allowed to review this approval request.",
+      "forbidden",
+    );
   }
 
   return approval;
@@ -345,7 +369,33 @@ async function getReviewableApproval(
 
 function assertReviewableStatus(status: ApprovalStatus) {
   if (status !== ApprovalStatus.PENDING && status !== ApprovalStatus.EDITED) {
-    throw new Error("Approval request is no longer pending review.");
+    throw new ApprovalActionError(
+      409,
+      "Approval request is no longer pending review.",
+      "state",
+    );
+  }
+}
+
+async function runApprovalSideEffect(
+  label: string,
+  input: {
+    approvalId: string;
+    organizationId: string;
+    userId: string;
+  },
+  action: () => Promise<unknown>,
+) {
+  try {
+    await action();
+  } catch (error) {
+    console.error("Approval side effect failed", {
+      approvalId: input.approvalId,
+      errorType: error instanceof Error ? error.name : typeof error,
+      label,
+      organizationId: input.organizationId,
+      userId: input.userId,
+    });
   }
 }
 
@@ -398,55 +448,86 @@ export async function approveApproval(
     },
   });
 
-  await createRoleNotifications(
-    membership.organizationId,
-    [
-      "org_owner",
-      "security_admin",
-      ...(existing.requiredRole ? [existing.requiredRole] : []),
-    ],
+  await runApprovalSideEffect(
+    "role_notifications",
     {
-      type: "approval.approved",
-      title: "Approval request approved",
-      body: `${existing.actionRequest.action} was approved for ${existing.actionRequest.tool}.`,
-      metadataJson: {
-        approvalRequestId: approval.id,
-        actionRequestId: existing.actionRequestId,
-        action: existing.actionRequest.action,
-        tool: existing.actionRequest.tool,
-      },
+      approvalId: approval.id,
+      organizationId: membership.organizationId,
+      userId: membership.userId,
     },
+    () =>
+      createRoleNotifications(
+        membership.organizationId,
+        [
+          "org_owner",
+          "security_admin",
+          ...(existing.requiredRole ? [existing.requiredRole] : []),
+        ],
+        {
+          type: "approval.approved",
+          title: "Approval request approved",
+          body: `${existing.actionRequest.action} was approved for ${existing.actionRequest.tool}.`,
+          metadataJson: {
+            approvalRequestId: approval.id,
+            actionRequestId: existing.actionRequestId,
+            action: existing.actionRequest.action,
+            tool: existing.actionRequest.tool,
+          },
+        },
+      ),
   );
 
   if (existing.assignedToId && existing.assignedToId !== membership.userId) {
-    await createUserNotification(membership.organizationId, existing.assignedToId, {
-      type: "approval.approved",
-      title: "Assigned approval approved",
-      body: `${existing.actionRequest.action} was approved.`,
-      metadataJson: {
-        approvalRequestId: approval.id,
-        actionRequestId: existing.actionRequestId,
+    await runApprovalSideEffect(
+      "assigned_user_notification",
+      {
+        approvalId: approval.id,
+        organizationId: membership.organizationId,
+        userId: membership.userId,
       },
-    });
+      () =>
+        createUserNotification(membership.organizationId, existing.assignedToId!, {
+          type: "approval.approved",
+          title: "Assigned approval approved",
+          body: `${existing.actionRequest.action} was approved.`,
+          metadataJson: {
+            approvalRequestId: approval.id,
+            actionRequestId: existing.actionRequestId,
+          },
+        }),
+    );
   }
 
-  await dispatchWebhookEvent({
-    organizationId: membership.organizationId,
-    event: "approval.approved",
-    targetType: "ApprovalRequest",
-    targetId: approval.id,
-    metadata: {
-      actionRequestId: existing.actionRequestId,
-      action: existing.actionRequest.action,
-      tool: existing.actionRequest.tool,
-      reviewedById: membership.userId,
+  await runApprovalSideEffect(
+    "webhook_dispatch",
+    {
+      approvalId: approval.id,
+      organizationId: membership.organizationId,
+      userId: membership.userId,
     },
-  });
+    () =>
+      dispatchWebhookEvent({
+        organizationId: membership.organizationId,
+        event: "approval.approved",
+        targetType: "ApprovalRequest",
+        targetId: approval.id,
+        metadata: {
+          actionRequestId: existing.actionRequestId,
+          action: existing.actionRequest.action,
+          tool: existing.actionRequest.tool,
+          reviewedById: membership.userId,
+        },
+      }),
+  );
 
   revalidatePath("/approvals");
   revalidatePath(`/approvals/${approval.id}`);
 
-  return approval;
+  return {
+    approval,
+    actionRequestId: existing.actionRequestId,
+    actionStatus: ActionStatus.APPROVED,
+  };
 }
 
 export async function rejectApproval(
@@ -498,55 +579,86 @@ export async function rejectApproval(
     },
   });
 
-  await createRoleNotifications(
-    membership.organizationId,
-    [
-      "org_owner",
-      "security_admin",
-      ...(existing.requiredRole ? [existing.requiredRole] : []),
-    ],
+  await runApprovalSideEffect(
+    "role_notifications",
     {
-      type: "approval.rejected",
-      title: "Approval request rejected",
-      body: `${existing.actionRequest.action} was rejected for ${existing.actionRequest.tool}.`,
-      metadataJson: {
-        approvalRequestId: approval.id,
-        actionRequestId: existing.actionRequestId,
-        action: existing.actionRequest.action,
-        tool: existing.actionRequest.tool,
-      },
+      approvalId: approval.id,
+      organizationId: membership.organizationId,
+      userId: membership.userId,
     },
+    () =>
+      createRoleNotifications(
+        membership.organizationId,
+        [
+          "org_owner",
+          "security_admin",
+          ...(existing.requiredRole ? [existing.requiredRole] : []),
+        ],
+        {
+          type: "approval.rejected",
+          title: "Approval request rejected",
+          body: `${existing.actionRequest.action} was rejected for ${existing.actionRequest.tool}.`,
+          metadataJson: {
+            approvalRequestId: approval.id,
+            actionRequestId: existing.actionRequestId,
+            action: existing.actionRequest.action,
+            tool: existing.actionRequest.tool,
+          },
+        },
+      ),
   );
 
   if (existing.assignedToId && existing.assignedToId !== membership.userId) {
-    await createUserNotification(membership.organizationId, existing.assignedToId, {
-      type: "approval.rejected",
-      title: "Assigned approval rejected",
-      body: `${existing.actionRequest.action} was rejected.`,
-      metadataJson: {
-        approvalRequestId: approval.id,
-        actionRequestId: existing.actionRequestId,
+    await runApprovalSideEffect(
+      "assigned_user_notification",
+      {
+        approvalId: approval.id,
+        organizationId: membership.organizationId,
+        userId: membership.userId,
       },
-    });
+      () =>
+        createUserNotification(membership.organizationId, existing.assignedToId!, {
+          type: "approval.rejected",
+          title: "Assigned approval rejected",
+          body: `${existing.actionRequest.action} was rejected.`,
+          metadataJson: {
+            approvalRequestId: approval.id,
+            actionRequestId: existing.actionRequestId,
+          },
+        }),
+    );
   }
 
-  await dispatchWebhookEvent({
-    organizationId: membership.organizationId,
-    event: "approval.rejected",
-    targetType: "ApprovalRequest",
-    targetId: approval.id,
-    metadata: {
-      actionRequestId: existing.actionRequestId,
-      action: existing.actionRequest.action,
-      tool: existing.actionRequest.tool,
-      reviewedById: membership.userId,
+  await runApprovalSideEffect(
+    "webhook_dispatch",
+    {
+      approvalId: approval.id,
+      organizationId: membership.organizationId,
+      userId: membership.userId,
     },
-  });
+    () =>
+      dispatchWebhookEvent({
+        organizationId: membership.organizationId,
+        event: "approval.rejected",
+        targetType: "ApprovalRequest",
+        targetId: approval.id,
+        metadata: {
+          actionRequestId: existing.actionRequestId,
+          action: existing.actionRequest.action,
+          tool: existing.actionRequest.tool,
+          reviewedById: membership.userId,
+        },
+      }),
+  );
 
   revalidatePath("/approvals");
   revalidatePath(`/approvals/${approval.id}`);
 
-  return approval;
+  return {
+    approval,
+    actionRequestId: existing.actionRequestId,
+    actionStatus: ActionStatus.REJECTED,
+  };
 }
 
 export async function editApprovalPayload(
