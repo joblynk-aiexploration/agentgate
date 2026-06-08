@@ -19,7 +19,7 @@ export default async function AdminApiPage({
             ignored server-side config and is never shown after save.
           </p>
           {params.saved ? <p className="badge">Configuration saved</p> : null}
-          {params.cleared ? <p className="badge">Configuration cleared</p> : null}
+          {params.cleared ? <p className="badge">Local demo defaults restored</p> : null}
           {params.test ? (
             <p className="badge">
               Test decision: {params.test} · Risk: {params.risk}
@@ -74,7 +74,7 @@ export default async function AdminApiPage({
           </form>
           <form method="post" action="/api/admin/config/clear" style={{ marginTop: 12 }}>
             <button className="button secondary" type="submit">
-              Clear configuration
+              Restore local demo defaults
             </button>
           </form>
         </section>

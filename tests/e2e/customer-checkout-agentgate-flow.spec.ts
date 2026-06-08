@@ -83,12 +83,12 @@ test("customer checkout order routes commerce agent actions through AgentGate", 
 
   await loginCommerceAdmin(page);
   await page.goto(`${commerceBaseUrl}/admin/api`);
-  await page.locator('input[name="agentGateBaseUrl"]').fill(baseURL ?? "http://127.0.0.1:3001");
-  await page.locator('input[name="agentGateApiKey"]').fill(demoCommerceKey);
-  await page.locator('input[name="agentId"]').fill("demo-commerce-support-agent");
-  await page.locator('select[name="environment"]').selectOption("production");
-  await page.getByRole("button", { name: "Save configuration" }).click();
-  await expect(page).toHaveURL(/\/admin\/api\?saved=1$/);
+  await expect(page.locator('input[name="agentGateBaseUrl"]')).toHaveValue(
+    baseURL ?? "http://127.0.0.1:3001",
+  );
+  await expect(page.locator('input[name="agentId"]')).toHaveValue(
+    "demo-commerce-support-agent",
+  );
   await expect(page.getByText(`${demoCommerceKeyPrefix}...`)).toBeVisible();
   await expect(page.locator("body")).not.toContainText(demoCommerceKey);
   await expect(page.locator('input[name="agentGateApiKey"]')).toHaveValue("");

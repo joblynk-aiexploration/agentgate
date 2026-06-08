@@ -89,6 +89,18 @@ describe("Northstar demo store", () => {
     expect(store.orders).toHaveLength(0);
   });
 
+  it("resets with the local demo AgentGate config already available server-side", () => {
+    const config = readAdminConfig();
+    const safe = safeAdminConfig(config);
+
+    expect(config.agentGateApiKey).toBe("ag_test_seed_demo_commerce_agent_key");
+    expect(config.agentId).toBe("demo-commerce-support-agent");
+    expect(config.agentGateBaseUrl).toBe("http://127.0.0.1:3001");
+    expect(safe.keyConfigured).toBe(true);
+    expect(JSON.stringify(safe)).not.toContain("commerce_agent_key");
+    expect(safe.keyPrefix).toBe("ag_test_seed_demo");
+  });
+
   it("registers a customer with a bcrypt hash", () => {
     const user = createCustomerUser({
       email: "new-customer@northstar-demo.dev",

@@ -121,9 +121,11 @@ Commerce admin login:
 admin@northstar-demo.dev / Password123!
 ```
 
-Open `http://localhost:3004/admin/api` and configure:
+Northstar is preconfigured for the local AgentGate demo after
+`npm run commerce:reset`. Open `http://localhost:3004/admin/api` to verify or
+change the connection:
 
-- AgentGate Base URL: `http://localhost:3001`
+- AgentGate Base URL: `http://127.0.0.1:3001`
 - AgentGate API key: `ag_test_seed_demo_commerce_agent_key`
 - Agent ID: `demo-commerce-support-agent`
 - Environment: `production`
@@ -208,9 +210,9 @@ In Northstar:
 1. Open `http://localhost:3004/admin/login`.
 2. Log in with `admin@northstar-demo.dev` / `Password123!`.
 3. Open `http://localhost:3004/admin/api`.
-4. Set AgentGate Base URL to `http://localhost:3001`.
-5. Set Agent ID to `demo-commerce-support-agent`.
-6. Paste the copied key and save.
+4. Confirm the local demo config is already present after `npm run commerce:reset`, or set AgentGate Base URL to `http://127.0.0.1:3001`.
+5. Confirm Agent ID is `demo-commerce-support-agent`.
+6. Paste a newly created key only if you are testing key creation manually, then save.
 7. Refresh and confirm only an `ag_test_...` prefix is visible.
 8. Click `Test connection`.
 

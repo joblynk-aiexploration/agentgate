@@ -32,8 +32,15 @@ function normalizedEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
+const defaultAgentGateApiKey =
+  process.env.AGENTGATE_DEMO_COMMERCE_API_KEY ??
+  "ag_test_seed_demo_commerce_agent_key";
+const defaultAgentGateBaseUrl =
+  process.env.AGENTGATE_BASE_URL ?? "http://127.0.0.1:3001";
+
 export const defaultAdminConfig: AdminConfig = {
-  agentGateBaseUrl: "http://localhost:3001",
+  agentGateApiKey: defaultAgentGateApiKey,
+  agentGateBaseUrl: defaultAgentGateBaseUrl,
   agentId: "demo-commerce-support-agent",
   environment: "production",
 };
