@@ -8,7 +8,10 @@ export function Card({
 }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
   return (
     <div
-      className={cn("border border-[#d9dee8] bg-white shadow-sm", className)}
+      className={cn(
+        "rounded-lg border border-slate-200 bg-white shadow-sm shadow-slate-200/60",
+        className,
+      )}
       {...props}
     >
       {children}
@@ -22,7 +25,10 @@ export function CardHeader({
   ...props
 }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
   return (
-    <div className={cn("border-b border-[#e5e9ef] px-5 py-4", className)} {...props}>
+    <div
+      className={cn("border-b border-slate-100 px-5 py-4", className)}
+      {...props}
+    >
       {children}
     </div>
   );
@@ -35,7 +41,11 @@ export function CardTitle({
   children: ReactNode;
   className?: string;
 }) {
-  return <h2 className={cn("text-base font-semibold", className)}>{children}</h2>;
+  return (
+    <h2 className={cn("text-base font-semibold text-slate-950", className)}>
+      {children}
+    </h2>
+  );
 }
 
 export function CardContent({

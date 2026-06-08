@@ -15,6 +15,7 @@ import {
   ApprovalStatus,
   RiskLevel,
 } from "@/generated/prisma/client";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { JsonViewer } from "@/components/ui/json-viewer";
@@ -469,6 +470,17 @@ export default async function DashboardPage() {
   return (
     <section className="mx-auto flex w-full max-w-7xl flex-col gap-6">
       <PageHeader
+        actions={
+          <div className="flex flex-wrap gap-2">
+            <Button href="/agents/new" variant="secondary">
+              Create agent
+            </Button>
+            <Button href="/policies/new" variant="secondary">
+              Create policy
+            </Button>
+            <Button href="/developer/agent-lab">Open Agent Lab</Button>
+          </div>
+        }
         description={`Live V1 security posture for ${membership.organization.name}. Metrics are scoped to the current organization and powered by local rules, policies, approvals, and audit logs.`}
         eyebrow={membership.organization.slug}
         title="Dashboard"
@@ -525,20 +537,26 @@ export default async function DashboardPage() {
         />
       </div>
 
-      <Card>
-        <CardContent className="grid gap-2 p-5 md:grid-cols-[1fr_auto] md:items-center">
+      <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-white">
+        <CardContent className="grid gap-4 p-5 md:grid-cols-[1fr_auto] md:items-center">
           <div>
-            <p className="text-sm font-semibold text-[#172326]">
-              Demo flow to verify
+            <p className="text-sm font-semibold text-blue-900">
+              Guided demo flow
             </p>
-            <p className="mt-1 text-sm leading-6 text-[#5c6470]">
+            <p className="mt-1 text-sm leading-6 text-slate-700">
               Send the seeded $1,200 production refund through the gateway, review the
               pending approval, approve or reject it, then pause the agent to confirm
               the same request returns BLOCK.
             </p>
           </div>
-          <div className="text-sm font-semibold text-[#245f7b]">
-            Local rules only
+          <div className="flex flex-wrap gap-2">
+            <Button href="/approvals" variant="secondary">
+              View approvals
+            </Button>
+            <Button href="/integrations/demo-commerce" variant="secondary">
+              Commerce monitor
+            </Button>
+            <Button href="/demo">Open demo guide</Button>
           </div>
         </CardContent>
       </Card>

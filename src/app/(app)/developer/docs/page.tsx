@@ -479,7 +479,7 @@ export default async function DeveloperDocsPage() {
             The Webhook Demo integration supports `webhook.trigger`,
             `webhook.notify`, and `webhook.enqueue`. Production webhook actions
             are scored at least MEDIUM risk by local rules, and execute returns a
-            fake delivery id without calling any external URL.
+            simulated delivery id without calling any external URL.
           </p>
           <CodeBlock>{webhookCurlExample}</CodeBlock>
         </CardContent>

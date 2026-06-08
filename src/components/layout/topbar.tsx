@@ -1,5 +1,6 @@
 import { Bell, KeyRound, LogOut } from "lucide-react";
 import type { MembershipRole, Notification } from "@/generated/prisma/client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MobileNav } from "@/components/layout/sidebar";
 import { requireMembership } from "@/lib/auth";
@@ -45,33 +46,37 @@ export function Topbar({
   unreadNotificationCount: number;
 }) {
   return (
-    <header className="border-b border-[#d9dee8] bg-white px-5 py-4 shadow-sm sm:px-8">
+    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 px-5 py-4 shadow-sm shadow-slate-200/60 backdrop-blur sm:px-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm font-semibold text-[#4c6f68]">{organizationName}</p>
-          <p className="mt-1 text-sm text-[#5c6470]">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-slate-950">{organizationName}</p>
+            <Badge tone="blue">Demo</Badge>
+            <Badge tone="slate">Local safety engine</Badge>
+          </div>
+          <p className="mt-1 text-sm text-slate-600">
             {userDisplayName} · {userEmail} · {formatEnumLabel(role)}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <details className="relative">
-            <summary className="inline-flex h-10 cursor-pointer list-none items-center justify-center gap-2 border border-[#cbd3df] bg-white px-3 text-sm font-semibold text-[#172326] transition hover:bg-[#f5f7fb] [&::-webkit-details-marker]:hidden">
+            <summary className="inline-flex h-10 cursor-pointer list-none items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-50 [&::-webkit-details-marker]:hidden">
               <span className="relative">
                 <Bell className="h-4 w-4" aria-hidden />
                 {unreadNotificationCount > 0 ? (
-                  <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center bg-[#9d3f1f] px-1 text-[10px] font-bold leading-none text-white">
+                  <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-700 px-1 text-[10px] font-bold leading-none text-white">
                     {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
                   </span>
                 ) : null}
               </span>
               Notifications
             </summary>
-            <div className="absolute right-0 z-30 mt-2 w-[min(360px,calc(100vw-2rem))] border border-[#d9dee8] bg-white shadow-xl">
-              <div className="flex items-center justify-between gap-3 border-b border-[#e5e9ef] px-4 py-3">
+            <div className="absolute right-0 z-30 mt-2 w-[min(380px,calc(100vw-2rem))] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl shadow-slate-900/10">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
                 <div>
                   <p className="text-sm font-semibold">Notifications</p>
-                  <p className="text-xs text-[#687384]">
+                  <p className="text-xs text-slate-500">
                     {unreadNotificationCount} unread
                   </p>
                 </div>
@@ -91,7 +96,7 @@ export function Topbar({
                 {notifications.length > 0 ? (
                   notifications.map((notification) => (
                     <article
-                      className="border-b border-[#edf1f6] px-4 py-3 last:border-0"
+                      className="border-b border-slate-100 px-4 py-3 last:border-0"
                       key={notification.id}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -99,15 +104,15 @@ export function Topbar({
                           <p className="text-sm font-semibold">
                             {notification.title}
                           </p>
-                          <p className="mt-1 text-sm leading-5 text-[#34404a]">
+                          <p className="mt-1 text-sm leading-5 text-slate-700">
                             {notification.body}
                           </p>
-                          <p className="mt-2 text-xs text-[#687384]">
+                          <p className="mt-2 text-xs text-slate-500">
                             {formatRelativeTime(notification.createdAt)}
                           </p>
                         </div>
                         {notification.readAt ? (
-                          <span className="mt-0.5 border border-[#cbd3df] bg-[#f5f7fb] px-2 py-1 text-xs font-semibold text-[#687384]">
+                          <span className="mt-0.5 rounded-full border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-semibold text-slate-500">
                             Read
                           </span>
                         ) : (
@@ -130,7 +135,7 @@ export function Topbar({
                     </article>
                   ))
                 ) : (
-                  <p className="px-4 py-6 text-sm text-[#687384]">
+                  <p className="px-4 py-6 text-sm text-slate-500">
                     No notifications yet. Approval, security, and API key events
                     will appear here.
                   </p>

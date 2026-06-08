@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { Pause, Play, Plus } from "lucide-react";
-import { AgentStatus } from "@/generated/prisma/client";
+import { AgentRiskTier, AgentStatus } from "@/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { FilterBar } from "@/components/ui/filter-bar";
+import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { RiskBadge } from "@/components/ui/risk-badge";
+import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
   canManageAgents,
@@ -31,6 +34,18 @@ type AgentRow = {
   status: string;
 };
 
+function parseAgentStatus(value: string) {
+  return Object.values(AgentStatus).includes(value as AgentStatus)
+    ? (value as AgentStatus)
+    : undefined;
+}
+
+function parseAgentRiskTier(value: string) {
+  return Object.values(AgentRiskTier).includes(value as AgentRiskTier)
+    ? (value as AgentRiskTier)
+    : undefined;
+}
+
 async function pauseAction(formData: FormData) {
   "use server";
 
@@ -51,16 +66,40 @@ async function resumeAction(formData: FormData) {
   revalidatePath("/agents");
 }
 
-export default async function AgentsPage() {
+export default async function AgentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const membership = await requireAgentViewer();
+  const params = await searchParams;
   const canManage = canManageAgents(membership.role);
   const organizationId = membership.organizationId;
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
+  const query = typeof params.q === "string" ? params.q.trim() : "";
+  const status = parseAgentStatus(typeof params.status === "string" ? params.status : "");
+  const riskTier = parseAgentRiskTier(
+    typeof params.riskTier === "string" ? params.riskTier : "",
+  );
+  const tool = typeof params.tool === "string" ? params.tool : "";
 
   const [agents, actionCounts] = await Promise.all([
     prisma.agent.findMany({
-      where: { organizationId },
+      where: {
+        organizationId,
+        ...(query
+          ? {
+              OR: [
+                { name: { contains: query, mode: "insensitive" } },
+                { department: { contains: query, mode: "insensitive" } },
+                { slug: { contains: query, mode: "insensitive" } },
+              ],
+            }
+          : {}),
+        ...(status ? { status } : {}),
+        ...(riskTier ? { riskTier } : {}),
+      },
       orderBy: [{ status: "asc" }, { name: "asc" }],
       select: {
         id: true,
@@ -96,17 +135,25 @@ export default async function AgentsPage() {
     actionCounts.map((count) => [count.agentId, count._count.id]),
   );
 
-  const rows: AgentRow[] = agents.map((agent) => ({
-    actionsToday: actionCountByAgent.get(agent.id) ?? 0,
-    allowedTools: normalizeAllowedTools(agent.allowedToolsJson),
-    department: agent.department ?? "Unassigned",
-    id: agent.id,
-    lastActivityAt: agent.actionRequests.at(0)?.createdAt ?? null,
-    name: agent.name,
-    owner: agent.owner?.name ?? agent.owner?.email ?? "Unassigned",
-    riskTier: agent.riskTier,
-    status: agent.status,
-  }));
+  const rows: AgentRow[] = agents
+    .map((agent) => ({
+      actionsToday: actionCountByAgent.get(agent.id) ?? 0,
+      allowedTools: normalizeAllowedTools(agent.allowedToolsJson),
+      department: agent.department ?? "Unassigned",
+      id: agent.id,
+      lastActivityAt: agent.actionRequests.at(0)?.createdAt ?? null,
+      name: agent.name,
+      owner: agent.owner?.name ?? agent.owner?.email ?? "Unassigned",
+      riskTier: agent.riskTier,
+      status: agent.status,
+    }))
+    .filter((agent) =>
+      tool
+        ? agent.allowedTools.some((allowedTool) =>
+            allowedTool.toLowerCase().includes(tool.toLowerCase()),
+          )
+        : true,
+    );
 
   const columns: DataTableColumn<AgentRow>[] = [
     {
@@ -182,6 +229,47 @@ export default async function AgentsPage() {
         eyebrow={membership.organization.slug}
         title="Agent Registry"
       />
+
+      <FilterBar title="Agent filters">
+        <form className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr_1fr_auto]" method="GET">
+          <label className="grid gap-2 text-sm font-medium">
+            Search
+            <Input name="q" placeholder="Agent, slug, or department" defaultValue={query} />
+          </label>
+          <label className="grid gap-2 text-sm font-medium">
+            Status
+            <Select name="status" defaultValue={status ?? ""}>
+              <option value="">Any status</option>
+              {Object.values(AgentStatus).map((item) => (
+                <option key={item} value={item}>
+                  {formatEnumLabel(item)}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <label className="grid gap-2 text-sm font-medium">
+            Risk tier
+            <Select name="riskTier" defaultValue={riskTier ?? ""}>
+              <option value="">Any tier</option>
+              {Object.values(AgentRiskTier).map((item) => (
+                <option key={item} value={item}>
+                  {formatEnumLabel(item)}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <label className="grid gap-2 text-sm font-medium">
+            Tool
+            <Input name="tool" placeholder="stripe, email, demo" defaultValue={tool} />
+          </label>
+          <div className="flex items-end gap-2">
+            <Button type="submit">Apply</Button>
+            <Button href="/agents" variant="secondary">
+              Reset
+            </Button>
+          </div>
+        </form>
+      </FilterBar>
 
       <Card>
         <CardHeader>

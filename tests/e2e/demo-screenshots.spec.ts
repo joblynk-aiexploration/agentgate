@@ -130,10 +130,9 @@ test("generate AgentGate visual demo screenshots", async ({ page, request }) => 
   await page.setViewportSize({ height: 1000, width: 1440 });
 
   await page.goto("/");
+  await expect(page.getByRole("heading", { name: "AgentGate" })).toBeVisible();
   await expect(
-    page.getByRole("heading", {
-      name: /the safety, approval, and audit layer for ai agents/i,
-    }),
+    page.getByText(/the safety, approval, and audit layer for ai agents/i),
   ).toBeVisible();
   await capture(page, "01-landing.png");
 

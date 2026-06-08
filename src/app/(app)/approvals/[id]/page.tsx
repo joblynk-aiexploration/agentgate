@@ -1,5 +1,6 @@
 import { ApprovalStatus } from "@/generated/prisma/client";
 import { ApprovalActions } from "@/app/(app)/approvals/_components/approval-actions";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
@@ -8,6 +9,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { RiskBadge } from "@/components/ui/risk-badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Timeline } from "@/components/ui/timeline";
 import {
   canActOnApproval,
   canCommentOnApproval,
@@ -343,12 +345,7 @@ export default async function ApprovalDetailPage({
               <div className="flex flex-wrap gap-2">
                 {signals.length > 0 ? (
                   signals.map((signal) => (
-                    <span
-                      className="border border-[#d9dee8] bg-[#f8fafc] px-2 py-1 text-xs font-medium text-[#34404a]"
-                      key={signal}
-                    >
-                      {formatEnumLabel(signal)}
-                    </span>
+                    <Badge key={signal} tone="blue">{formatEnumLabel(signal)}</Badge>
                   ))
                 ) : (
                   <span className="text-sm text-[#687384]">No signals recorded</span>
@@ -395,29 +392,28 @@ export default async function ApprovalDetailPage({
             </CardHeader>
             <CardContent>
               {timelineItems.length > 0 ? (
-                <ol className="grid gap-4">
-                  {timelineItems.map((item) => (
-                    <li className="border-l-2 border-[#cbd3df] pl-4" key={item.id}>
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <p className="font-semibold">{item.title}</p>
-                        <time className="text-xs text-[#687384]">
-                          {formatDateTime(item.time)}
-                        </time>
+                <Timeline
+                  items={timelineItems.map((item) => ({
+                    id: item.id,
+                    title: item.title,
+                    description: (
+                      <div>
+                        {item.actor ? (
+                          <p className="mb-1 text-xs font-medium text-slate-500">
+                            {item.actor}
+                          </p>
+                        ) : null}
+                        <p className="whitespace-pre-wrap">{item.description}</p>
+                        {item.metadata ? (
+                          <div className="mt-2">
+                            <JsonViewer previewOnly value={item.metadata} />
+                          </div>
+                        ) : null}
                       </div>
-                      {item.actor ? (
-                        <p className="mt-1 text-xs text-[#687384]">{item.actor}</p>
-                      ) : null}
-                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-[#34404a]">
-                        {item.description}
-                      </p>
-                      {item.metadata ? (
-                        <div className="mt-3">
-                          <JsonViewer previewOnly value={item.metadata} />
-                        </div>
-                      ) : null}
-                    </li>
-                  ))}
-                </ol>
+                    ),
+                    meta: formatDateTime(item.time),
+                  }))}
+                />
               ) : (
                 <p className="text-sm text-[#687384]">
                   Approval activity will appear here.

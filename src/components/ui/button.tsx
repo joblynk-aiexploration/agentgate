@@ -5,11 +5,11 @@ import { cn } from "@/lib/cn";
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-[#172326] text-white hover:bg-[#22363b]",
+  primary: "border border-slate-900 bg-slate-950 text-white shadow-sm hover:bg-slate-800",
   secondary:
-    "border border-[#cbd3df] bg-white text-[#172326] hover:bg-[#f5f7fb]",
-  ghost: "text-[#34404a] hover:bg-[#edf1f6]",
-  danger: "bg-[#9d3f1f] text-white hover:bg-[#7f3218]",
+    "border border-slate-200 bg-white text-slate-900 shadow-sm hover:border-slate-300 hover:bg-slate-50",
+  ghost: "text-slate-700 hover:bg-slate-100",
+  danger: "border border-red-700 bg-red-700 text-white shadow-sm hover:bg-red-800",
 };
 
 type BaseButtonProps = {
@@ -29,7 +29,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const buttonClassName = cn(
-    "inline-flex h-10 items-center justify-center gap-2 px-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+    "inline-flex h-10 items-center justify-center gap-2 rounded-md px-3.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
     variants[variant],
     className,
   );

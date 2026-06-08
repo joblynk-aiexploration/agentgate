@@ -5,9 +5,11 @@ import { Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function CopyButton({
+  className,
   label = "Copy",
   text,
 }: {
+  className?: string;
   label?: string;
   text: string;
 }) {
@@ -20,7 +22,7 @@ export function CopyButton({
   }
 
   return (
-    <Button onClick={copyText} type="button" variant="secondary">
+    <Button className={className} onClick={copyText} type="button" variant="secondary">
       <Copy className="h-4 w-4" aria-hidden />
       {copied ? "Copied" : label}
     </Button>

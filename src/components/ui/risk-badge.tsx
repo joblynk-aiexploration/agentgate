@@ -5,14 +5,14 @@ export function RiskBadge({ risk }: { risk: string }) {
   const normalized = risk.toUpperCase();
   const tone =
     normalized === "CRITICAL"
-      ? "red"
+      ? "purple"
       : normalized === "HIGH"
-        ? "amber"
-      : normalized === "MEDIUM"
-        ? "blue"
-        : normalized === "LOW"
-          ? "green"
-          : "slate";
+        ? "red"
+        : normalized === "MEDIUM"
+          ? "amber"
+          : normalized === "LOW"
+            ? "green"
+            : "slate";
 
   return <Badge tone={tone}>{formatEnumLabel(risk)}</Badge>;
 }

@@ -15,10 +15,9 @@ async function seededDemoAvailable(request: APIRequestContext) {
 
 test("public demo surfaces load", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByRole("heading", { name: "AgentGate" })).toBeVisible();
   await expect(
-    page.getByRole("heading", {
-      name: /the safety, approval, and audit layer for ai agents/i,
-    }),
+    page.getByText(/the safety, approval, and audit layer for ai agents/i),
   ).toBeVisible();
 
   await page.goto("/demo");

@@ -16,6 +16,7 @@ For a non-technical walkthrough, see the [AgentGate User Manual](docs/user-manua
 
 If you cannot access the local dev server directly, review the generated
 screenshots and walkthrough in [docs/visual-demo.md](docs/visual-demo.md).
+For the enterprise UI polish pass, see [docs/ui-polish-review.md](docs/ui-polish-review.md).
 
 Founder demo package:
 
@@ -97,7 +98,7 @@ Expected: `REQUIRE_APPROVAL` with a pending approval in `/approvals`.
 
 ## Demo Ecommerce Store on localhost:3004
 
-AgentGate includes a separate fake ecommerce site, Northstar Outdoor Supply, for
+AgentGate includes a separate local ecommerce demo site, Northstar Outdoor Supply, for
 testing an embedded support agent on another website.
 
 Run AgentGate on `http://localhost:3001`:

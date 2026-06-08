@@ -12,7 +12,7 @@ export default async function AppLayout({
   const notificationSnapshot = await getNotificationSnapshot(membership);
 
   return (
-    <div className="flex min-h-screen bg-[#f5f7fb] text-[#16181d]">
+    <div className="flex min-h-screen bg-slate-50 text-slate-950">
       <Sidebar
         organizationName={membership.organization.name}
         role={membership.role}

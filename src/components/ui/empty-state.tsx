@@ -11,12 +11,12 @@ export function EmptyState({
   icon?: ReactNode;
 }) {
   return (
-    <div className="flex min-h-40 flex-col items-center justify-center border border-dashed border-[#cbd3df] bg-[#f8fafc] px-6 py-8 text-center">
-      <div className="border border-[#d9dee8] bg-white p-3 text-[#687384] shadow-sm">
+    <div className="flex min-h-44 flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 px-6 py-9 text-center">
+      <div className="rounded-lg border border-slate-200 bg-white p-3 text-slate-500 shadow-sm">
         {icon ?? <Inbox className="h-8 w-8" aria-hidden />}
       </div>
-      <h3 className="mt-3 text-sm font-semibold">{title}</h3>
-      <p className="mt-1 max-w-md text-sm leading-6 text-[#5c6470]">{description}</p>
+      <h3 className="mt-3 text-sm font-semibold text-slate-950">{title}</h3>
+      <p className="mt-1 max-w-md text-sm leading-6 text-slate-600">{description}</p>
     </div>
   );
 }

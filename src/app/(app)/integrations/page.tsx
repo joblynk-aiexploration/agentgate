@@ -87,7 +87,7 @@ const integrationCards = [
     toolType: "DEMO_COMMERCE",
     icon: Store,
     detail:
-      "Monitor the fake Northstar ecommerce support agent connected to AgentGate.",
+      "Monitor the Northstar local ecommerce support agent connected to AgentGate.",
     simulated: true,
   },
 ] as const;
