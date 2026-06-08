@@ -39,6 +39,10 @@ test("capture UI polish screenshots", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /Sign in to the AI agent control plane/i })).toBeVisible();
   await capture(page, "02-login.png");
 
+  await page.goto("/register");
+  await expect(page.getByRole("heading", { name: /Create your account/i })).toBeVisible();
+  await capture(page, "16-register.png");
+
   await login(page);
   await captureProtectedPage(page, "/dashboard", "03-dashboard.png", "Dashboard");
   await captureProtectedPage(page, "/agents", "04-agents.png", "Agent Registry");
@@ -71,4 +75,8 @@ test("capture UI polish screenshots", async ({ page }) => {
   await captureProtectedPage(page, "/developer/agent-lab", "13-agent-lab.png", "Agent Lab");
   await captureProtectedPage(page, "/settings", "14-settings.png", "Settings");
   await captureProtectedPage(page, "/billing", "15-billing.png", "Billing");
+  await captureProtectedPage(page, "/actions", "17-actions.png", "Actions");
+  await captureProtectedPage(page, "/developer", "18-developer.png", "Developer");
+  await captureProtectedPage(page, "/developer/api-keys", "19-api-keys.png", "API Keys");
+  await captureProtectedPage(page, "/reports", "20-reports.png", "Reports");
 });

@@ -119,6 +119,7 @@ export function Topbar({
                           <form action={markNotificationReadAction}>
                             <input
                               name="notificationId"
+                              suppressHydrationWarning
                               type="hidden"
                               value={notification.id}
                             />

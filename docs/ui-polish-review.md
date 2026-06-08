@@ -33,6 +33,13 @@ The Playwright screenshot test writes to `docs/screenshots/ui-polish/`:
 - `13-agent-lab.png`
 - `14-settings.png`
 - `15-billing.png`
+- `16-register.png`
+- `17-actions.png`
+- `18-developer.png`
+- `19-api-keys.png`
+- `20-reports.png`
+
+The follow-up enterprise UI audit is documented in `docs/ui-audit.md`.
 
 Run:
 

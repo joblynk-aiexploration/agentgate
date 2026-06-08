@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { RiskBadge } from "@/components/ui/risk-badge";
@@ -198,12 +199,8 @@ export default async function ActionsPage({ searchParams }: ActionsPageProps) {
         title="Actions"
       />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="grid gap-4 lg:grid-cols-8" method="GET">
+      <FilterBar title="Action request filters">
+        <form className="grid gap-4 lg:grid-cols-8" method="GET">
             <label className="grid gap-2 text-sm font-medium">
               Status
               <Select defaultValue={filters.status ?? ""} name="status">
@@ -284,9 +281,8 @@ export default async function ActionsPage({ searchParams }: ActionsPageProps) {
                 Reset
               </Button>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+        </form>
+      </FilterBar>
 
       <Card>
         <CardHeader>

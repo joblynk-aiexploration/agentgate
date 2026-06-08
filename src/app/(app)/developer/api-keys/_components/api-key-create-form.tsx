@@ -2,8 +2,10 @@
 
 import { useActionState } from "react";
 import { KeyRound } from "lucide-react";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CopyButton } from "@/components/ui/copy-button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 
@@ -48,24 +50,27 @@ export function ApiKeyCreateForm({
       </CardHeader>
       <CardContent>
         {state.fullKey ? (
-          <div className="mb-5 border border-[#e6d1a7] bg-[#fff8e7] p-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#83611b]">
-              <KeyRound className="h-4 w-4" aria-hidden />
-              The full API key is shown once. Copy it now.
+          <Alert className="mb-5" tone="warning" title="The full API key is shown once. Copy it now.">
+            <div className="grid gap-3">
+              <div className="flex flex-wrap items-center gap-2 rounded-lg bg-white p-3">
+                <KeyRound className="h-4 w-4 text-amber-700" aria-hidden />
+                <code className="min-w-0 flex-1 break-all text-sm text-slate-950">
+                  {state.fullKey}
+                </code>
+                <CopyButton label="Copy key" text={state.fullKey} />
+              </div>
+              <p className="text-xs text-amber-900">
+                Stored display prefix: {state.keyPrefix}. AgentGate stores only the hash,
+                never the full key.
+              </p>
             </div>
-            <code className="mt-3 block break-all bg-white p-3 text-sm text-[#172326]">
-              {state.fullKey}
-            </code>
-            <p className="mt-2 text-xs text-[#687384]">
-              Stored display prefix: {state.keyPrefix}
-            </p>
-          </div>
+          </Alert>
         ) : null}
 
         {state.error ? (
-          <div className="mb-5 border border-[#e6c6b7] bg-[#fff4ef] px-4 py-3 text-sm text-[#9d3f1f]">
+          <Alert className="mb-5" tone="danger" title="API key creation failed">
             {state.error}
-          </div>
+          </Alert>
         ) : null}
 
         <form action={formAction} className="grid gap-5">

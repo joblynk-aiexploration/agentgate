@@ -70,11 +70,13 @@ export default async function DeveloperPage() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <Link
-          className="border border-[#d9dee8] bg-white p-6 shadow-sm transition hover:border-[#2d6f7f]"
+          className="group rounded-lg border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
           href="/developer/api-keys"
         >
           <div className="flex items-center gap-3">
-            <KeyRound className="h-5 w-5 text-[#2d6f7f]" aria-hidden />
+            <span className="rounded-lg bg-blue-50 p-2 text-blue-700">
+              <KeyRound className="h-5 w-5" aria-hidden />
+            </span>
             <h2 className="text-lg font-semibold">API Keys</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-[#5c6470]">
@@ -83,11 +85,13 @@ export default async function DeveloperPage() {
           </p>
         </Link>
         <Link
-          className="border border-[#d9dee8] bg-white p-6 shadow-sm transition hover:border-[#2d6f7f]"
+          className="group rounded-lg border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
           href="/developer/docs"
         >
           <div className="flex items-center gap-3">
-            <BookOpen className="h-5 w-5 text-[#2d6f7f]" aria-hidden />
+            <span className="rounded-lg bg-blue-50 p-2 text-blue-700">
+              <BookOpen className="h-5 w-5" aria-hidden />
+            </span>
             <h2 className="text-lg font-semibold">Docs</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-[#5c6470]">
@@ -96,11 +100,13 @@ export default async function DeveloperPage() {
           </p>
         </Link>
         <Link
-          className="border border-[#d9dee8] bg-white p-6 shadow-sm transition hover:border-[#2d6f7f]"
+          className="group rounded-lg border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
           href="/developer/agent-lab"
         >
           <div className="flex items-center gap-3">
-            <FlaskConical className="h-5 w-5 text-[#2d6f7f]" aria-hidden />
+            <span className="rounded-lg bg-blue-50 p-2 text-blue-700">
+              <FlaskConical className="h-5 w-5" aria-hidden />
+            </span>
             <h2 className="text-lg font-semibold">Agent Lab</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-[#5c6470]">
@@ -109,11 +115,13 @@ export default async function DeveloperPage() {
           </p>
         </Link>
         <Link
-          className="border border-[#d9dee8] bg-white p-6 shadow-sm transition hover:border-[#2d6f7f]"
+          className="group rounded-lg border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
           href="/developer/webhooks"
         >
           <div className="flex items-center gap-3">
-            <Webhook className="h-5 w-5 text-[#2d6f7f]" aria-hidden />
+            <span className="rounded-lg bg-blue-50 p-2 text-blue-700">
+              <Webhook className="h-5 w-5" aria-hidden />
+            </span>
             <h2 className="text-lg font-semibold">Webhooks</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-[#5c6470]">
@@ -122,11 +130,13 @@ export default async function DeveloperPage() {
           </p>
         </Link>
         <Link
-          className="border border-[#d9dee8] bg-white p-6 shadow-sm transition hover:border-[#2d6f7f]"
+          className="group rounded-lg border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60 transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
           href="/integrations/demo-commerce"
         >
           <div className="flex items-center gap-3">
-            <Store className="h-5 w-5 text-[#2d6f7f]" aria-hidden />
+            <span className="rounded-lg bg-blue-50 p-2 text-blue-700">
+              <Store className="h-5 w-5" aria-hidden />
+            </span>
             <h2 className="text-lg font-semibold">Commerce Monitor</h2>
           </div>
           <p className="mt-3 text-sm leading-6 text-[#5c6470]">

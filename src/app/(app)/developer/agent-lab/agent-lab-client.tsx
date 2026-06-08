@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, ClipboardCheck, FileClock, Play, ShieldCheck } from "lucide-react";
+import { ClipboardCheck, FileClock, Play, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -113,13 +114,13 @@ function ResultPanel({ result }: { result: AgentLabResult }) {
         </CardHeader>
         <CardContent className="grid gap-5">
           <div className="grid gap-4 md:grid-cols-4">
-            <div className="border border-[#d9dee8] bg-[#f8fafc] p-4">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase text-[#687384]">Allowed</p>
               <p className="mt-2 text-lg font-semibold text-[#172326]">
                 {String(result.decision.allowed)}
               </p>
             </div>
-            <div className="border border-[#d9dee8] bg-[#f8fafc] p-4">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase text-[#687384]">
                 Requires approval
               </p>
@@ -127,13 +128,13 @@ function ResultPanel({ result }: { result: AgentLabResult }) {
                 {String(result.decision.requiresApproval)}
               </p>
             </div>
-            <div className="border border-[#d9dee8] bg-[#f8fafc] p-4">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase text-[#687384]">Risk score</p>
               <p className="mt-2 text-lg font-semibold text-[#172326]">
                 {result.decision.risk.score}
               </p>
             </div>
-            <div className="border border-[#d9dee8] bg-[#f8fafc] p-4">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               <p className="text-xs font-semibold uppercase text-[#687384]">Status</p>
               <div className="mt-2">
                 <StatusBadge status={result.decision.status} />
@@ -144,13 +145,13 @@ function ResultPanel({ result }: { result: AgentLabResult }) {
           <div className="grid gap-4 lg:grid-cols-2">
             <div>
               <h3 className="text-sm font-semibold text-[#172326]">Ticket input</h3>
-              <p className="mt-2 border border-[#d9dee8] bg-white p-4 text-sm leading-6 text-[#34404a]">
+              <p className="mt-2 rounded-lg border border-slate-200 bg-white p-4 text-sm leading-6 text-[#34404a]">
                 {result.ticket.ticket}
               </p>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-[#172326]">Reason</h3>
-              <p className="mt-2 border border-[#d9dee8] bg-white p-4 text-sm leading-6 text-[#34404a]">
+              <p className="mt-2 rounded-lg border border-slate-200 bg-white p-4 text-sm leading-6 text-[#34404a]">
                 {result.decision.reason}
               </p>
             </div>
@@ -216,7 +217,7 @@ function ResultPanel({ result }: { result: AgentLabResult }) {
             </div>
           ) : null}
 
-          <div className="grid gap-3 border border-[#d9dee8] bg-[#f8fafc] p-4 text-sm md:grid-cols-2">
+          <div className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm md:grid-cols-2">
             <p>
               <span className="font-semibold text-[#172326]">Action request ID:</span>{" "}
               <span className="font-mono text-xs">{result.decision.actionRequestId}</span>
@@ -255,14 +256,13 @@ function ResultPanel({ result }: { result: AgentLabResult }) {
           </div>
 
           {result.decision.decision === "REQUIRE_APPROVAL" ? (
-            <div className="border border-[#e6d1a7] bg-[#fff8e7] p-4 text-sm leading-6 text-[#5f4817]">
-              <p className="font-semibold">Approval next step</p>
-              <p className="mt-1">
+            <Alert tone="warning" title="Approval next step">
+              <p>
                 Approve this in the Approval Inbox, then rerun/resume from the CLI
                 or future UI. Browser execution of approved actions is intentionally
                 not implemented here.
               </p>
-            </div>
+            </Alert>
           ) : null}
         </CardContent>
       </Card>
@@ -337,7 +337,7 @@ export function AgentLabClient({ scenarios }: { scenarios: Scenario[] }) {
                   </dd>
                 </div>
               </dl>
-              <div className="border border-[#d9dee8] bg-[#f8fafc] p-3 text-sm leading-6 text-[#34404a]">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-[#34404a]">
                 {scenario.expectedSafetyBehavior}
               </div>
               <Button
@@ -355,13 +355,9 @@ export function AgentLabClient({ scenarios }: { scenarios: Scenario[] }) {
       {activeScenario ? <LoadingPanel label="Running agent scenario" /> : null}
 
       {error ? (
-        <div className="flex items-start gap-3 border border-[#e6c6b7] bg-[#fff4ef] p-4 text-sm text-[#9d3f1f]">
-          <AlertTriangle className="mt-0.5 h-4 w-4" aria-hidden />
-          <div>
-            <p className="font-semibold">Agent Lab run failed</p>
-            <p className="mt-1">{error}</p>
-          </div>
-        </div>
+        <Alert tone="danger" title="Agent Lab run failed">
+          {error}
+        </Alert>
       ) : null}
 
       {result ? <ResultPanel result={result} /> : null}
