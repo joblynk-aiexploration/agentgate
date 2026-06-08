@@ -1,30 +1,17 @@
 import Link from "next/link";
 import { AdminShell } from "@/components/admin-shell";
-import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { MetricCard } from "@/components/ui/metric-card";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { readStore, safeAdminConfig } from "@/lib/store";
 import { metricsForStore } from "@/lib/tracking";
-import type { AgentLog, Order } from "@/lib/types";
 
 export default function AdminHomePage() {
   const store = readStore();
   const config = safeAdminConfig();
   const metrics = metricsForStore(store);
-  const orderColumns: DataTableColumn<Order>[] = [
-    { header: "Order", cell: (order) => <><strong>{order.number}</strong><br /><span className="muted">{formatDate(order.createdAt)}</span></> },
-    { header: "Customer", cell: (order) => <>{order.customerName}<br /><span className="muted">{order.email}</span></> },
-    { header: "Status", cell: (order) => <StatusBadge status={order.status} /> },
-    { header: "Total", cell: (order) => formatCurrency(order.total) },
-    { header: "Action", cell: (order) => <Link className="button secondary" href={`/admin/orders/${order.number}`}>Open</Link> },
-  ];
-  const logColumns: DataTableColumn<AgentLog>[] = [
-    { header: "Time", cell: (log) => formatDate(log.timestamp) },
-    { header: "Intent", cell: (log) => log.intent },
-    { header: "Decision", cell: (log) => log.decision ?? "none" },
-    { header: "Result", cell: (log) => log.result },
-  ];
+  const recentOrders = store.orders.slice(0, 6);
+  const recentLogs = store.agentLogs.slice(0, 6);
 
   return (
     <AdminShell>
@@ -52,17 +39,54 @@ export default function AdminHomePage() {
         <div className="grid two">
           <section>
             <div className="section-title">
-              <h2>Recent orders</h2>
+              <div>
+                <p className="eyebrow">Fulfillment queue</p>
+                <h2>Recent orders</h2>
+              </div>
               <Link className="button secondary" href="/admin/orders">All orders</Link>
             </div>
-            <DataTable columns={orderColumns} rows={store.orders.slice(0, 6)} />
+            <div className="ops-list">
+              {recentOrders.map((order) => (
+                <Link className="ops-row" href={`/admin/orders/${order.number}`} key={order.id}>
+                  <div>
+                    <strong>{order.number}</strong>
+                    <span>{formatDate(order.createdAt)}</span>
+                  </div>
+                  <div>
+                    <strong>{order.customerName}</strong>
+                    <span>{order.email}</span>
+                  </div>
+                  <StatusBadge status={order.status} />
+                  <strong className="ops-total">{formatCurrency(order.total)}</strong>
+                </Link>
+              ))}
+            </div>
           </section>
           <section>
             <div className="section-title">
-              <h2>Recent agent activity</h2>
+              <div>
+                <p className="eyebrow">AgentGate monitored</p>
+                <h2>Recent agent activity</h2>
+              </div>
               <Link className="button secondary" href="/admin/agent-logs">Agent logs</Link>
             </div>
-            <DataTable columns={logColumns} rows={store.agentLogs.slice(0, 6)} />
+            <div className="activity-list">
+              {recentLogs.map((log) => (
+                <article className="activity-card" key={log.id}>
+                  <div className="activity-head">
+                    <span>{formatDate(log.timestamp)}</span>
+                    {log.decision ? <StatusBadge status={log.decision} /> : <span className="badge">No gateway decision</span>}
+                  </div>
+                  <h3>{log.intent.replaceAll("_", " ")}</h3>
+                  <p>{log.result}</p>
+                  <div className="activity-meta">
+                    <span>{log.customerEmail ?? "anonymous"}</span>
+                    <span>{log.orderNumber ?? "no order"}</span>
+                    <span>{log.riskLevel ? `${log.riskLevel} risk` : "policy-only"}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
           </section>
         </div>
       </section>

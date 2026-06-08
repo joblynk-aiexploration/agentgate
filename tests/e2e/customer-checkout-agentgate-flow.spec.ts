@@ -118,7 +118,7 @@ test("customer checkout order routes commerce agent actions through AgentGate", 
 
   await page.goto(`${commerceBaseUrl}/account/orders/${orderNumber}`);
   await expect(page.getByRole("heading", { name: orderNumber! })).toBeVisible();
-  await expect(page.getByText("SummitPro Backpack")).toBeVisible();
+  await expect(page.getByText("SummitPro Backpack").first()).toBeVisible();
   await expect(page.getByText("Processing", { exact: true })).toBeVisible();
   await expect(page.getByText("Total", { exact: true })).toBeVisible();
 
