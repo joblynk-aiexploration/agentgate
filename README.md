@@ -162,6 +162,9 @@ Expected AgentGate results:
   `gateway.action_executed` audit events.
 
 See [apps/demo-commerce-store/README.md](apps/demo-commerce-store/README.md).
+The redesigned ecommerce UI audit and screenshot notes live in
+[apps/demo-commerce-store/docs/ui-audit.md](apps/demo-commerce-store/docs/ui-audit.md)
+and [apps/demo-commerce-store/docs/ui-polish-review.md](apps/demo-commerce-store/docs/ui-polish-review.md).
 
 ### Ecommerce AgentGate Integration Test
 
@@ -239,6 +242,16 @@ Where to inspect results in AgentGate:
 - `http://localhost:3001/approvals`
 - `http://localhost:3001/audit-logs`
 - `http://localhost:3001/actions`
+
+Where to inspect results in Northstar:
+
+- Customer dashboard: `http://localhost:3004/account`
+- Customer tracking: `http://localhost:3004/account/tracking`
+- Customer receipts: `http://localhost:3004/account/receipts`
+- Admin dashboard: `http://localhost:3004/admin`
+- Admin order detail: `http://localhost:3004/admin/orders/<orderNumber>`
+- Admin fulfillment board: `http://localhost:3004/admin/fulfillment`
+- Admin tracking operations: `http://localhost:3004/admin/tracking`
 
 To complete the browser approval flow:
 

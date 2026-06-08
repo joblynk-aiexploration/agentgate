@@ -90,7 +90,8 @@ function canSyncCancellation(order: Order, status: GatewayActionStatus) {
 
 function isCancellationApprovalEvent(event: OrderEvent) {
   return (
-    event.type === "agentgate_pending_approval" &&
+    (event.type === "agentgate_pending_approval" ||
+      event.type === "cancellation.approval_required") &&
     (event.metadata?.action === "order.cancel" ||
       event.message.startsWith("Cancellation for "))
   );
@@ -169,6 +170,12 @@ export async function syncApprovedAgentGateOrders(): Promise<SyncResult> {
     addOrderEvent(updated, {
       message:
         "Admin demo sync executed the approved AgentGate action and cancelled the local order.",
+      title: "Approved cancellation executed",
+      description:
+        "An admin synced the approved AgentGate action. Northstar simulated cancellation locally.",
+      actorType: "agentgate",
+      actorLabel: "AgentGate execute",
+      visibleToCustomer: true,
       metadata: {
         actionRequestId: pendingCancellation.actionRequestId,
         approvalRequestId:
@@ -176,7 +183,7 @@ export async function syncApprovedAgentGateOrders(): Promise<SyncResult> {
         executionStatus: execution.status,
         simulated: true,
       },
-      type: "agentgate_approved_sync",
+      type: "cancellation.approved",
     });
 
     result.executed += 1;

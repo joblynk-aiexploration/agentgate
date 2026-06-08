@@ -189,6 +189,60 @@ function seedData(): StoreData {
   };
 }
 
+function legacyEventTitle(type: string) {
+  const labels: Record<string, string> = {
+    agentgate_approved_sync: "AgentGate approval executed",
+    agentgate_blocked: "Action blocked by AgentGate",
+    agentgate_pending_approval: "Approval required",
+    cancel_requested: "Cancellation requested",
+    cancelled: "Order cancelled",
+    created: "Order placed",
+    receipt_previewed: "Receipt previewed",
+    return_requested: "Return requested",
+    shipping_update_requested: "Shipping update requested",
+  };
+
+  return labels[type] ?? titleFromEventType(type);
+}
+
+function titleFromEventType(type: string) {
+  return type
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function inferEventActor(type: string): NonNullable<OrderEvent["actorType"]> {
+  if (type.includes("agentgate")) {
+    return "agentgate";
+  }
+
+  if (type.includes("admin")) {
+    return "admin";
+  }
+
+  if (type.includes("receipt") || type.includes("cancel") || type.includes("return")) {
+    return "agent";
+  }
+
+  return "system";
+}
+
+function normalizeOrderEvent(order: Pick<Order, "number">, event: OrderEvent): OrderEvent {
+  const type = event.type;
+
+  return {
+    ...event,
+    actorLabel: event.actorLabel ?? titleFromEventType(event.actorType ?? inferEventActor(type)),
+    actorType: event.actorType ?? inferEventActor(type),
+    description: event.description ?? event.message,
+    orderNumber: event.orderNumber ?? order.number,
+    title: event.title ?? legacyEventTitle(type),
+    visibleToCustomer: event.visibleToCustomer ?? !type.includes("admin"),
+  };
+}
+
 function ensureDataDir() {
   if (!existsSync(dataDir)) {
     mkdirSync(dataDir, { recursive: true });
@@ -222,7 +276,9 @@ function migrateStore(data: Partial<StoreData>): StoreData {
       createdThroughCheckout: migrated.createdThroughCheckout ?? false,
       updatedAt: migrated.updatedAt ?? migrated.createdAt ?? now(),
       agentActions: migrated.agentActions ?? [],
-      events: migrated.events ?? [],
+      events: (migrated.events ?? []).map((event) =>
+        normalizeOrderEvent(migrated, event),
+      ),
     };
   });
 
@@ -581,12 +637,44 @@ export function createCheckoutOrder(input: {
     events: [
       {
         id: id("evt"),
-        type: "created",
+        type: "order.created",
+        title: "Order placed",
         message: "Customer created this local demo order through checkout.",
+        description: "The customer completed local demo checkout. No real payment provider was contacted.",
+        actorType: "customer",
+        actorLabel: user.name,
+        orderNumber: "",
+        visibleToCustomer: true,
         createdAt,
       },
-    ],
+      {
+        id: id("evt"),
+        type: "payment.authorized_demo",
+        title: "Demo payment authorized",
+        message: "Demo card authorization was recorded locally.",
+        description: "No real card charge was made. This is a local checkout simulation.",
+        actorType: "system",
+        actorLabel: "Northstar checkout",
+        orderNumber: "",
+        visibleToCustomer: true,
+        createdAt,
+      },
+      {
+        id: id("evt"),
+        type: "fulfillment.queued",
+        title: "Fulfillment queued",
+        message: "The local order entered the fulfillment queue.",
+        description: "Northstar admin can move this order through packed, shipped, and delivered demo statuses.",
+        actorType: "system",
+        actorLabel: "Fulfillment system",
+        orderNumber: "",
+        visibleToCustomer: true,
+        createdAt,
+      },
+    ].map((event) => normalizeOrderEvent({ number: "" }, event as OrderEvent)),
   };
+
+  order.events = order.events.map((event) => ({ ...event, orderNumber: order.number }));
 
   store.orders = [order, ...store.orders];
   store.receipts = [
@@ -649,11 +737,11 @@ export function addOrderEvent(order: Order, event: Omit<OrderEvent, "id" | "crea
   const updated: Order = {
     ...order,
     events: [
-      {
+      normalizeOrderEvent(order, {
         id: id("evt"),
         createdAt: now(),
         ...event,
-      },
+      }),
       ...(order.events ?? []),
     ],
   };

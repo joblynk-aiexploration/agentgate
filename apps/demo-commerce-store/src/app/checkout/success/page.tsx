@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { getCurrentCustomer } from "@/lib/customer-auth";
 import { formatCurrency } from "@/lib/format";
 import { findOrderForCustomer } from "@/lib/store";
+import { customerEvents, demoTrackingNumber, estimatedDelivery } from "@/lib/tracking";
+import { Badge } from "@/components/ui/badge";
+import { DetailRow } from "@/components/ui/detail-row";
+import { Timeline } from "@/components/ui/timeline";
 
 export default async function CheckoutSuccessPage({
   searchParams,
@@ -24,21 +28,20 @@ export default async function CheckoutSuccessPage({
 
   return (
     <main className="section">
-      <div className="container grid two">
+      <div className="container grid main-aside">
         <section className="card">
-          <div className="badge">Order created</div>
+          <Badge tone="success">Order created</Badge>
           <h1>Thanks, {customer.name}</h1>
-          <p>
-            Your local demo order <strong>{order.number}</strong> was created for {customer.email}.
-          </p>
+          <p>Your local demo order <strong>{order.number}</strong> was created for {customer.email}.</p>
           <p className="muted">A receipt preview was recorded locally. No email was sent and no payment was processed.</p>
+          <div className="grid two">
+            <DetailRow label="Tracking number" value={demoTrackingNumber(order)} />
+            <DetailRow label="Estimated delivery" value={estimatedDelivery(order)} />
+          </div>
           <div className="button-row">
-            <Link className="button" href={`/account/orders/${order.number}`}>
-              View order
-            </Link>
-            <Link className="button secondary" href="/products">
-              Keep shopping
-            </Link>
+            <Link className="button" href={`/account/orders/${order.number}`}>View order</Link>
+            <Link className="button secondary" href="/account/tracking">Track order</Link>
+            <Link className="button secondary" href="/products">Keep shopping</Link>
           </div>
         </section>
         <aside className="card">
@@ -46,15 +49,14 @@ export default async function CheckoutSuccessPage({
           <div className="stack">
             {order.items.map((item) => (
               <div className="line-item" key={item.productId}>
-                <span>
-                  {item.name} x {item.quantity}
-                </span>
+                <span>{item.name} x {item.quantity}</span>
                 <strong>{formatCurrency(item.price * item.quantity)}</strong>
               </div>
             ))}
           </div>
           <h3>Total: {formatCurrency(order.total)}</h3>
-          <p className="muted">Open the chat widget and ask “Cancel my latest order” to watch AgentGate review this actual checkout order.</p>
+          <h3>Tracking timeline</h3>
+          <Timeline events={customerEvents(order)} />
         </aside>
       </div>
     </main>

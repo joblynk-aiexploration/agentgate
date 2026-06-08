@@ -1,4 +1,3 @@
-import { formatCurrency } from "@/lib/format";
 import {
   addOrderEvent,
   findLatestOrderForCustomer,
@@ -8,7 +7,7 @@ import {
   updateOrder,
   writeStore,
 } from "@/lib/store";
-import type { Order } from "@/lib/types";
+import type { Order, OrderEvent } from "@/lib/types";
 import { checkWithAgentGate } from "@/server/agent/agentgate-client";
 import type { AgentGateDecisionSummary, RoutedIntent } from "@/server/agent/types";
 
@@ -83,6 +82,24 @@ function markPending(
   message: string,
   action: string,
 ) {
+  const eventType: OrderEvent["type"] =
+    action === "order.cancel"
+      ? "cancellation.approval_required"
+      : action === "receipt.resend"
+        ? "receipt.resend_requested"
+        : action === "order.return_request"
+          ? "return.approval_required"
+          : action === "order.shipping_address_update"
+            ? "address.update_requested"
+            : "agentgate.approval_requested";
+  const title =
+    action === "order.cancel"
+      ? "Cancellation approval required"
+      : action === "receipt.resend"
+        ? "Receipt resend approval required"
+        : action === "order.return_request"
+          ? "Return approval required"
+          : "Approval required";
   const updated = addOrderEvent(
     {
       ...order,
@@ -90,8 +107,13 @@ function markPending(
       pendingApprovalRequestId: gate.approvalRequestId,
     },
     {
-      type: "agentgate_pending_approval",
+      type: eventType,
+      title,
       message,
+      description: "AgentGate requires a human reviewer before this local demo order can change.",
+      actorType: "agentgate",
+      actorLabel: "AgentGate",
+      visibleToCustomer: true,
       metadata: {
         action,
         actionRequestId: gate.actionRequestId,
@@ -125,8 +147,13 @@ export async function cancelOrder(intent: RoutedIntent, customer?: CustomerConte
   if (decision.decision === "ALLOW" || decision.decision === "LOG_ONLY") {
     if (!order.eligibleForCancellation || order.status !== "processing") {
       const blocked = addOrderEvent(order, {
-        type: "agentgate_blocked",
+        type: "agentgate.action_blocked",
+        title: "Cancellation refused by store state",
         message: "Local order state prevented cancellation after AgentGate allowed review.",
+        description: "The local order was not eligible for cancellation, so no order state changed.",
+        actorType: "system",
+        actorLabel: "Northstar order system",
+        visibleToCustomer: true,
       });
       return {
         agentGateDecision: gate,
@@ -146,8 +173,13 @@ export async function cancelOrder(intent: RoutedIntent, customer?: CustomerConte
     };
     updateOrder(updated);
     const withEvent = addOrderEvent(updated, {
-      type: "cancelled",
+      type: "order.cancelled",
+      title: "Order cancelled",
       message: "AgentGate allowed cancellation, so the local demo order was cancelled.",
+      description: "The assistant cancelled this local demo order after AgentGate returned an allowed decision.",
+      actorType: "agent",
+      actorLabel: "Northstar Assistant",
+      visibleToCustomer: true,
       metadata: { actionRequestId: gate.actionRequestId },
     });
 
@@ -171,21 +203,26 @@ export async function cancelOrder(intent: RoutedIntent, customer?: CustomerConte
       agentGateDecision: gate,
       orderUpdate: updated,
       reply:
-        "I need approval before I can complete that. Your request has been sent for review.",
+        "I’ve sent that request for approval before making any changes. You can keep your order as-is until it’s reviewed.",
       status: "pending_approval",
     };
   }
 
   const blocked = addOrderEvent(order, {
-    type: "agentgate_blocked",
+    type: "agentgate.action_blocked",
+    title: "Cancellation blocked",
     message: `AgentGate blocked cancellation: ${decision.reason}`,
+    description: "I can’t complete that action because it is restricted by store safety policy.",
+    actorType: "agentgate",
+    actorLabel: "AgentGate",
+    visibleToCustomer: true,
     metadata: { actionRequestId: gate.actionRequestId, decision: decision.decision },
   });
 
   return {
     agentGateDecision: gate,
     orderUpdate: blocked,
-    reply: `I cannot cancel ${order.number}. AgentGate blocked the request: ${decision.reason}`,
+    reply: "I can’t complete that action because it is restricted by store safety policy.",
     status: "blocked",
   };
 }
@@ -232,8 +269,13 @@ export async function resendReceipt(intent: RoutedIntent, customer?: CustomerCon
         agentActions: [`Receipt resend simulated at ${new Date().toISOString()}`, ...order.agentActions],
       },
       {
-        type: "receipt_previewed",
+        type: "receipt.resent_demo",
+        title: "Receipt preview created",
         message: "Receipt preview was simulated locally after AgentGate check.",
+        description: "No real email was sent. Northstar recorded a local receipt preview only.",
+        actorType: "agent",
+        actorLabel: "Northstar Assistant",
+        visibleToCustomer: true,
         metadata: { actionRequestId: gate.actionRequestId },
       },
     );
@@ -256,7 +298,7 @@ export async function resendReceipt(intent: RoutedIntent, customer?: CustomerCon
     return {
       agentGateDecision: gate,
       orderUpdate: updated,
-      reply: "I routed the receipt resend through AgentGate and it needs reviewer approval first.",
+      reply: "I’ve sent that receipt request for approval before sending anything. No real email has been sent.",
       status: "pending_approval",
     };
   }
@@ -264,10 +306,15 @@ export async function resendReceipt(intent: RoutedIntent, customer?: CustomerCon
   return {
     agentGateDecision: gate,
     orderUpdate: addOrderEvent(order, {
-      type: "agentgate_blocked",
+      type: "agentgate.action_blocked",
+      title: "Receipt resend blocked",
       message: `AgentGate blocked receipt resend: ${decision.reason}`,
+      description: "I can’t complete that action because it is restricted by store safety policy.",
+      actorType: "agentgate",
+      actorLabel: "AgentGate",
+      visibleToCustomer: true,
     }),
-    reply: `AgentGate blocked the receipt resend for ${order.number}: ${decision.reason}`,
+    reply: "I can’t complete that action because it is restricted by store safety policy.",
     status: "blocked",
   };
 }
@@ -300,8 +347,13 @@ export async function requestReturn(intent: RoutedIntent, customer?: CustomerCon
     return {
       agentGateDecision: gate,
       orderUpdate: addOrderEvent(updated, {
-        type: "return_requested",
+        type: "return.requested",
+        title: "Return requested",
         message: "Local demo return request was opened after AgentGate check.",
+        description: "A return workflow was simulated locally. No carrier or refund was created.",
+        actorType: "agent",
+        actorLabel: "Northstar Assistant",
+        visibleToCustomer: true,
       }),
       reply: `I opened a local demo return request for ${order.number}. No label or refund was created.`,
       status: "completed",
@@ -317,7 +369,7 @@ export async function requestReturn(intent: RoutedIntent, customer?: CustomerCon
         `Return request for ${order.number} needs reviewer approval.`,
         "order.return_request",
       ),
-      reply: `A return request for ${order.number} (${formatCurrency(order.total)}) needs approval before I can change the order.`,
+      reply: `I’ve sent that return request for approval before making any changes. ${order.number} remains unchanged while it is reviewed.`,
       status: "pending_approval",
     };
   }
@@ -352,8 +404,12 @@ export async function updateShippingAddress(intent: RoutedIntent, customer?: Cus
     return {
       agentGateDecision: gate,
       orderUpdate: addOrderEvent(order, {
-        type: "shipping_update_requested",
+        type: "address.update_requested",
+        title: "Address update simulated",
         message: "Shipping address update was simulated locally after AgentGate check.",
+        actorType: "agent",
+        actorLabel: "Northstar Assistant",
+        visibleToCustomer: true,
       }),
       reply: `I simulated an address update request for ${order.number}. No carrier or fulfillment system was touched.`,
       status: "completed",
@@ -369,14 +425,14 @@ export async function updateShippingAddress(intent: RoutedIntent, customer?: Cus
         `Address update for ${order.number} needs reviewer approval.`,
         "order.shipping_address_update",
       ),
-      reply: "Address updates involve private customer data, so I sent this to AgentGate for approval.",
+      reply: "I’ve sent that address update for approval before making any changes.",
       status: "pending_approval",
     };
   }
 
   return {
     agentGateDecision: gate,
-    reply: `AgentGate blocked the address update: ${decision.reason}`,
+    reply: "I can’t complete that action because it is restricted by store safety policy.",
     status: "blocked",
   };
 }

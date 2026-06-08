@@ -127,7 +127,7 @@ test("created AgentGate key bridges Northstar admin, chat, approvals, and audit 
     .fill("Cancel my latest order.");
   await page.locator('.chat-form button[type="submit"]').click();
   await expect(page.locator(".message.assistant").last()).toContainText(
-    "I need approval before I can complete that",
+    "I’ve sent that request for approval before making any changes",
   );
   await expect(page.locator(".message.assistant").last()).toContainText(
     "Action:",

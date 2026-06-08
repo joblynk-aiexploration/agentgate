@@ -5,7 +5,6 @@ import type { Page } from "@playwright/test";
 const commerceBaseUrl =
   process.env.COMMERCE_BASE_URL ?? "http://localhost:3004";
 const demoCommerceKey = "ag_test_seed_demo_commerce_agent_key";
-const demoCommerceKeyPrefix = demoCommerceKey.slice(0, 17);
 const actionStatus = {
   APPROVED: "APPROVED",
   EXECUTED: "EXECUTED",
@@ -89,7 +88,7 @@ test("customer checkout order routes commerce agent actions through AgentGate", 
   await expect(page.locator('input[name="agentId"]')).toHaveValue(
     "demo-commerce-support-agent",
   );
-  await expect(page.getByText(`${demoCommerceKeyPrefix}...`)).toBeVisible();
+  await expect(page.getByText(/ag_test_[A-Za-z0-9_-]+\.\.\./)).toBeVisible();
   await expect(page.locator("body")).not.toContainText(demoCommerceKey);
   await expect(page.locator('input[name="agentGateApiKey"]')).toHaveValue("");
 
@@ -102,7 +101,7 @@ test("customer checkout order routes commerce agent actions through AgentGate", 
   await page.goto(`${commerceBaseUrl}/products/summitpro-backpack`);
   await page.getByRole("button", { name: "Add to cart" }).click();
   await expect(page).toHaveURL(/\/cart/);
-  await expect(page.getByText("SummitPro Backpack")).toBeVisible();
+  await expect(page.getByText("SummitPro Backpack").first()).toBeVisible();
   await page.getByRole("link", { name: "Continue to checkout" }).click();
   await expect(page).toHaveURL(/\/checkout$/);
   await page.locator('input[name="addressLine1"]').fill("120 Trail Ridge Road");
@@ -120,7 +119,7 @@ test("customer checkout order routes commerce agent actions through AgentGate", 
   await page.goto(`${commerceBaseUrl}/account/orders/${orderNumber}`);
   await expect(page.getByRole("heading", { name: orderNumber! })).toBeVisible();
   await expect(page.getByText("SummitPro Backpack")).toBeVisible();
-  await expect(page.getByText("Processing")).toBeVisible();
+  await expect(page.getByText("Processing", { exact: true })).toBeVisible();
   await expect(page.getByText("Total", { exact: true })).toBeVisible();
 
   await page.goto(commerceBaseUrl);
@@ -139,7 +138,7 @@ test("customer checkout order routes commerce agent actions through AgentGate", 
 
   const cancelResponse = await sendChat(page, "Cancel my latest order.");
   await expect(cancelResponse).toContainText(
-    "I need approval before I can complete that",
+    "I’ve sent that request for approval before making any changes",
   );
   await expect(cancelResponse).toContainText("Decision: REQUIRE_APPROVAL");
   const actionRequestText = await cancelResponse
@@ -155,14 +154,14 @@ test("customer checkout order routes commerce agent actions through AgentGate", 
   expect(approvalRequestId).toBeTruthy();
 
   await page.goto(`${commerceBaseUrl}/account/orders/${orderNumber}`);
-  await expect(page.getByText("Cancellation pending AgentGate approval")).toBeVisible();
-  await expect(page.getByText("Processing")).toBeVisible();
+  await expect(page.getByText("AgentGate approval pending")).toBeVisible();
+  await expect(page.getByText("Processing", { exact: true }).first()).toBeVisible();
 
   const receiptResponse = await sendChatFromHome(
     page,
     "Please resend my receipt for my latest order.",
   );
-  await expect(receiptResponse).toContainText(/needs reviewer approval|simulated a receipt preview/i);
+  await expect(receiptResponse).toContainText(/approval before sending|simulated a receipt preview|No real email/i);
 
   const deleteResponse = await sendChatFromHome(page, "Delete my customer record.");
   await expect(deleteResponse).toContainText(/blocked|no customer record was deleted/i);
@@ -216,7 +215,7 @@ test("customer checkout order routes commerce agent actions through AgentGate", 
 
   await page.goto(`${commerceBaseUrl}/account/orders/${orderNumber}`);
   await expect(page.getByText("Cancelled", { exact: true })).toBeVisible();
-  await expect(page.getByText("Admin demo sync executed the approved AgentGate action")).toBeVisible();
+  await expect(page.getByText("Approved cancellation executed")).toBeVisible();
 
   await loginAgentGate(page, "owner@agentgate.dev");
   await page.goto(`/actions/${actionRequestId}`);

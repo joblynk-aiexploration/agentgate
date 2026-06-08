@@ -38,7 +38,7 @@ export function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      text: "Hi, I’m Northstar Assistant. I can answer product and policy questions, or help with orders created through this local checkout.",
+      text: "Hi, I’m Northstar Assistant. I can help with products, policies, tracking, receipts, and checkout-created orders. Requests that change an order go through AgentGate first.",
     },
   ]);
 
@@ -87,10 +87,7 @@ export function ChatWidget() {
         },
       ]);
     } catch {
-      setMessages((current) => [
-        ...current,
-        { role: "assistant", text: "The local demo assistant is unavailable right now." },
-      ]);
+      setMessages((current) => [...current, { role: "assistant", text: "The local demo assistant is unavailable right now." }]);
     } finally {
       setLoading(false);
     }
@@ -109,7 +106,7 @@ export function ChatWidget() {
             <strong>Northstar Assistant</strong>
             <div style={{ color: "#cbded5", fontSize: 13 }}>
               {session?.loggedIn && session.customer
-                ? `I can help with orders for ${session.customer.email}.`
+                ? `Order-aware support for ${session.customer.email}.`
                 : "For order help, log in or provide order number and email."}
             </div>
           </div>

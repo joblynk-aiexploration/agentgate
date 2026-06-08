@@ -57,10 +57,15 @@ export async function runCommerceAgent(input: AgentChatInput): Promise<AgentChat
       };
     }
   } catch (error) {
+    console.error("Northstar commerce agent failed", {
+      errorType: error instanceof Error ? error.name : typeof error,
+      intent: routed.intent,
+    });
     response = {
       intent: routed.intent,
       orderUpdate: null,
-      reply: error instanceof Error ? error.message : "The local demo agent could not complete that request.",
+      reply:
+        "I could not complete that support action right now. Your order has not been changed.",
     };
   }
 

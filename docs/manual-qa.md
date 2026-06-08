@@ -85,27 +85,31 @@ AgentGate-created API key without exposing the full key after setup.
 16. Confirm `/account/orders` starts empty after `npm run commerce:reset`.
 17. Add SummitPro Backpack and AlpineShell Jacket to cart.
 18. Complete demo checkout and copy the generated `NS-XXXX` order number.
-19. Open the chat widget and ask `What backpacks do you sell?`.
-20. Confirm the answer comes from the local catalog.
-21. Ask `Where is my latest order?`.
-22. Confirm the assistant finds the checkout-created order.
-23. Ask `Cancel my latest order.`.
-24. Confirm the customer sees an approval-needed response.
-25. Open `/integrations/demo-commerce` and confirm the `REQUIRE_APPROVAL` action appears.
-26. Open `/approvals` and confirm the pending approval appears.
-27. Ask `Please resend my receipt for my latest order.`.
-28. Confirm no real email is sent and AgentGate records the decision.
-29. Ask `Delete my customer record.`.
-30. Confirm no customer data is deleted and the request is blocked or safely refused.
-31. Open `/audit-logs` and confirm gateway checks, approval requests, and blocked actions are recorded.
-32. Log out of AgentGate, then log in as `reviewer@agentgate.dev` / `Password123!`.
-33. Open the pending `order.cancel` approval and approve it with a review comment.
-34. Confirm the approval and related action request both show `APPROVED`.
-35. Return to Northstar admin at `http://localhost:3004/admin/orders`.
-36. Click `Sync approved AgentGate actions`.
-37. Confirm the checkout-created order changes to `Cancelled`.
-38. Open AgentGate `/actions` and confirm the cancellation action shows `EXECUTED`.
-39. Open AgentGate `/audit-logs` and confirm `approval.approved` and `gateway.action_executed` are present.
+19. Open `/account`, `/account/orders`, `/account/orders/<orderNumber>`, `/account/tracking`, and `/account/receipts`.
+20. Confirm the customer portal shows dashboard metrics, the real checkout order, tracking timeline, and receipt preview.
+21. Open the chat widget and ask `What backpacks do you sell?`.
+22. Confirm the answer comes from the local catalog.
+23. Ask `Where is my latest order?`.
+24. Confirm the assistant finds the checkout-created order.
+25. Ask `Cancel my latest order.`.
+26. Confirm the customer sees an approval-needed response.
+27. Open `/integrations/demo-commerce` and confirm the `REQUIRE_APPROVAL` action appears.
+28. Open `/approvals` and confirm the pending approval appears.
+29. Ask `Please resend my receipt for my latest order.`.
+30. Confirm no real email is sent and AgentGate records the decision.
+31. Ask `Delete my customer record.`.
+32. Confirm no customer data is deleted and the request is blocked or safely refused.
+33. Open Northstar admin `/admin`, `/admin/orders`, `/admin/orders/<orderNumber>`, `/admin/fulfillment`, `/admin/tracking`, `/admin/api`, and `/admin/agent-logs`.
+34. Confirm admin sees metrics, order detail, tracking events, fulfillment controls, safe API key prefix, and agent activity.
+35. Open AgentGate `/audit-logs` and confirm gateway checks, approval requests, and blocked actions are recorded.
+36. Log out of AgentGate, then log in as `reviewer@agentgate.dev` / `Password123!`.
+37. Open the pending `order.cancel` approval and approve it with a review comment.
+38. Confirm the approval and related action request both show `APPROVED`.
+39. Return to Northstar admin at `http://localhost:3004/admin/orders`.
+40. Click `Sync approved AgentGate actions`.
+41. Confirm the checkout-created order changes to `Cancelled`.
+42. Open AgentGate `/actions` and confirm the cancellation action shows `EXECUTED`.
+43. Open AgentGate `/audit-logs` and confirm `approval.approved` and `gateway.action_executed` are present.
 
 ## Notes
 

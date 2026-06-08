@@ -15,6 +15,7 @@ export async function SiteHeader() {
         </Link>
         <nav className="nav" aria-label="Main navigation">
           <Link href="/products">Products</Link>
+          <Link href="/order-lookup">Track order</Link>
           <Link href="/cart">Cart ({summary.count})</Link>
           <Link href="/help">Help</Link>
           <Link href="/policies/returns">Returns</Link>

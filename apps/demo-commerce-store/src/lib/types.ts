@@ -70,7 +70,30 @@ export type ShippingAddress = {
 
 export type OrderEvent = {
   id: string;
+  orderNumber?: string;
   type:
+    | "order.created"
+    | "payment.authorized_demo"
+    | "fulfillment.queued"
+    | "fulfillment.packed"
+    | "fulfillment.shipped"
+    | "fulfillment.delivered"
+    | "cancellation.requested"
+    | "cancellation.approval_required"
+    | "cancellation.approved"
+    | "cancellation.rejected"
+    | "order.cancelled"
+    | "receipt.resend_requested"
+    | "receipt.resent_demo"
+    | "return.requested"
+    | "return.approval_required"
+    | "return.approved"
+    | "return.rejected"
+    | "address.update_requested"
+    | "agentgate.action_checked"
+    | "agentgate.approval_requested"
+    | "agentgate.action_blocked"
+    | "admin.note_added"
     | "created"
     | "cancel_requested"
     | "cancelled"
@@ -80,6 +103,11 @@ export type OrderEvent = {
     | "agentgate_pending_approval"
     | "agentgate_blocked"
     | "agentgate_approved_sync";
+  title?: string;
+  description?: string;
+  actorType?: "customer" | "admin" | "agent" | "system" | "agentgate";
+  actorLabel?: string;
+  visibleToCustomer?: boolean;
   message: string;
   createdAt: string;
   metadata?: Record<string, unknown>;
@@ -91,7 +119,7 @@ export type Order = {
   customerId: string;
   customerName: string;
   email: string;
-  status: "processing" | "shipped" | "delivered" | "cancelled" | "return_requested";
+  status: "processing" | "packed" | "shipped" | "delivered" | "cancelled" | "return_requested";
   subtotal: number;
   tax: number;
   shipping: number;

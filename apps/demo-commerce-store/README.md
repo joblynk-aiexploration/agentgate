@@ -26,6 +26,11 @@ npm run commerce:dev
 
 Open AgentGate at `http://localhost:3001` and Northstar at `http://localhost:3004`.
 
+Northstar now includes a polished storefront, customer portal, admin dashboard,
+fulfillment board, tracking system, receipts page, and AgentGate activity
+monitoring surfaces. UI audit notes are in `docs/ui-audit.md`; screenshot notes
+are in `docs/ui-polish-review.md`.
+
 ## Admin
 
 Admin login:
@@ -133,6 +138,17 @@ To complete the approval-to-execution demo, log in to AgentGate as
 request, then return to Northstar `/admin/orders` and run the sync. The sync is
 conservative: it executes only approved cancellation requests and ignores
 unrelated pending receipt/email approvals.
+
+Northstar tracking/admin pages to inspect:
+
+- `/account` for customer dashboard metrics and latest order.
+- `/account/orders/[orderNumber]` for item totals, tracking timeline, and agent activity.
+- `/account/tracking` for customer-visible tracking from real local order events.
+- `/account/receipts` for preview-only receipt records.
+- `/admin` for operations metrics.
+- `/admin/orders/[orderNumber]` for fulfillment controls, notes, AgentGate IDs, and full event timeline.
+- `/admin/fulfillment` for a local fulfillment board.
+- `/admin/tracking` for tracking operations across orders.
 
 ## Safety
 

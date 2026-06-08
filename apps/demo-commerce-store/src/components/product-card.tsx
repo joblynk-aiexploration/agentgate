@@ -4,13 +4,16 @@ import type { Product } from "@/lib/types";
 
 export function ProductCard({ product }: { product: Product }) {
   return (
-    <article className="card">
+    <article className="card product-card">
       <div className="product-media" style={{ background: product.image }} />
-      <div className="badge">{product.category}</div>
+      <div className="product-meta">
+        <div className="badge">{product.category}</div>
+        <span className="muted">{product.rating} stars</span>
+      </div>
       <h3>{product.name}</h3>
       <p className="muted">{product.description}</p>
       <p>
-        <strong>{formatCurrency(product.price)}</strong> · {product.inventory} in stock
+        <strong>{formatCurrency(product.price)}</strong> · {product.inventory} units ready
       </p>
       <div className="button-row compact">
         <Link className="button secondary" href={`/products/${product.slug}`}>

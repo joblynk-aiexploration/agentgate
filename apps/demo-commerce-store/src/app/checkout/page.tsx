@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getCurrentCustomer } from "@/lib/customer-auth";
 import { formatCurrency } from "@/lib/format";
 import { getCart, hydrateCart } from "@/lib/store";
+import { Alert } from "@/components/ui/alert";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function CheckoutPage() {
   const customer = await getCurrentCustomer();
@@ -19,11 +21,11 @@ export default async function CheckoutPage() {
 
   return (
     <main className="section">
-      <div className="container grid two">
+      <div className="container grid main-aside">
         <form className="card form" method="post" action="/api/checkout">
-          <h1>Demo checkout</h1>
-          <p className="muted">Demo checkout only. No real payment is processed.</p>
-          <h2>Shipping address</h2>
+          <PageHeader eyebrow="Checkout" title="Secure demo checkout" description="Multi-section local checkout. No real payment is processed." />
+          <Alert>Demo checkout only. No real payment is processed, no fulfillment vendor is contacted, and no external emails are sent.</Alert>
+          <h2>1. Shipping address</h2>
           <input className="input" name="fullName" placeholder="Full name" defaultValue={customer.name} required />
           <input className="input" name="addressLine1" placeholder="Address line 1" defaultValue="120 Trail Ridge Road" required />
           <input className="input" name="addressLine2" placeholder="Address line 2 (optional)" />
@@ -33,53 +35,33 @@ export default async function CheckoutPage() {
             <input className="input" name="zip" placeholder="ZIP" defaultValue="78701" required />
           </div>
           <input className="input" name="country" placeholder="Country" defaultValue="US" required />
-          <h2>Fake payment</h2>
+          <h2>2. Fake payment card</h2>
           <input className="input" name="cardholderName" placeholder="Cardholder name" defaultValue={customer.name} required />
           <input className="input" name="cardNumber" placeholder="4242 4242 4242 4242" defaultValue="4242 4242 4242 4242" required />
           <div className="grid two">
             <input className="input" name="expiry" placeholder="12/30" defaultValue="12/30" required />
             <input className="input" name="cvv" placeholder="123" defaultValue="123" required />
           </div>
-          <button className="button" type="submit">
-            Place demo order
-          </button>
+          <button className="button" type="submit">Place demo order</button>
         </form>
         <aside className="card">
           <h2>Order summary</h2>
           <div className="stack">
             {summary.items.map((item) => (
               <div className="line-item" key={item.productId}>
-                <span>
-                  {item.product.name} × {item.quantity}
-                </span>
+                <span>{item.product.name} x {item.quantity}</span>
                 <strong>{formatCurrency(item.lineTotal)}</strong>
               </div>
             ))}
           </div>
           <dl className="summary-list">
-            <div>
-              <dt>Subtotal</dt>
-              <dd>{formatCurrency(summary.subtotal)}</dd>
-            </div>
-            <div>
-              <dt>Shipping</dt>
-              <dd>{summary.shipping ? formatCurrency(summary.shipping) : "Free"}</dd>
-            </div>
-            <div>
-              <dt>Tax</dt>
-              <dd>{formatCurrency(summary.tax)}</dd>
-            </div>
-            <div className="summary-total">
-              <dt>Total</dt>
-              <dd>{formatCurrency(summary.total)}</dd>
-            </div>
+            <div><dt>Subtotal</dt><dd>{formatCurrency(summary.subtotal)}</dd></div>
+            <div><dt>Shipping</dt><dd>{summary.shipping ? formatCurrency(summary.shipping) : "Free"}</dd></div>
+            <div><dt>Tax</dt><dd>{formatCurrency(summary.tax)}</dd></div>
+            <div className="summary-total"><dt>Total</dt><dd>{formatCurrency(summary.total)}</dd></div>
           </dl>
-          <p className="muted">
-            After checkout, open the assistant and ask “Cancel my latest order” to send a real order-aware AgentGate check.
-          </p>
-          <Link className="button secondary" href="/cart">
-            Back to cart
-          </Link>
+          <p className="muted">After checkout, open the assistant and ask “Cancel my latest order” to send a real order-aware AgentGate check.</p>
+          <Link className="button secondary" href="/cart">Back to cart</Link>
         </aside>
       </div>
     </main>
