@@ -6,6 +6,7 @@ import {
   KeyRound,
   RadioTower,
   Route,
+  Store,
   Webhook,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -118,6 +119,19 @@ export default async function DeveloperPage() {
           <p className="mt-3 text-sm leading-6 text-[#5c6470]">
             Configure demo-safe outbound callbacks for gateway decisions,
             approvals, blocks, executions, and kill-switch events.
+          </p>
+        </Link>
+        <Link
+          className="border border-[#d9dee8] bg-white p-6 shadow-sm transition hover:border-[#2d6f7f]"
+          href="/integrations/demo-commerce"
+        >
+          <div className="flex items-center gap-3">
+            <Store className="h-5 w-5 text-[#2d6f7f]" aria-hidden />
+            <h2 className="text-lg font-semibold">Commerce Monitor</h2>
+          </div>
+          <p className="mt-3 text-sm leading-6 text-[#5c6470]">
+            Watch Northstar ecommerce support-agent decisions, approvals, blocks,
+            and audit trail entries generated through the Gateway API.
           </p>
         </Link>
       </div>

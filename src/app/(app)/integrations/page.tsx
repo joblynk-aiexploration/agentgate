@@ -6,9 +6,11 @@ import {
   MessageSquare,
   PanelsTopLeft,
   Send,
+  Store,
   WalletCards,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -78,6 +80,14 @@ const integrationCards = [
     toolType: "WEBHOOK",
     icon: Cable,
     detail: "Webhook execution is represented as a demo-only gateway target.",
+    simulated: true,
+  },
+  {
+    name: "Northstar Commerce Demo",
+    toolType: "DEMO_COMMERCE",
+    icon: Store,
+    detail:
+      "Monitor the fake Northstar ecommerce support agent connected to AgentGate.",
     simulated: true,
   },
 ] as const;
@@ -151,6 +161,13 @@ export default async function IntegrationsPage() {
                 <p className="mt-4 text-xs text-[#687384]">
                   No real external credentials or side effects are required in V1.
                 </p>
+                {integration.toolType === "DEMO_COMMERCE" ? (
+                  <div className="mt-4">
+                    <Button href="/integrations/demo-commerce" variant="secondary">
+                      Open monitor
+                    </Button>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           );
