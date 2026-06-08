@@ -62,6 +62,38 @@ Expected result:
 3. Confirm `gateway.action_executed` appears after the execute call.
 4. Confirm metadata does not expose a full API key.
 
+## Ecommerce Agent API Key Bridge
+
+This checklist proves the Northstar ecommerce support agent can use an
+AgentGate-created API key without exposing the full key after setup.
+
+1. Start AgentGate on `http://localhost:3001`.
+2. Start Northstar on `http://localhost:3004`.
+3. Log in to AgentGate as `owner@agentgate.dev` / `Password123!`.
+4. Open `/developer/api-keys`.
+5. Create `Northstar Commerce Test Key` scoped to `Demo Commerce Support Agent`.
+6. Copy the one-time full key.
+7. Refresh `/developer/api-keys` and confirm the full key is gone while the prefix remains.
+8. Open `http://localhost:3004/admin/login`.
+9. Log in with `admin@northstar-demo.dev` / `Password123!`.
+10. Open `http://localhost:3004/admin/api`.
+11. Save Base URL `http://localhost:3001`, Agent ID `demo-commerce-support-agent`, and the copied key.
+12. Refresh and confirm only an `ag_test_...` prefix appears.
+13. Click `Test connection`.
+14. Open the customer store and ask `What backpacks do you sell?`.
+15. Confirm the answer comes from the local catalog.
+16. Ask `Cancel my order NS-1002. My email is sarah@example.com.`.
+17. Confirm the customer sees an approval-needed response.
+18. Open `/integrations/demo-commerce` and confirm the `REQUIRE_APPROVAL` action appears.
+19. Open `/approvals` and confirm the pending approval appears.
+20. Ask `Cancel my order NS-1003. My email is sarah@example.com.`.
+21. Confirm the shipped cancellation is blocked and the order remains shipped.
+22. Ask `Please resend my receipt for NS-1001 to sarah@example.com.`.
+23. Confirm no real email is sent and AgentGate records the decision.
+24. Ask `Delete my customer record. My email is sarah@example.com.`.
+25. Confirm no customer data is deleted and the request is blocked or safely refused.
+26. Open `/audit-logs` and confirm gateway checks, approval requests, and blocked actions are recorded.
+
 ## Notes
 
 - The local-only seeded demo key is for demo verification only.

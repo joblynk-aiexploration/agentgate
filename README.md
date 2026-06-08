@@ -163,6 +163,73 @@ records, verifies approval/audit records in Prisma, and scans rendered/admin
 surfaces for the full local-only API key. The script does not execute real
 Stripe, Gmail, Slack, Postgres, or webhook actions.
 
+### Testing the Ecommerce Agent with an AgentGate API Key
+
+This flow proves the manual bridge from AgentGate API key creation to the
+Northstar support agent. It is local-only and does not use paid AI APIs or real
+business integrations.
+
+Start the local apps:
+
+```bash
+docker start agentgate-postgres || true
+npm run demo:reset
+npm run demo:check
+npm run commerce:reset
+npm run dev -- -p 3001
+npm run commerce:dev
+```
+
+In AgentGate:
+
+1. Open `http://localhost:3001/login`.
+2. Log in with `owner@agentgate.dev` / `Password123!`.
+3. Open `http://localhost:3001/developer/api-keys`.
+4. Create an API key named `Northstar Commerce Test Key`.
+5. Scope it to `Demo Commerce Support Agent`.
+6. Copy the full key from the one-time reveal only.
+
+In Northstar:
+
+1. Open `http://localhost:3004/admin/login`.
+2. Log in with `admin@northstar-demo.dev` / `Password123!`.
+3. Open `http://localhost:3004/admin/api`.
+4. Set AgentGate Base URL to `http://localhost:3001`.
+5. Set Agent ID to `demo-commerce-support-agent`.
+6. Paste the copied key and save.
+7. Refresh and confirm only an `ag_test_...` prefix is visible.
+8. Click `Test connection`.
+
+Customer chat messages to test:
+
+```text
+What backpacks do you sell?
+Cancel my order NS-1002. My email is sarah@example.com.
+Cancel my order NS-1003. My email is sarah@example.com.
+Please resend my receipt for NS-1001 to sarah@example.com.
+Delete my customer record. My email is sarah@example.com.
+```
+
+Expected decisions:
+
+- Product questions answer from the local catalog and do not need a business action.
+- `NS-1002` cancellation calls AgentGate and returns `REQUIRE_APPROVAL`.
+- `NS-1003` shipped cancellation calls AgentGate and returns `BLOCK`.
+- Receipt resend calls AgentGate and is simulated only after an allowed/logged decision or held for approval.
+- Customer data deletion calls AgentGate and returns `BLOCK`; no customer data is deleted.
+
+Where to inspect results in AgentGate:
+
+- `http://localhost:3001/integrations/demo-commerce`
+- `http://localhost:3001/approvals`
+- `http://localhost:3001/audit-logs`
+- `http://localhost:3001/actions`
+
+Automated browser coverage for this bridge lives in
+`tests/e2e/demo-commerce-api-key-bridge.spec.ts`. The test stores the generated
+key in Playwright memory only, verifies it disappears after refresh, configures
+Northstar admin, runs the chat flow, and checks AgentGate visibility.
+
 ## Testing AgentGate with the Support Operations Agent
 
 AgentGate includes a local TypeScript Support Operations Agent that reads support

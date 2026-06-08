@@ -83,6 +83,37 @@ admin logs have action IDs, confirms shipped orders and customer records were
 not changed unsafely, and checks that the full local-only API key is not exposed
 on rendered or admin-visible surfaces.
 
+## Testing with a Newly Created AgentGate API Key
+
+Use this when you want to prove the manual product flow instead of relying on
+the seeded local key.
+
+1. Open AgentGate at `http://localhost:3001`.
+2. Log in with `owner@agentgate.dev` / `Password123!`.
+3. Open `http://localhost:3001/developer/api-keys`.
+4. Create a key scoped to `Demo Commerce Support Agent`.
+5. Copy the full key from the one-time reveal.
+6. Open `http://localhost:3004/admin/login`.
+7. Log in with `admin@northstar-demo.dev` / `Password123!`.
+8. Open `http://localhost:3004/admin/api`.
+9. Set Base URL to `http://localhost:3001`.
+10. Set Agent ID to `demo-commerce-support-agent`.
+11. Paste the key, save, refresh, and confirm only an `ag_test_...` prefix is visible.
+12. Click `Test connection`.
+13. Open the customer store and test the chat messages below.
+
+Manual chat checks:
+
+- `What backpacks do you sell?` should answer from the local catalog.
+- `Cancel my order NS-1002. My email is sarah@example.com.` should require approval.
+- `Cancel my order NS-1003. My email is sarah@example.com.` should be blocked.
+- `Please resend my receipt for NS-1001 to sarah@example.com.` should call AgentGate and simulate or hold for approval.
+- `Delete my customer record. My email is sarah@example.com.` should be blocked or safely refused without deleting data.
+
+Inspect AgentGate at `/integrations/demo-commerce`, `/approvals`, `/audit-logs`,
+and `/actions`. Full API keys should never appear on customer pages, admin safe
+views, screenshots, or committed files.
+
 ## Safety
 
 This app does not use paid AI APIs. It does not call Stripe, Gmail, Slack, Postgres business systems, or external webhooks. All business actions are simulated in a local JSON file after AgentGate returns a safe decision.

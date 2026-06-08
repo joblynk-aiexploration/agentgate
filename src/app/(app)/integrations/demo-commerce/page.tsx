@@ -645,6 +645,36 @@ export default async function DemoCommerceMonitorPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Personal API key bridge test guide</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ol className="grid gap-3 text-sm leading-6 text-[#34404a] md:grid-cols-2">
+            <li>1. Open AgentGate on localhost:3001.</li>
+            <li>2. Go to Developer &gt; API Keys and create a key for Demo Commerce Support Agent.</li>
+            <li>3. Copy the one-time full key shown by AgentGate.</li>
+            <li>4. Open Northstar admin at localhost:3004/admin/login.</li>
+            <li>5. Log in with admin@northstar-demo.dev / Password123!.</li>
+            <li>6. Go to localhost:3004/admin/api.</li>
+            <li>7. Set AgentGate Base URL to http://localhost:3001.</li>
+            <li>8. Set Agent ID to demo-commerce-support-agent.</li>
+            <li>9. Paste the copied key into API Key and save.</li>
+            <li>10. Confirm the page shows only an ag_test_... prefix after refresh.</li>
+            <li>11. Click Test connection.</li>
+            <li>12. Open localhost:3004 and click the chat button.</li>
+            <li>13. Ask: Cancel my order NS-1002. My email is sarah@example.com.</li>
+            <li>14. Return here to see the action, approval, and audit trail.</li>
+          </ol>
+          <p className="mt-5 text-sm leading-6 text-[#5c6470]">
+            Use a real one-time key from AgentGate for your manual test. This
+            guide intentionally shows only the placeholder prefix{" "}
+            <code>ag_test_...</code>; full keys should never appear after
+            creation or in customer-visible output.
+          </p>
+        </CardContent>
+      </Card>
     </section>
   );
 }
