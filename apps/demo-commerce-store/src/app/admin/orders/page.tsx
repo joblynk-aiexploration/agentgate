@@ -5,7 +5,7 @@ import { readStore } from "@/lib/store";
 export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>;
+  searchParams: Promise<{ checked?: string; status?: string; synced?: string; syncError?: string }>;
 }) {
   const params = await searchParams;
   const store = readStore();
@@ -21,7 +21,23 @@ export default async function AdminOrdersPage({
           <h1>Orders</h1>
           <p className="muted">Real local checkout orders and their AgentGate-aware support state.</p>
         </div>
+        <form action="/api/admin/orders/sync-agentgate" method="post">
+          <button className="button" type="submit">
+            Sync approved AgentGate actions
+          </button>
+        </form>
       </div>
+      {params.synced ? (
+        <div className="card" style={{ marginBottom: 18, padding: 14 }}>
+          <strong>AgentGate sync complete.</strong>{" "}
+          Checked {params.checked ?? "0"} pending order(s); executed {params.synced} approved local demo action(s).
+        </div>
+      ) : null}
+      {params.syncError ? (
+        <div className="card" style={{ borderColor: "#fecaca", color: "#991b1b", marginBottom: 18, padding: 14 }}>
+          <strong>AgentGate sync failed.</strong> {params.syncError}
+        </div>
+      ) : null}
       <div className="button-row" style={{ marginBottom: 18 }}>
         <a className="badge" href="/admin/orders">
           All

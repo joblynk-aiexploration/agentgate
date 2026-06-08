@@ -153,6 +153,11 @@ Expected AgentGate results:
 - High-value checkout order cancellation returns `REQUIRE_APPROVAL`.
 - Receipt resend is checked through AgentGate and simulated only when allowed or logged.
 - `/admin/agent-logs` shows decision, risk, action request ID, and approval ID.
+- After a reviewer approves the `order.cancel` approval in AgentGate, Northstar
+  admin can open `/admin/orders` and click `Sync approved AgentGate actions` to
+  safely execute the simulated cancellation. The order should become
+  `Cancelled`, and AgentGate should show `approval.approved` plus
+  `gateway.action_executed` audit events.
 
 See [apps/demo-commerce-store/README.md](apps/demo-commerce-store/README.md).
 
@@ -232,6 +237,17 @@ Where to inspect results in AgentGate:
 - `http://localhost:3001/approvals`
 - `http://localhost:3001/audit-logs`
 - `http://localhost:3001/actions`
+
+To complete the browser approval flow:
+
+1. Log out of AgentGate as owner.
+2. Log in as `reviewer@agentgate.dev` / `Password123!`.
+3. Open the pending `order.cancel` approval from `/approvals`.
+4. Approve it with a review comment.
+5. Return to Northstar admin `/admin/orders`.
+6. Click `Sync approved AgentGate actions`.
+7. Confirm the local order is `Cancelled`.
+8. Confirm AgentGate `/actions` shows the action as `EXECUTED`.
 
 Automated browser coverage for this bridge lives in
 `tests/e2e/demo-commerce-api-key-bridge.spec.ts`. The test stores the generated

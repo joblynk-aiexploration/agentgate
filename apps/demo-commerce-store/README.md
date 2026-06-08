@@ -69,6 +69,10 @@ Expected AgentGate behavior:
 - Receipt resend is checked through AgentGate. In production, current V1 risk rules may escalate it to `REQUIRE_APPROVAL`; the demo store obeys that result and does not send real email.
 - Customer data deletion routes through AgentGate and is blocked or safely refused; no customer data is deleted.
 - Agent logs are visible at `/admin/agent-logs` with action and approval IDs.
+- After an eligible AgentGate reviewer approves the `order.cancel` approval,
+  open `/admin/orders` and click `Sync approved AgentGate actions`. Northstar
+  calls AgentGate execute with the approved action request, simulates the
+  cancellation locally, and marks the order `Cancelled`.
 
 Inside AgentGate, inspect:
 
@@ -122,6 +126,12 @@ Manual chat checks:
 Inspect AgentGate at `/integrations/demo-commerce`, `/approvals`, `/audit-logs`,
 and `/actions`. Full API keys should never appear on customer pages, admin safe
 views, screenshots, or committed files.
+
+To complete the approval-to-execution demo, log in to AgentGate as
+`reviewer@agentgate.dev` / `Password123!`, approve the pending `order.cancel`
+request, then return to Northstar `/admin/orders` and run the sync. The sync is
+conservative: it executes only approved cancellation requests and ignores
+unrelated pending receipt/email approvals.
 
 ## Safety
 

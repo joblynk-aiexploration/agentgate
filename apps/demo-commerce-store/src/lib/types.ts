@@ -78,7 +78,8 @@ export type OrderEvent = {
     | "return_requested"
     | "shipping_update_requested"
     | "agentgate_pending_approval"
-    | "agentgate_blocked";
+    | "agentgate_blocked"
+    | "agentgate_approved_sync";
   message: string;
   createdAt: string;
   metadata?: Record<string, unknown>;

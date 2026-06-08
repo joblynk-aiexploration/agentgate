@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatDate } from "@/lib/format";
 import { findLatestOrderForCustomer, findOrder, findOrderForCustomer, readStore } from "@/lib/store";
 import type { RoutedIntent } from "@/server/agent/types";
 
@@ -59,7 +59,7 @@ export function answerOrderStatus(intent: RoutedIntent, customer?: { id: string;
     return "I could not find a matching local checkout order for that customer.";
   }
 
-  return `${order.number} is currently ${order.status}. Total: ${formatCurrency(order.total)}. Items: ${order.items
+  return `${order.number} is currently ${order.status}. Created: ${formatDate(order.createdAt)}. Total: ${formatCurrency(order.total)}. Items: ${order.items
     .map((item) => item.name)
     .join(", ")}.`;
 }

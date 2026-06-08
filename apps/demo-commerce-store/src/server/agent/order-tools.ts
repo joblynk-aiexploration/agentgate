@@ -77,7 +77,12 @@ function orderPayload(order: Order) {
   };
 }
 
-function markPending(order: Order, gate: AgentGateDecisionSummary, message: string) {
+function markPending(
+  order: Order,
+  gate: AgentGateDecisionSummary,
+  message: string,
+  action: string,
+) {
   const updated = addOrderEvent(
     {
       ...order,
@@ -88,6 +93,7 @@ function markPending(order: Order, gate: AgentGateDecisionSummary, message: stri
       type: "agentgate_pending_approval",
       message,
       metadata: {
+        action,
         actionRequestId: gate.actionRequestId,
         approvalRequestId: gate.approvalRequestId,
       },
@@ -158,6 +164,7 @@ export async function cancelOrder(intent: RoutedIntent, customer?: CustomerConte
       order,
       gate,
       `Cancellation for ${order.number} needs AgentGate reviewer approval before local order state changes.`,
+      "order.cancel",
     );
 
     return {
@@ -240,7 +247,12 @@ export async function resendReceipt(intent: RoutedIntent, customer?: CustomerCon
   }
 
   if (decision.decision === "REQUIRE_APPROVAL") {
-    const updated = markPending(order, gate, `Receipt resend for ${order.number} needs reviewer approval.`);
+    const updated = markPending(
+      order,
+      gate,
+      `Receipt resend for ${order.number} needs reviewer approval.`,
+      "receipt.resend",
+    );
     return {
       agentGateDecision: gate,
       orderUpdate: updated,
@@ -299,7 +311,12 @@ export async function requestReturn(intent: RoutedIntent, customer?: CustomerCon
   if (decision.decision === "REQUIRE_APPROVAL") {
     return {
       agentGateDecision: gate,
-      orderUpdate: markPending(order, gate, `Return request for ${order.number} needs reviewer approval.`),
+      orderUpdate: markPending(
+        order,
+        gate,
+        `Return request for ${order.number} needs reviewer approval.`,
+        "order.return_request",
+      ),
       reply: `A return request for ${order.number} (${formatCurrency(order.total)}) needs approval before I can change the order.`,
       status: "pending_approval",
     };
@@ -346,7 +363,12 @@ export async function updateShippingAddress(intent: RoutedIntent, customer?: Cus
   if (decision.decision === "REQUIRE_APPROVAL") {
     return {
       agentGateDecision: gate,
-      orderUpdate: markPending(order, gate, `Address update for ${order.number} needs reviewer approval.`),
+      orderUpdate: markPending(
+        order,
+        gate,
+        `Address update for ${order.number} needs reviewer approval.`,
+        "order.shipping_address_update",
+      ),
       reply: "Address updates involve private customer data, so I sent this to AgentGate for approval.",
       status: "pending_approval",
     };

@@ -98,10 +98,19 @@ AgentGate-created API key without exposing the full key after setup.
 29. Ask `Delete my customer record.`.
 30. Confirm no customer data is deleted and the request is blocked or safely refused.
 31. Open `/audit-logs` and confirm gateway checks, approval requests, and blocked actions are recorded.
+32. Log out of AgentGate, then log in as `reviewer@agentgate.dev` / `Password123!`.
+33. Open the pending `order.cancel` approval and approve it with a review comment.
+34. Confirm the approval and related action request both show `APPROVED`.
+35. Return to Northstar admin at `http://localhost:3004/admin/orders`.
+36. Click `Sync approved AgentGate actions`.
+37. Confirm the checkout-created order changes to `Cancelled`.
+38. Open AgentGate `/actions` and confirm the cancellation action shows `EXECUTED`.
+39. Open AgentGate `/audit-logs` and confirm `approval.approved` and `gateway.action_executed` are present.
 
 ## Notes
 
 - The local-only seeded demo key is for demo verification only.
+- The admin sync executes only approved `order.cancel` requests through the safe demo executor. Receipt/email approvals do not cancel an order.
 - Do not use `scripts/approve-latest-demo-approval.ts` as proof of the
   production approval UI. It is useful for CLI demos, but this checklist uses
   the real browser/API approval path.

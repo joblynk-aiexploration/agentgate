@@ -1,7 +1,7 @@
 import type { RoutedIntent } from "@/server/agent/types";
 
 function extractOrderNumber(message: string) {
-  return message.match(/\bNS-\d{4}\b/i)?.[0].toUpperCase();
+  return message.match(/\bNS-[A-Z0-9-]+\b/i)?.[0].toUpperCase();
 }
 
 function extractEmail(message: string) {
@@ -37,7 +37,13 @@ export function routeIntent(message: string): RoutedIntent {
     return { ...base, intent: "update_shipping_address" };
   }
 
-  if (base.orderNumber || base.latestOrder || text.includes("where is my order") || text.includes("track")) {
+  if (
+    base.orderNumber ||
+    base.latestOrder ||
+    text.includes("where is my order") ||
+    text.includes("where is order") ||
+    text.includes("track")
+  ) {
     return { ...base, intent: "order_status" };
   }
 
