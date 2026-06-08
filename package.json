@@ -40,7 +40,13 @@
     "agent:support:external-email": "tsx scripts/run-support-ops-agent.ts --scenario external-email",
     "agent:support:database-write": "tsx scripts/run-support-ops-agent.ts --scenario database-write",
     "agent:support:all": "tsx scripts/run-support-ops-agent.ts --all",
-    "agent:support:dry-run": "tsx scripts/run-support-ops-agent.ts --scenario large-refund --dry-run"
+    "agent:support:dry-run": "tsx scripts/run-support-ops-agent.ts --scenario large-refund --dry-run",
+    "commerce:install": "npm install --prefix apps/demo-commerce-store",
+    "commerce:dev": "npm run dev --prefix apps/demo-commerce-store -- -p 3004",
+    "commerce:build": "npm run build --prefix apps/demo-commerce-store",
+    "commerce:test": "npm run test --prefix apps/demo-commerce-store",
+    "commerce:reset": "npm run reset --prefix apps/demo-commerce-store",
+    "commerce:seed": "npm run seed --prefix apps/demo-commerce-store"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

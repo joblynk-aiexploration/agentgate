@@ -15,6 +15,7 @@ export default defineConfig({
       "**/dist/**",
       "**/coverage/**",
       "tests/e2e/**",
+      "apps/demo-commerce-store/**",
     ],
     globals: false,
   },

@@ -608,6 +608,7 @@ export function getOpenApiSpec() {
             "GITHUB",
             "POSTGRES",
             "WEBHOOK",
+            "DEMO_COMMERCE",
             "CUSTOM",
           ],
         },

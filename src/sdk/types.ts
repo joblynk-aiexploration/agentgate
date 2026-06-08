@@ -43,6 +43,8 @@ export type AgentGateTool =
   | "POSTGRES"
   | "webhook"
   | "WEBHOOK"
+  | "demo_commerce"
+  | "DEMO_COMMERCE"
   | "custom"
   | "CUSTOM";
 

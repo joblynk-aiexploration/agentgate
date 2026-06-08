@@ -35,6 +35,7 @@ const prisma = new PrismaClient({
 });
 
 const DEMO_API_KEY = "ag_test_seed_support_refund_demo_key";
+const DEMO_COMMERCE_API_KEY = "ag_test_seed_demo_commerce_agent_key";
 const DEVELOPMENT_API_KEY_PEPPER = "agentgate-development-seed-pepper";
 const DEMO_ORGANIZATION_SLUG = "acme";
 const DEMO_ORGANIZATION_NAME = "Acme AI Operations";
@@ -194,6 +195,26 @@ export async function seedAgentGateDemoData() {
     },
   });
 
+  const demoCommerceAgent = await prisma.agent.create({
+    data: {
+      organizationId: organization.id,
+      ownerUserId: developer.id,
+      name: "Demo Commerce Support Agent",
+      slug: "demo-commerce-support-agent",
+      description:
+        "Server-side Northstar Outdoor Supply support agent that checks business actions through AgentGate before simulating them.",
+      department: "Customer Support",
+      status: AgentStatus.ACTIVE,
+      riskTier: AgentRiskTier.HIGH,
+      allowedToolsJson: [
+        ToolType.DEMO_COMMERCE,
+        ToolType.CUSTOM,
+        ToolType.EMAIL_PREVIEW,
+        ToolType.WEBHOOK,
+      ],
+    },
+  });
+
   await prisma.toolConnection.createMany({
     data: [
       {
@@ -250,6 +271,16 @@ export async function seedAgentGateDemoData() {
         configJson: {
           description: "Demo-only webhook delivery for arbitrary future tools.",
           name: "Webhook Demo",
+        },
+      },
+      {
+        organizationId: organization.id,
+        toolType: ToolType.DEMO_COMMERCE,
+        name: "Northstar Demo Commerce",
+        status: ToolConnectionStatus.DEMO,
+        configJson: {
+          delivery: "simulated",
+          store: "Northstar Outdoor Supply",
         },
       },
     ],
@@ -387,6 +418,84 @@ export async function seedAgentGateDemoData() {
     },
   });
 
+  const commerceCancellationPolicy = await prisma.policy.create({
+    data: {
+      organizationId: organization.id,
+      createdById: securityAdmin.id,
+      name: "Ecommerce cancellations above $100 require approval.",
+      description:
+        "Northstar order cancellations above $100 need reviewer approval before the demo store changes local order state.",
+      status: PolicyStatus.ACTIVE,
+      priority: 60,
+      rules: {
+        create: {
+          organizationId: organization.id,
+          tool: ToolType.DEMO_COMMERCE,
+          action: "order.cancel",
+          conditionsJson: {
+            all: [
+              { field: "amount", operator: "gt", value: 100 },
+              { field: "environment", operator: "equals", value: "production" },
+            ],
+          },
+          decision: ActionDecision.REQUIRE_APPROVAL,
+          requiredRole: MembershipRole.reviewer,
+          riskOverride: RiskLevel.HIGH,
+        },
+      },
+    },
+  });
+
+  const commerceShippedCancelPolicy = await prisma.policy.create({
+    data: {
+      organizationId: organization.id,
+      createdById: securityAdmin.id,
+      name: "Shipped ecommerce orders cannot be cancelled.",
+      description:
+        "Northstar shipped orders are blocked from cancellation in the demo commerce flow.",
+      status: PolicyStatus.ACTIVE,
+      priority: 70,
+      rules: {
+        create: {
+          organizationId: organization.id,
+          tool: ToolType.DEMO_COMMERCE,
+          action: "order.cancel",
+          conditionsJson: {
+            all: [
+              { field: "metadata.orderStatus", operator: "equals", value: "shipped" },
+            ],
+          },
+          decision: ActionDecision.BLOCK,
+          riskOverride: RiskLevel.CRITICAL,
+        },
+      },
+    },
+  });
+
+  const receiptResendPolicy = await prisma.policy.create({
+    data: {
+      organizationId: organization.id,
+      createdById: securityAdmin.id,
+      name: "Northstar receipt resends are logged.",
+      description:
+        "Receipt resend requests are routed through AgentGate and logged before the commerce demo simulates a preview email.",
+      status: PolicyStatus.ACTIVE,
+      priority: 80,
+      rules: {
+        create: {
+          organizationId: organization.id,
+          tool: ToolType.EMAIL_PREVIEW,
+          action: "receipt.resend",
+          conditionsJson: {
+            all: [{ field: "environment", operator: "equals", value: "production" }],
+          },
+          decision: ActionDecision.LOG_ONLY,
+          riskOverride: RiskLevel.LOW,
+        },
+      },
+    },
+  });
+
   const supportApiKey = await prisma.apiKey.create({
     data: {
       organizationId: organization.id,
@@ -394,6 +503,18 @@ export async function seedAgentGateDemoData() {
       name: "Gateway Demo Org Key",
       keyPrefix: "ag_test_seed",
       keyHash: hashApiKey(DEMO_API_KEY, apiKeyPepper),
+      status: ApiKeyStatus.ACTIVE,
+    },
+  });
+
+  const demoCommerceApiKey = await prisma.apiKey.create({
+    data: {
+      organizationId: organization.id,
+      agentId: demoCommerceAgent.id,
+      createdById: developer.id,
+      name: "Northstar Commerce Demo Agent Key",
+      keyPrefix: "ag_test_seed_demo",
+      keyHash: hashApiKey(DEMO_COMMERCE_API_KEY, apiKeyPepper),
       status: ApiKeyStatus.ACTIVE,
     },
   });
@@ -666,6 +787,51 @@ export async function seedAgentGateDemoData() {
       },
       {
         organizationId: organization.id,
+        actorType: "user",
+        actorId: developer.id,
+        eventType: "agent.created",
+        targetType: "Agent",
+        targetId: demoCommerceAgent.id,
+        metadataJson: { name: demoCommerceAgent.name },
+      },
+      {
+        organizationId: organization.id,
+        actorType: "user",
+        actorId: securityAdmin.id,
+        eventType: "policy.created",
+        targetType: "Policy",
+        targetId: commerceCancellationPolicy.id,
+        metadataJson: { name: commerceCancellationPolicy.name },
+      },
+      {
+        organizationId: organization.id,
+        actorType: "user",
+        actorId: securityAdmin.id,
+        eventType: "policy.created",
+        targetType: "Policy",
+        targetId: commerceShippedCancelPolicy.id,
+        metadataJson: { name: commerceShippedCancelPolicy.name },
+      },
+      {
+        organizationId: organization.id,
+        actorType: "user",
+        actorId: securityAdmin.id,
+        eventType: "policy.created",
+        targetType: "Policy",
+        targetId: receiptResendPolicy.id,
+        metadataJson: { name: receiptResendPolicy.name },
+      },
+      {
+        organizationId: organization.id,
+        actorType: "user",
+        actorId: developer.id,
+        eventType: "api_key.created",
+        targetType: "ApiKey",
+        targetId: demoCommerceApiKey.id,
+        metadataJson: { keyPrefix: demoCommerceApiKey.keyPrefix },
+      },
+      {
+        organizationId: organization.id,
         actorType: "agent",
         actorId: supportRefundAgent.id,
         eventType: "gateway.action_checked",
@@ -692,6 +858,7 @@ export async function seedAgentGateDemoData() {
     `Seeded AgentGate demo tenant: ${DEMO_ORGANIZATION_NAME} (slug: ${DEMO_ORGANIZATION_SLUG})`,
   );
   console.log(`Local demo API key: ${DEMO_API_KEY}`);
+  console.log(`Local Northstar commerce API key: ${DEMO_COMMERCE_API_KEY}`);
   console.log("The demo API key is printed for local development only and only its hash is stored.");
 }
 

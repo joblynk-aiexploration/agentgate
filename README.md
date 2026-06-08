@@ -95,6 +95,58 @@ curl -X POST http://localhost:3000/api/gateway/check \
 
 Expected: `REQUIRE_APPROVAL` with a pending approval in `/approvals`.
 
+## Demo Ecommerce Store on localhost:3004
+
+AgentGate includes a separate fake ecommerce site, Northstar Outdoor Supply, for
+testing an embedded support agent on another website.
+
+Run AgentGate on `http://localhost:3001`:
+
+```bash
+npm run dev -- -p 3001
+```
+
+Then run the commerce app on `http://localhost:3004`:
+
+```bash
+npm run commerce:install
+npm run commerce:seed
+npm run commerce:dev
+```
+
+Commerce admin login:
+
+```text
+admin@northstar-demo.dev / Password123!
+```
+
+Open `http://localhost:3004/admin/api` and configure:
+
+- AgentGate Base URL: `http://localhost:3001`
+- AgentGate API key: `ag_test_seed_demo_commerce_agent_key`
+- Agent ID: `demo-commerce-support-agent`
+- Environment: `production`
+
+The commerce app stores the full API key only in ignored local server config and
+shows only a prefix after save. The customer browser never receives the key.
+
+Try the storefront chat widget:
+
+```text
+Cancel my order NS-1002. My email is sarah@example.com.
+Cancel my order NS-1003. My email is sarah@example.com.
+Can you resend my receipt for NS-1001 to sarah@example.com?
+```
+
+Expected AgentGate results:
+
+- `NS-1002` high-value processing cancellation returns `REQUIRE_APPROVAL`.
+- `NS-1003` shipped cancellation returns `BLOCK`.
+- Receipt resend is checked through AgentGate and simulated only when allowed or logged.
+- `/admin/agent-logs` shows decision, risk, action request ID, and approval ID.
+
+See [apps/demo-commerce-store/README.md](apps/demo-commerce-store/README.md).
+
 ## Testing AgentGate with the Support Operations Agent
 
 AgentGate includes a local TypeScript Support Operations Agent that reads support

@@ -42,8 +42,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+!/apps/demo-commerce-store/next-env.d.ts
 
 # generated
 /src/generated/prisma
 
 /src/generated/prisma
+
+# demo commerce local state and secrets
+/apps/demo-commerce-store/data/store.json
+/apps/demo-commerce-store/data/config.local.json
+/apps/demo-commerce-store/.next
+/apps/demo-commerce-store/node_modules
+/apps/demo-commerce-store/tsconfig.tsbuildinfo

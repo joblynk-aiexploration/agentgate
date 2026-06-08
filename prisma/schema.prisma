@@ -59,6 +59,7 @@ enum ToolType {
   GITHUB
   POSTGRES
   WEBHOOK
+  DEMO_COMMERCE
   CUSTOM
 }
 

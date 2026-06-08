@@ -17,6 +17,7 @@ const executors: Partial<Record<ToolType, ToolExecutor>> = {
   [ToolType.SLACK]: new DemoSlackExecutor(),
   [ToolType.STRIPE]: new DemoStripeExecutor(),
   [ToolType.WEBHOOK]: new DemoWebhookExecutor(),
+  [ToolType.DEMO_COMMERCE]: new DemoWebhookExecutor(),
 };
 
 export function getToolExecutor(tool: ToolType): ToolExecutor {
