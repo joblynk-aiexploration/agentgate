@@ -25,6 +25,13 @@ Founder demo package:
 - [Customer discovery questions](docs/customer-discovery-questions.md)
 - [Product positioning](docs/product-positioning.md)
 
+QA and readiness:
+
+- [Master QA report](docs/qa/MASTER_QA_REPORT.md)
+- [Full QA run](docs/qa/full-qa-run.md)
+- [AgentGate and ecommerce integration report](docs/qa/full-agentgate-ecommerce-integration-report.md)
+- [Security QA report](docs/qa/security-qa-report.md)
+
 ## Quick Start
 
 Run these commands from a fresh clone:
