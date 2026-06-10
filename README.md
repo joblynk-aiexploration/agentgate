@@ -11,6 +11,7 @@ decisions are deterministic, integrations are simulated, and no paid AI APIs or
 real business-tool side effects are required.
 
 For a non-technical walkthrough, see the [AgentGate User Manual](docs/user-manual.md).
+For founder self-testing, see the [Personal Demo Guide](docs/PERSONAL_DEMO_GUIDE.md).
 
 ## Visual Demo Screenshots
 

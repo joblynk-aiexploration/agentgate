@@ -1,10 +1,10 @@
 # AgentGate V1 Status
 
-Last checked: 2026-06-05
+Last checked: 2026-06-10
 
 ## Current Status
 
-AgentGate V1 is demo-ready for a local founder/customer walkthrough after running the documented setup, migrations, and seed/reset commands.
+AgentGate V1 is ready for personal local testing and guided founder/advisor demos.
 
 This version is intentionally scoped to the core AgentGate control loop:
 
@@ -14,7 +14,7 @@ AI Agent -> AgentGate Gateway API -> Local Safety Engine -> Policy Decision -> A
 
 V1 uses local deterministic TypeScript rules and simulated integrations. It does not use paid AI APIs and does not execute real external business actions by default.
 
-## Working Features
+## What Works
 
 - Public landing page and guided demo page.
 - Email/password login with httpOnly session cookies.
@@ -28,20 +28,61 @@ V1 uses local deterministic TypeScript rules and simulated integrations. It does
 - Local risk engine with deterministic scoring.
 - Policy engine with organization kill switch and agent pause blocking.
 - Approval inbox with approve/reject/edit/comment/timeline support.
+- Real reviewer approval UI now persists approval and action status.
 - Audit log table and CSV export.
 - Settings, kill switch, data retention controls, member management, reports, integrations, billing placeholder, developer docs, OpenAPI spec, SDK starter, founder demo docs, and user manual.
+- Northstar Outdoor Supply demo commerce app.
+- Northstar customer checkout, order tracking, chat agent, admin operations, AgentGate API config, and AgentGate monitor.
 - Demo reset and demo state verification scripts.
-- Unit tests and Playwright smoke tests.
+- Unit tests, browser E2E tests, and live verification scripts.
 
-## Known Limitations
+## What Was Fixed Recently
+
+- Approval UI persistence: reviewer approval now updates `ApprovalRequest.status` and `ActionRequest.status` to `APPROVED`, sets reviewer metadata, and records `approval.approved`.
+- Local browser consistency: local E2E and Northstar config use `localhost` to avoid dev hydration issues.
+- Ecommerce sync resilience: Northstar admin sync skips stale/missing AgentGate action IDs from old local demo state and continues valid approved cancellations.
+- Northstar default AgentGate config is restored by `npm run commerce:reset`.
+
+## Known Remaining Issues
 
 - V1 integrations are simulated. AgentGate does not perform real Stripe refunds, send real emails, post real Slack messages, write real business database rows, or call real webhooks by default.
 - Outbound webhook delivery is simulated unless explicitly enabled with `AGENTGATE_ENABLE_OUTBOUND_WEBHOOKS=true`.
 - Billing is display-only. There is no live Stripe billing.
 - The local risk engine is rules-based. There is no paid AI reviewer in V1.
 - The MCP gateway is a placeholder only.
-- E2E tests require browsers installed through Playwright and a seeded local database for the authenticated flow.
+- `verify:agent-integration` requires support-agent scenario traffic before it can pass from a fresh reset.
+- Commerce verifiers should be run with `npm run commerce:reset` between them because they create local orders.
+- Commerce build prints a harmless Next.js multiple-lockfile workspace-root warning.
 - This is a demo-ready V1, not a production compliance claim. Do not claim SOC 2, enterprise SSO, or full production hardening.
+
+## How To Personally Test
+
+Read [docs/PERSONAL_DEMO_GUIDE.md](docs/PERSONAL_DEMO_GUIDE.md).
+
+Fastest test:
+
+1. Start AgentGate:
+
+```bash
+npm run dev -- -p 3001
+```
+
+2. Start Northstar:
+
+```bash
+npm run commerce:dev
+```
+
+3. Open:
+
+- AgentGate: `http://localhost:3001`
+- Northstar: `http://localhost:3004`
+
+4. In AgentGate, log in as `owner@agentgate.dev` / `Password123!`.
+5. Run Developer -> Agent Lab -> `large-refund`.
+6. Log in as `reviewer@agentgate.dev` / `Password123!`.
+7. Approve the pending approval.
+8. Confirm Audit Logs show `approval.approved`.
 
 ## Setup Checklist
 
@@ -76,6 +117,7 @@ npm run prisma:migrate
 
 ```bash
 npm run demo:reset
+npm run commerce:reset
 ```
 
 7. Check the demo state:
@@ -84,95 +126,60 @@ npm run demo:reset
 npm run demo:check
 ```
 
-8. Start the app:
+8. Start the apps:
 
 ```bash
-npm run dev
+npm run dev -- -p 3001
+npm run commerce:dev
 ```
-
-9. Open `http://localhost:3000`.
-
-## Demo Checklist
-
-1. Login as `owner@agentgate.dev` with `Password123!`.
-2. Open Dashboard and show tenant-scoped metrics.
-3. Open Agents and show Support Refund Agent.
-4. Open Policies and show "Refunds above $500 require approval."
-5. Call `POST /api/gateway/check` with the local demo API key:
-
-```bash
-curl -X POST http://localhost:3000/api/gateway/check \
-  -H "Authorization: Bearer ag_test_seed_support_refund_demo_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agentId": "support-refund-agent",
-    "tool": "stripe",
-    "action": "refund.create",
-    "environment": "production",
-    "amount": 1200,
-    "currency": "USD",
-    "reason": "Customer was double charged"
-  }'
-```
-
-6. Confirm the response is `REQUIRE_APPROVAL`.
-7. Open Approval Inbox and inspect risk signals.
-8. Approve or reject the action.
-9. Open Audit Logs and show the full trail.
-10. Pause Support Refund Agent.
-11. Send the same gateway request again.
-12. Confirm AgentGate returns `BLOCK` because the agent is paused.
-13. Optionally enable the organization kill switch in Settings and confirm gateway requests return `BLOCK`.
-14. Disable the kill switch before ending the demo.
 
 ## Verification Run
 
-The final V1 lock pass ran:
+Final personal-readiness validation ran:
 
-- `npm install`
-- `npx prisma format`
-- `npx prisma generate`
 - `npm run test`
 - `npm run type-check`
 - `npm run lint`
 - `npm run build`
-- `npm run test:e2e`
+- `npm run commerce:build`
+- `npm run commerce:test`
+- `docker start agentgate-postgres || true`
+- `npx prisma generate`
+- `npx prisma migrate dev`
 - `npm run demo:reset`
 - `npm run demo:check`
-- `npm run verify:demo-data`
-- `npm run verify:demo`
-- `npm run verify:security`
+- `npm run commerce:reset`
+- `npm run verify:commerce-checkout-agent`
+- `npm run verify:commerce-agent`
+- support-agent scenario setup
+- `npm run verify:agent-integration`
 
 Results:
 
 - Unit tests passed.
 - TypeScript passed.
 - ESLint passed.
-- Production build passed.
-- Playwright E2E passed.
+- AgentGate production build passed.
+- Commerce production build passed, with the known multiple-lockfile warning.
+- Commerce tests passed.
+- Prisma generate passed.
+- Prisma migrate reported the database is already in sync.
 - Demo reset passed.
 - Demo state check passed.
-- Demo data verification passed.
-- V1 demo verification passed.
-- Security basics verification passed.
+- Commerce checkout verifier passed.
+- Commerce integration verifier passed.
+- Agent integration verifier passed after the required support-agent scenario traffic.
 
-Local environment note:
+## Readiness Verdict
 
-- Plain `npm` was not on the default shell PATH in this Codex environment, so commands were run with the local Node tool path prepended.
-- The local database at `localhost:55432` was initially stale and missing later checked-in migrations. Prisma's schema engine failed without a useful diagnostic in this environment, so the already committed migration SQL files were applied directly to the local demo database for verification. The repo migration files themselves were not changed.
+- Personal testing: yes.
+- Friends/advisors: yes, guided.
+- Serious customer demo: maybe after you personally verify the full flow on your machine.
+- Production: no.
 
-## Next Recommended Work
+## Positioning Reminder
 
-- Package a cleaner first-run script for new demo machines.
-- Add a clearer warning when demo reset is attempted against an unmigrated database.
-- Expand E2E coverage for approval approve/reject and kill-switch behavior.
-- Add a production deployment smoke test for health, database connection, and migration status.
-- Improve webhook delivery controls before enabling any real outbound delivery.
-- Continue customer discovery around the first paid wedge: support refunds, customer communications, or regulated operational actions.
-
-## Ready To Show
-
-Yes. AgentGate V1 is ready to show as a local demo, with honest positioning:
+When showing AgentGate V1, say:
 
 - Local rules only.
 - Simulated integrations only.
@@ -180,3 +187,11 @@ Yes. AgentGate V1 is ready to show as a local demo, with honest positioning:
 - No real external side effects.
 - Demo API key is local-only.
 - Core safety, approval, and audit flow is working.
+
+Do not claim:
+
+- SOC 2 readiness.
+- Enterprise SSO.
+- Real Stripe/Gmail/Slack integrations.
+- Production compliance hardening.
+- AI model training or paid AI reviewer behavior.
