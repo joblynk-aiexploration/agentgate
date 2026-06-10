@@ -1,0 +1,315 @@
+\n## npm run test
+
+> agentgate@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.8 /Users/rm/projects/AgentGate
+
+
+ Test Files  6 passed (6)
+      Tests  28 passed (28)
+   Start at  00:08:23
+   Duration  420ms (transform 602ms, setup 0ms, import 974ms, tests 85ms, environment 0ms)
+
+exit=0
+\n## npm run type-check
+
+> agentgate@0.1.0 type-check
+> tsc --noEmit
+
+exit=0
+\n## npm run lint
+
+> agentgate@0.1.0 lint
+> eslint
+
+exit=0
+\n## npm run build
+
+> agentgate@0.1.0 build
+> next build
+
+▲ Next.js 16.2.7 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.5s
+  Running TypeScript ...
+  Finished TypeScript in 6.9s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/68) ...
+  Generating static pages using 7 workers (17/68)
+  Generating static pages using 7 workers (34/68)
+  Generating static pages using 7 workers (51/68)
+✓ Generating static pages using 7 workers (68/68) in 291ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /actions
+├ ƒ /actions/[id]
+├ ƒ /agents
+├ ƒ /agents/[id]
+├ ƒ /agents/new
+├ ƒ /api/actions
+├ ƒ /api/actions/[id]
+├ ƒ /api/agents
+├ ƒ /api/agents/[id]
+├ ƒ /api/agents/[id]/pause
+├ ƒ /api/agents/[id]/resume
+├ ƒ /api/approvals
+├ ƒ /api/approvals/[id]
+├ ƒ /api/approvals/[id]/approve
+├ ƒ /api/approvals/[id]/comments
+├ ƒ /api/approvals/[id]/edit
+├ ƒ /api/approvals/[id]/reject
+├ ƒ /api/audit-logs
+├ ƒ /api/audit-logs/export
+├ ƒ /api/demo/status
+├ ƒ /api/demo/support-agent/run
+├ ƒ /api/demo/support-agent/scenarios
+├ ƒ /api/developer/api-keys
+├ ƒ /api/developer/api-keys/[id]/revoke
+├ ƒ /api/developer/webhooks
+├ ƒ /api/developer/webhooks/[id]
+├ ƒ /api/developer/webhooks/[id]/test
+├ ƒ /api/gateway/actions/[id]
+├ ƒ /api/gateway/cancel
+├ ƒ /api/gateway/check
+├ ƒ /api/gateway/execute
+├ ƒ /api/health
+├ ƒ /api/integrations/webhook-demo/test
+├ ƒ /api/notifications
+├ ƒ /api/notifications/[id]/read
+├ ƒ /api/notifications/read-all
+├ ƒ /api/openapi
+├ ƒ /api/policies
+├ ƒ /api/policies/[id]
+├ ƒ /api/policies/from-template
+├ ƒ /api/reports/actions/export
+├ ƒ /api/reports/approvals/export
+├ ƒ /api/settings
+├ ƒ /api/settings/data-retention
+├ ƒ /api/settings/data-retention/cleanup
+├ ƒ /api/settings/data-retention/dry-run
+├ ƒ /api/settings/kill-switch/disable
+├ ƒ /api/settings/kill-switch/enable
+├ ƒ /api/settings/members
+├ ƒ /api/settings/members/[id]
+├ ƒ /api/settings/members/invite
+├ ƒ /api/tool-proxy/[tool]/[action]
+├ ƒ /approvals
+├ ƒ /approvals/[id]
+├ ƒ /audit-logs
+├ ƒ /billing
+├ ƒ /dashboard
+├ ○ /demo
+├ ƒ /developer
+├ ƒ /developer/agent-lab
+├ ƒ /developer/api-keys
+├ ƒ /developer/docs
+├ ƒ /developer/webhooks
+├ ƒ /integrations
+├ ƒ /integrations/demo-commerce
+├ ƒ /login
+├ ƒ /logout
+├ ƒ /onboarding
+├ ƒ /onboarding/agent
+├ ƒ /onboarding/api-key
+├ ƒ /onboarding/organization
+├ ƒ /platform
+├ ƒ /platform/audit
+├ ƒ /platform/health
+├ ƒ /platform/organizations
+├ ƒ /policies
+├ ƒ /policies/[id]
+├ ƒ /policies/new
+├ ƒ /register
+├ ƒ /reports
+├ ƒ /settings
+├ ƒ /settings/access-review
+├ ƒ /settings/data-retention
+├ ƒ /settings/members
+└ ƒ /settings/members/invite
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+\n## npm run commerce:build
+
+> agentgate@0.1.0 commerce:build
+> npm run build --prefix apps/demo-commerce-store
+
+
+> agentgate-demo-commerce-store@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/rm/projects/AgentGate/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles:
+   * /Users/rm/projects/AgentGate/apps/demo-commerce-store/package-lock.json
+
+▲ Next.js 16.2.7 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.7s
+  Running TypeScript ...
+  Finished TypeScript in 2.8s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/45) ...
+  Generating static pages using 7 workers (11/45)
+  Generating static pages using 7 workers (22/45)
+  Generating static pages using 7 workers (33/45)
+✓ Generating static pages using 7 workers (45/45) in 188ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /account
+├ ƒ /account/orders
+├ ƒ /account/orders/[orderNumber]
+├ ƒ /account/receipts
+├ ƒ /account/support
+├ ƒ /account/tracking
+├ ƒ /admin
+├ ƒ /admin/agent-logs
+├ ƒ /admin/api
+├ ƒ /admin/customers
+├ ƒ /admin/fulfillment
+├ ƒ /admin/login
+├ ƒ /admin/logout
+├ ƒ /admin/orders
+├ ƒ /admin/orders/[orderNumber]
+├ ƒ /admin/products
+├ ƒ /admin/settings
+├ ƒ /admin/tracking
+├ ƒ /api/admin/config
+├ ƒ /api/admin/config/clear
+├ ƒ /api/admin/config/demo
+├ ƒ /api/admin/config/test
+├ ƒ /api/admin/login
+├ ƒ /api/admin/orders/[orderNumber]/note
+├ ƒ /api/admin/orders/[orderNumber]/status
+├ ƒ /api/admin/orders/sync-agentgate
+├ ƒ /api/agent/chat
+├ ƒ /api/cart/add
+├ ƒ /api/cart/remove
+├ ƒ /api/cart/update
+├ ƒ /api/checkout
+├ ƒ /api/customer/login
+├ ƒ /api/customer/logout
+├ ƒ /api/customer/register
+├ ƒ /api/customer/session
+├ ƒ /cart
+├ ƒ /checkout
+├ ƒ /checkout/success
+├ ƒ /help
+├ ƒ /login
+├ ƒ /order-lookup
+├ ƒ /policies/privacy
+├ ƒ /policies/returns
+├ ƒ /policies/shipping
+├ ƒ /products
+├ ƒ /products/[slug]
+└ ƒ /register
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+\n## npm run commerce:test
+
+> agentgate@0.1.0 commerce:test
+> npm run test --prefix apps/demo-commerce-store
+
+
+> agentgate-demo-commerce-store@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.8 /Users/rm/projects/AgentGate/apps/demo-commerce-store
+
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  00:08:56
+   Duration  32.33s (transform 64ms, setup 0ms, import 85ms, tests 32.12s, environment 0ms)
+
+exit=0
+
+## secret scan allowed docs/tests/seed hits
+README.md:92:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+README.md:137:- AgentGate API key: `[REDACTED_COMMERCE_DEMO_KEY]`
+README.md:404:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+README.md:646:still `[REDACTED_SUPPORT_DEMO_KEY]`, and only its hash is stored.
+README.md:784:[REDACTED_SUPPORT_DEMO_KEY]
+README.md:816:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+README.md:841:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+README.md:962:AGENTGATE_DEMO_API_KEY="[REDACTED_SUPPORT_DEMO_KEY]" \
+scripts/check-demo-state.ts:11:const DEMO_API_KEY = "[REDACTED_SUPPORT_DEMO_KEY]";
+prisma/seed.ts:37:const DEMO_API_KEY = "[REDACTED_SUPPORT_DEMO_KEY]";
+prisma/seed.ts:38:const DEMO_COMMERCE_API_KEY = "[REDACTED_COMMERCE_DEMO_KEY]";
+scripts/verify-v1-demo.ts:11:  process.env.AGENTGATE_DEMO_API_KEY ?? "[REDACTED_SUPPORT_DEMO_KEY]";
+apps/demo-commerce-store/src/lib/store.ts:37:  "[REDACTED_COMMERCE_DEMO_KEY]";
+tests/e2e/customer-checkout-agentgate-flow.spec.ts:7:const demoCommerceKey = "[REDACTED_COMMERCE_DEMO_KEY]";
+scripts/verify-commerce-real-checkout-agent.ts:11:  process.env.AGENTGATE_DEMO_COMMERCE_API_KEY ?? "[REDACTED_COMMERCE_DEMO_KEY]";
+tests/e2e/demo-screenshots.spec.ts:7:const demoApiKey = "[REDACTED_SUPPORT_DEMO_KEY]";
+scripts/verify-security-basics.ts:11:const DEMO_API_KEY = "[REDACTED_SUPPORT_DEMO_KEY]";
+examples/agents/support-ops-agent/README.md:40:AGENTGATE_DEMO_API_KEY="[REDACTED_SUPPORT_DEMO_KEY]"
+scripts/verify-agentgate-agent-integration.ts:14:const DEMO_API_KEY = "[REDACTED_SUPPORT_DEMO_KEY]";
+docs/deployment.md:148:- Do not use `[REDACTED_SUPPORT_DEMO_KEY]` in real deployments.
+tests/e2e/approval-flow.spec.ts:5:const demoApiKey = "[REDACTED_SUPPORT_DEMO_KEY]";
+scripts/verify-demo-data.ts:11:  process.env.AGENTGATE_DEMO_API_KEY ?? "[REDACTED_SUPPORT_DEMO_KEY]";
+docs/user-manual.md:256:[REDACTED_SUPPORT_DEMO_KEY]
+docs/demo-script.md:22:[REDACTED_SUPPORT_DEMO_KEY]
+docs/demo-script.md:125:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+docs/qa/runs/latest/final-source-checks-after-fixes.log:252:README.md:92:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+docs/qa/runs/latest/final-source-checks-after-fixes.log:253:README.md:137:- AgentGate API key: `[REDACTED_COMMERCE_DEMO_KEY]`
+docs/qa/runs/latest/final-source-checks-after-fixes.log:254:README.md:404:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+docs/qa/runs/latest/final-source-checks-after-fixes.log:255:README.md:646:still `[REDACTED_SUPPORT_DEMO_KEY]`, and only its hash is stored.
+docs/qa/runs/latest/final-source-checks-after-fixes.log:256:README.md:784:[REDACTED_SUPPORT_DEMO_KEY]
+docs/qa/runs/latest/final-source-checks-after-fixes.log:257:README.md:816:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+docs/qa/runs/latest/final-source-checks-after-fixes.log:258:README.md:841:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+docs/qa/runs/latest/final-source-checks-after-fixes.log:259:README.md:962:AGENTGATE_DEMO_API_KEY="[REDACTED_SUPPORT_DEMO_KEY]" \
+docs/qa/runs/latest/final-source-checks-after-fixes.log:260:scripts/check-demo-state.ts:11:const DEMO_API_KEY = "[REDACTED_SUPPORT_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:261:prisma/seed.ts:37:const DEMO_API_KEY = "[REDACTED_SUPPORT_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:262:prisma/seed.ts:38:const DEMO_COMMERCE_API_KEY = "[REDACTED_COMMERCE_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:263:scripts/verify-v1-demo.ts:11:  process.env.AGENTGATE_DEMO_API_KEY ?? "[REDACTED_SUPPORT_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:264:apps/demo-commerce-store/src/lib/store.ts:37:  "[REDACTED_COMMERCE_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:265:tests/e2e/customer-checkout-agentgate-flow.spec.ts:7:const demoCommerceKey = "[REDACTED_COMMERCE_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:266:scripts/verify-commerce-real-checkout-agent.ts:11:  process.env.AGENTGATE_DEMO_COMMERCE_API_KEY ?? "[REDACTED_COMMERCE_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:267:tests/e2e/demo-screenshots.spec.ts:7:const demoApiKey = "[REDACTED_SUPPORT_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:268:scripts/verify-security-basics.ts:11:const DEMO_API_KEY = "[REDACTED_SUPPORT_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:269:examples/agents/support-ops-agent/README.md:40:AGENTGATE_DEMO_API_KEY="[REDACTED_SUPPORT_DEMO_KEY]"
+docs/qa/runs/latest/final-source-checks-after-fixes.log:270:scripts/verify-agentgate-agent-integration.ts:14:const DEMO_API_KEY = "[REDACTED_SUPPORT_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:271:docs/deployment.md:148:- Do not use `[REDACTED_SUPPORT_DEMO_KEY]` in real deployments.
+docs/qa/runs/latest/final-source-checks-after-fixes.log:272:tests/e2e/approval-flow.spec.ts:5:const demoApiKey = "[REDACTED_SUPPORT_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:273:scripts/verify-demo-data.ts:11:  process.env.AGENTGATE_DEMO_API_KEY ?? "[REDACTED_SUPPORT_DEMO_KEY]";
+docs/qa/runs/latest/final-source-checks-after-fixes.log:274:docs/user-manual.md:256:[REDACTED_SUPPORT_DEMO_KEY]
+docs/qa/runs/latest/final-source-checks-after-fixes.log:275:docs/demo-script.md:22:[REDACTED_SUPPORT_DEMO_KEY]
+docs/qa/runs/latest/final-source-checks-after-fixes.log:276:docs/demo-script.md:125:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+tests/e2e/full-agentgate-ecommerce-integration-qa.spec.ts:6:const demoCommerceKey = "[REDACTED_COMMERCE_DEMO_KEY]";
+docs/qa/runs/latest/support-agent-verifier.log:12:Local demo API key: [REDACTED_SUPPORT_DEMO_KEY]
+docs/qa/runs/latest/support-agent-verifier.log:13:Local Northstar commerce API key: [REDACTED_COMMERCE_DEMO_KEY]
+docs/qa/runs/latest/e2e-rerun.log:11:Local demo API key: [REDACTED_SUPPORT_DEMO_KEY]
+docs/qa/runs/latest/e2e-rerun.log:12:Local Northstar commerce API key: [REDACTED_COMMERCE_DEMO_KEY]
+docs/qa/runs/latest/final-commands.log:261:Local demo API key: [REDACTED_SUPPORT_DEMO_KEY]
+docs/qa/runs/latest/final-commands.log:262:Local Northstar commerce API key: [REDACTED_COMMERCE_DEMO_KEY]
+docs/manual-qa.md:50:  -H "Authorization: Bearer [REDACTED_SUPPORT_DEMO_KEY]" \
+docs/deployment-guide.md:34:- Do not use `[REDACTED_SUPPORT_DEMO_KEY]` for real production.
+docs/PERSONAL_DEMO_GUIDE.md:305:export AGENTGATE_DEMO_API_KEY=[REDACTED_SUPPORT_DEMO_KEY]
+apps/demo-commerce-store/src/app/api/admin/config/demo/route.ts:12:    agentGateApiKey: "[REDACTED_COMMERCE_DEMO_KEY]",
+
+## screenshot binary secret scan
+rg: docs/qa/runs/latest/screenshots/**/*.png: No such file or directory (os error 2)

@@ -1,0 +1,500 @@
+\n## npm run test
+
+> agentgate@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.8 /Users/rm/projects/AgentGate
+
+
+ Test Files  6 passed (6)
+      Tests  28 passed (28)
+   Start at  23:59:54
+   Duration  391ms (transform 597ms, setup 0ms, import 974ms, tests 82ms, environment 1ms)
+
+exit=0
+\n## npm run type-check
+
+> agentgate@0.1.0 type-check
+> tsc --noEmit
+
+exit=0
+\n## npm run lint
+
+> agentgate@0.1.0 lint
+> eslint
+
+exit=0
+\n## npm run build
+
+> agentgate@0.1.0 build
+> next build
+
+▲ Next.js 16.2.7 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 4.2s
+  Running TypeScript ...
+  Finished TypeScript in 6.0s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/68) ...
+  Generating static pages using 7 workers (17/68)
+  Generating static pages using 7 workers (34/68)
+  Generating static pages using 7 workers (51/68)
+✓ Generating static pages using 7 workers (68/68) in 253ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /actions
+├ ƒ /actions/[id]
+├ ƒ /agents
+├ ƒ /agents/[id]
+├ ƒ /agents/new
+├ ƒ /api/actions
+├ ƒ /api/actions/[id]
+├ ƒ /api/agents
+├ ƒ /api/agents/[id]
+├ ƒ /api/agents/[id]/pause
+├ ƒ /api/agents/[id]/resume
+├ ƒ /api/approvals
+├ ƒ /api/approvals/[id]
+├ ƒ /api/approvals/[id]/approve
+├ ƒ /api/approvals/[id]/comments
+├ ƒ /api/approvals/[id]/edit
+├ ƒ /api/approvals/[id]/reject
+├ ƒ /api/audit-logs
+├ ƒ /api/audit-logs/export
+├ ƒ /api/demo/status
+├ ƒ /api/demo/support-agent/run
+├ ƒ /api/demo/support-agent/scenarios
+├ ƒ /api/developer/api-keys
+├ ƒ /api/developer/api-keys/[id]/revoke
+├ ƒ /api/developer/webhooks
+├ ƒ /api/developer/webhooks/[id]
+├ ƒ /api/developer/webhooks/[id]/test
+├ ƒ /api/gateway/actions/[id]
+├ ƒ /api/gateway/cancel
+├ ƒ /api/gateway/check
+├ ƒ /api/gateway/execute
+├ ƒ /api/health
+├ ƒ /api/integrations/webhook-demo/test
+├ ƒ /api/notifications
+├ ƒ /api/notifications/[id]/read
+├ ƒ /api/notifications/read-all
+├ ƒ /api/openapi
+├ ƒ /api/policies
+├ ƒ /api/policies/[id]
+├ ƒ /api/policies/from-template
+├ ƒ /api/reports/actions/export
+├ ƒ /api/reports/approvals/export
+├ ƒ /api/settings
+├ ƒ /api/settings/data-retention
+├ ƒ /api/settings/data-retention/cleanup
+├ ƒ /api/settings/data-retention/dry-run
+├ ƒ /api/settings/kill-switch/disable
+├ ƒ /api/settings/kill-switch/enable
+├ ƒ /api/settings/members
+├ ƒ /api/settings/members/[id]
+├ ƒ /api/settings/members/invite
+├ ƒ /api/tool-proxy/[tool]/[action]
+├ ƒ /approvals
+├ ƒ /approvals/[id]
+├ ƒ /audit-logs
+├ ƒ /billing
+├ ƒ /dashboard
+├ ○ /demo
+├ ƒ /developer
+├ ƒ /developer/agent-lab
+├ ƒ /developer/api-keys
+├ ƒ /developer/docs
+├ ƒ /developer/webhooks
+├ ƒ /integrations
+├ ƒ /integrations/demo-commerce
+├ ƒ /login
+├ ƒ /logout
+├ ƒ /onboarding
+├ ƒ /onboarding/agent
+├ ƒ /onboarding/api-key
+├ ƒ /onboarding/organization
+├ ƒ /platform
+├ ƒ /platform/audit
+├ ƒ /platform/health
+├ ƒ /platform/organizations
+├ ƒ /policies
+├ ƒ /policies/[id]
+├ ƒ /policies/new
+├ ƒ /register
+├ ƒ /reports
+├ ƒ /settings
+├ ƒ /settings/access-review
+├ ƒ /settings/data-retention
+├ ƒ /settings/members
+└ ƒ /settings/members/invite
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+\n## npm run commerce:build
+
+> agentgate@0.1.0 commerce:build
+> npm run build --prefix apps/demo-commerce-store
+
+
+> agentgate-demo-commerce-store@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/rm/projects/AgentGate/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles:
+   * /Users/rm/projects/AgentGate/apps/demo-commerce-store/package-lock.json
+
+▲ Next.js 16.2.7 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.3s
+  Running TypeScript ...
+  Finished TypeScript in 2.8s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/45) ...
+  Generating static pages using 7 workers (11/45)
+  Generating static pages using 7 workers (22/45)
+  Generating static pages using 7 workers (33/45)
+✓ Generating static pages using 7 workers (45/45) in 199ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /account
+├ ƒ /account/orders
+├ ƒ /account/orders/[orderNumber]
+├ ƒ /account/receipts
+├ ƒ /account/support
+├ ƒ /account/tracking
+├ ƒ /admin
+├ ƒ /admin/agent-logs
+├ ƒ /admin/api
+├ ƒ /admin/customers
+├ ƒ /admin/fulfillment
+├ ƒ /admin/login
+├ ƒ /admin/logout
+├ ƒ /admin/orders
+├ ƒ /admin/orders/[orderNumber]
+├ ƒ /admin/products
+├ ƒ /admin/settings
+├ ƒ /admin/tracking
+├ ƒ /api/admin/config
+├ ƒ /api/admin/config/clear
+├ ƒ /api/admin/config/demo
+├ ƒ /api/admin/config/test
+├ ƒ /api/admin/login
+├ ƒ /api/admin/orders/[orderNumber]/note
+├ ƒ /api/admin/orders/[orderNumber]/status
+├ ƒ /api/admin/orders/sync-agentgate
+├ ƒ /api/agent/chat
+├ ƒ /api/cart/add
+├ ƒ /api/cart/remove
+├ ƒ /api/cart/update
+├ ƒ /api/checkout
+├ ƒ /api/customer/login
+├ ƒ /api/customer/logout
+├ ƒ /api/customer/register
+├ ƒ /api/customer/session
+├ ƒ /cart
+├ ƒ /checkout
+├ ƒ /checkout/success
+├ ƒ /help
+├ ƒ /login
+├ ƒ /order-lookup
+├ ƒ /policies/privacy
+├ ƒ /policies/returns
+├ ƒ /policies/shipping
+├ ƒ /products
+├ ƒ /products/[slug]
+└ ƒ /register
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
+exit=0
+\n## npm run commerce:test
+
+> agentgate@0.1.0 commerce:test
+> npm run test --prefix apps/demo-commerce-store
+
+
+> agentgate-demo-commerce-store@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.8 /Users/rm/projects/AgentGate/apps/demo-commerce-store
+
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  00:00:29
+   Duration  31.60s (transform 70ms, setup 0ms, import 91ms, tests 31.40s, environment 0ms)
+
+exit=0
+\n## npm run demo:reset
+
+> agentgate@0.1.0 demo:reset
+> tsx scripts/reset-demo-data.ts
+
+AgentGate demo reset
+Scope: Acme AI Operations demo tenant only.
+Unrelated organizations are not deleted.
+
+Resetting only the AgentGate Acme AI Operations demo tenant. Unrelated organizations are not touched.
+Seeded AgentGate demo tenant: Acme AI Operations (slug: acme)
+Local demo API key: [REDACTED_SUPPORT_DEMO_KEY]
+Local Northstar commerce API key: [REDACTED_COMMERCE_DEMO_KEY]
+The demo API key is printed for local development only and only its hash is stored.
+
+Demo reset complete.
+Run npm run demo:check to verify the clean V1 demo state.
+exit=0
+\n## npm run demo:check
+
+> agentgate@0.1.0 demo:check
+> tsx scripts/check-demo-state.ts
+
+AgentGate clean demo state checklist
+
+[PASS] organization exists - status=ACTIVE, killSwitch=false
+[PASS] users exist - count=6/6
+[PASS] agents exist - count=4
+[PASS] policies exist - count=8
+[PASS] API key exists - status=ACTIVE, prefix=ag_test_seed
+[PASS] sample action requests exist - count=5
+[PASS] sample risk assessments exist - count=5
+[PASS] pending approvals exist - count=2
+[PASS] audit logs exist - count=12
+[PASS] paused agent exists - Database Maintenance Agent (database-maintenance-agent)
+
+Demo state check passed.
+exit=0
+\n## npm run commerce:reset
+
+> agentgate@0.1.0 commerce:reset
+> npm run reset --prefix apps/demo-commerce-store
+
+
+> agentgate-demo-commerce-store@0.1.0 reset
+> tsx scripts/seed.ts --reset
+
+Seeded Northstar Outdoor Supply demo store.
+exit=0
+\n## npm run test:e2e
+
+> agentgate@0.1.0 test:e2e
+> playwright test
+
+
+Running 30 tests using 1 worker
+
+(node:12482) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:12482) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/approval-flow.spec.ts:81:5 › reviewer approves real approval UI flow and gateway executes after approval (13.0s)
+  ✓   2 [chromium] › tests/e2e/customer-checkout-agentgate-flow.spec.ts:73:5 › customer checkout order routes commerce agent actions through AgentGate (11.9s)
+  ✓   3 [chromium] › tests/e2e/demo-commerce-api-key-bridge.spec.ts:51:5 › created AgentGate key bridges Northstar admin, chat, approvals, and audit visibility (7.9s)
+  ✓   4 [chromium] › tests/e2e/demo-flow.spec.ts:16:5 › public demo surfaces load (1.1s)
+  ✓   5 [chromium] › tests/e2e/demo-flow.spec.ts:36:5 › seeded owner can inspect core demo pages (3.6s)
+  ✓   6 [chromium] › tests/e2e/demo-screenshots.spec.ts:128:5 › generate AgentGate visual demo screenshots (18.7s)
+  ✓   7 [chromium] › tests/e2e/full-agentgate-ecommerce-integration-qa.spec.ts:93:5 › full Northstar human flow is governed by AgentGate and safe for customers (7.3s)
+  ✓   8 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Owner can log in and reach expected role surfaces (3.5s)
+  ✓   9 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Security admin can log in and reach expected role surfaces (3.3s)
+  ✓  10 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Developer can log in and reach expected role surfaces (2.6s)
+  ✓  11 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Reviewer can log in and reach expected role surfaces (2.8s)
+  ✓  12 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Auditor can log in and reach expected role surfaces (2.6s)
+  ✓  13 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Platform owner can log in and reach expected role surfaces (3.2s)
+  ✓  14 [chromium] › tests/e2e/full-role-login-qa.spec.ts:97:7 › AgentGate seeded role login QA › unauthenticated protected route redirects to login (524ms)
+  ✓  15 [chromium] › tests/e2e/northstar-screenshots.spec.ts:44:5 › capture redesigned Northstar ecommerce screenshots (7.4s)
+  ✓  16 [chromium] › apps/demo-commerce-store/tests/e2e/qa-admin-operations.spec.ts:5:5 › Northstar admin operations pages load and API config is prefix-only (2.1s)
+  ✓  17 [chromium] › tests/e2e/qa-agentgate-core-flows.spec.ts:32:5 › Agent Lab decisions, reviewer approval, role denial, and audit trail work (8.5s)
+  ✘  18 [chromium] › tests/e2e/qa-agentgate-pages.spec.ts:21:5 › public and owner AgentGate pages load without workspace errors (30.0s)
+(node:13353) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:13353) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  19 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › owner seeded account can login, navigate, and logout (5.0s)
+  ✓  20 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › security-admin seeded account can login, navigate, and logout (3.4s)
+  ✓  21 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › developer seeded account can login, navigate, and logout (2.8s)
+  ✓  22 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › reviewer seeded account can login, navigate, and logout (2.4s)
+  ✓  23 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › auditor seeded account can login, navigate, and logout (2.3s)
+  ✓  24 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › platform-owner seeded account can login, navigate, and logout (2.3s)
+  ✓  25 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:74:5 › unauthenticated users are redirected from protected app pages (327ms)
+  ✘  26 [chromium] › apps/demo-commerce-store/tests/e2e/qa-commerce-accounts.spec.ts:5:5 › Northstar customer and admin accounts have correct access boundaries (5.9s)
+(node:13458) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:13458) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  27 [chromium] › apps/demo-commerce-store/tests/e2e/qa-commerce-agent-chat.spec.ts:19:5 › Northstar chat answers safely and routes risky actions through AgentGate (2.2s)
+  ✓  28 [chromium] › tests/e2e/qa-full-agentgate-commerce-integration.spec.ts:35:5 › full AgentGate and Northstar cancellation governance path (11.2s)
+  ✓  29 [chromium] › apps/demo-commerce-store/tests/e2e/qa-full-customer-checkout.spec.ts:5:5 › Northstar customer can browse, checkout, and view tracking/receipt (1.6s)
+  ✓  30 [chromium] › tests/e2e/ui-polish-screenshots.spec.ts:30:5 › capture UI polish screenshots (14.4s)
+
+
+  1) [chromium] › tests/e2e/qa-agentgate-pages.spec.ts:21:5 › public and owner AgentGate pages load without workspace errors
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3001/settings/access-review", waiting until "load"[22m
+
+
+      71 |
+      72 |   for (const path of pages) {
+    > 73 |     await page.goto(path);
+         |                ^
+      74 |     await expectHealthyPage(page);
+      75 |     await expect(page.locator("main, body").first()).toBeVisible();
+      76 |     await page.screenshot({
+        at /Users/rm/projects/AgentGate/tests/e2e/qa-agentgate-pages.spec.ts:73:16
+
+    Error Context: test-results/qa-agentgate-pages-public--1d3f4-ad-without-workspace-errors-chromium/error-context.md
+
+  2) [chromium] › apps/demo-commerce-store/tests/e2e/qa-commerce-accounts.spec.ts:5:5 › Northstar customer and admin accounts have correct access boundaries
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: /Orders/i })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('heading', { name: /Orders/i })[22m
+
+
+      12 |   await expect(page).toHaveURL(/\/account$/);
+      13 |   await page.goto(`${commerceBaseUrl}/account/orders`);
+    > 14 |   await expect(page.getByRole("heading", { name: /Orders/i })).toBeVisible();
+         |                                                                ^
+      15 |   await page.goto(`${commerceBaseUrl}/admin`);
+      16 |   await expect(page).toHaveURL(/\/admin\/login/);
+      17 |
+        at /Users/rm/projects/AgentGate/apps/demo-commerce-store/tests/e2e/qa-commerce-accounts.spec.ts:14:64
+
+    Error Context: test-results/qa-commerce-accounts-North-3c43c-e-correct-access-boundaries-chromium/error-context.md
+
+  2 failed
+    [chromium] › tests/e2e/qa-agentgate-pages.spec.ts:21:5 › public and owner AgentGate pages load without workspace errors
+    [chromium] › apps/demo-commerce-store/tests/e2e/qa-commerce-accounts.spec.ts:5:5 › Northstar customer and admin accounts have correct access boundaries
+  28 passed (3.1m)
+exit=1
+\n## npm run commerce:reset
+
+> agentgate@0.1.0 commerce:reset
+> npm run reset --prefix apps/demo-commerce-store
+
+
+> agentgate-demo-commerce-store@0.1.0 reset
+> tsx scripts/seed.ts --reset
+
+Seeded Northstar Outdoor Supply demo store.
+exit=0
+\n## npm run verify:commerce-checkout-agent
+
+> agentgate@0.1.0 verify:commerce-checkout-agent
+> tsx scripts/verify-commerce-real-checkout-agent.ts
+
+Northstar real checkout + AgentGate agent verification
+
+Commerce URL: http://localhost:3004
+AgentGate URL: http://localhost:3001
+[PASS] AgentGate health available - database=connected
+[PASS] commerce store loads
+[PASS] public pages do not expose full demo key
+[PASS] commerce admin login works
+[PASS] commerce admin saved AgentGate config
+[PASS] safe config exposes prefix only
+[PASS] customer login works
+[PASS] customer starts with no orders after reset
+[PASS] cart add works
+[PASS] checkout redirects to success with order number - NS-2001
+[PASS] success page shows checkout order
+[PASS] agent finds real order after checkout
+[PASS] cancel latest order calls AgentGate and requires approval - cmq7ltcci001f1q2g2dmcevw9
+[PASS] receipt resend calls AgentGate - REQUIRE_APPROVAL
+[PASS] delete customer action is blocked/refused - cmq7ltcgj001t1q2gjcsmvj7z
+[PASS] checkout-created order remains processing while approval pending
+[PASS] order stores pending approval id - cmq7ltcf8001o1q2g533wawu5
+[PASS] customer data was not deleted
+[PASS] agent logs include checkout flow - count=4
+[PASS] agent logs do not expose full demo key
+[PASS] admin logs page shows checkout order
+[PASS] admin logs page does not expose full demo key
+[PASS] AgentGate organization exists
+[PASS] demo commerce API key is hashed and scoped - ag_test_seed_demo
+[PASS] AgentGate action records were created - count=3
+[PASS] large checkout cancellation creates approval - cmq7ltccr001h1q2g3tea056w
+[PASS] AgentGate audit logs exist for checkout actions
+
+Real checkout commerce agent verification passed.
+exit=0
+\n## npm run commerce:reset
+
+> agentgate@0.1.0 commerce:reset
+> npm run reset --prefix apps/demo-commerce-store
+
+
+> agentgate-demo-commerce-store@0.1.0 reset
+> tsx scripts/seed.ts --reset
+
+Seeded Northstar Outdoor Supply demo store.
+exit=0
+\n## npm run verify:commerce-agent
+
+> agentgate@0.1.0 verify:commerce-agent
+> tsx scripts/verify-demo-commerce-integration.ts
+
+Northstar real checkout + AgentGate agent verification
+
+Commerce URL: http://localhost:3004
+AgentGate URL: http://localhost:3001
+[PASS] AgentGate health available - database=connected
+[PASS] commerce store loads
+[PASS] public pages do not expose full demo key
+[PASS] commerce admin login works
+[PASS] commerce admin saved AgentGate config
+[PASS] safe config exposes prefix only
+[PASS] customer login works
+[PASS] customer starts with no orders after reset
+[PASS] cart add works
+[PASS] checkout redirects to success with order number - NS-2001
+[PASS] success page shows checkout order
+[PASS] agent finds real order after checkout
+[PASS] cancel latest order calls AgentGate and requires approval - cmq7ltevm001z1q2glflc5vsf
+[PASS] receipt resend calls AgentGate - REQUIRE_APPROVAL
+[PASS] delete customer action is blocked/refused - cmq7lteyc002d1q2gapu7kgyb
+[PASS] checkout-created order remains processing while approval pending
+[PASS] order stores pending approval id - cmq7ltex500281q2gfzrg7bum
+[PASS] customer data was not deleted
+[PASS] agent logs include checkout flow - count=4
+[PASS] agent logs do not expose full demo key
+[PASS] admin logs page shows checkout order
+[PASS] admin logs page does not expose full demo key
+[PASS] AgentGate organization exists
+[PASS] demo commerce API key is hashed and scoped - ag_test_seed_demo
+[PASS] AgentGate action records were created - count=3
+[PASS] large checkout cancellation creates approval - cmq7ltevs00211q2gw51y58cz
+[PASS] AgentGate audit logs exist for checkout actions
+
+Real checkout commerce agent verification passed.
+exit=0

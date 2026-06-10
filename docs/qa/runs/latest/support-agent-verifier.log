@@ -1,0 +1,608 @@
+## reset
+
+> agentgate@0.1.0 demo:reset
+> tsx scripts/reset-demo-data.ts
+
+AgentGate demo reset
+Scope: Acme AI Operations demo tenant only.
+Unrelated organizations are not deleted.
+
+Resetting only the AgentGate Acme AI Operations demo tenant. Unrelated organizations are not touched.
+Seeded AgentGate demo tenant: Acme AI Operations (slug: acme)
+Local demo API key: [REDACTED_SUPPORT_DEMO_KEY]
+Local Northstar commerce API key: [REDACTED_COMMERCE_DEMO_KEY]
+The demo API key is printed for local development only and only its hash is stored.
+
+Demo reset complete.
+Run npm run demo:check to verify the clean V1 demo state.
+
+> agentgate@0.1.0 demo:check
+> tsx scripts/check-demo-state.ts
+
+AgentGate clean demo state checklist
+
+[PASS] organization exists - status=ACTIVE, killSwitch=false
+[PASS] users exist - count=6/6
+[PASS] agents exist - count=4
+[PASS] policies exist - count=8
+[PASS] API key exists - status=ACTIVE, prefix=ag_test_seed
+[PASS] sample action requests exist - count=5
+[PASS] sample risk assessments exist - count=5
+[PASS] pending approvals exist - count=2
+[PASS] audit logs exist - count=12
+[PASS] paused agent exists - Database Maintenance Agent (database-maintenance-agent)
+
+Demo state check passed.
+## scenario small refund
+
+> agentgate@0.1.0 agent:support:small-refund
+> tsx scripts/run-support-ops-agent.ts --scenario small-refund
+
+
+=== Support Operations Agent ===
+Mode: LIVE
+Scenario: small-refund - Small duplicate charge refund
+Ticket SUP-1001: Customer was double charged $45.
+
+Intended action:
+{
+  "agentId": "support-refund-agent",
+  "tool": "stripe",
+  "action": "refund.create",
+  "environment": "production",
+  "amount": 45,
+  "currency": "USD",
+  "reason": "Customer was double charged for small amount.",
+  "payload": {
+    "amount": 45,
+    "currency": "USD",
+    "customerReference": "demo-customer-small-refund",
+    "refundMode": "simulated"
+  },
+  "metadata": {
+    "agentName": "Support Operations Agent",
+    "scenario": "small-refund",
+    "ticketId": "SUP-1001",
+    "ticketTitle": "Small duplicate charge refund",
+    "customerTier": "standard",
+    "source": "support-ops-agent"
+  }
+}
+
+AgentGate decision:
+{
+  "actionRequestId": "cmq7ly8jh008x1q2gukwsoytw",
+  "decision": "REQUIRE_APPROVAL",
+  "allowed": false,
+  "requiresApproval": true,
+  "approvalRequestId": "cmq7ly8js008z1q2g5vpttau0",
+  "risk": {
+    "score": 140,
+    "level": "CRITICAL",
+    "signals": [
+      "money_involved",
+      "external_customer_communication",
+      "production_environment",
+      "payment_refund_action",
+      "high_risk_agent_tier",
+      "tool_risk_level"
+    ],
+    "explanation": "Local rules scored this CRITICAL risk at 140 because of payment or refund action, money involved, production environment."
+  },
+  "reason": "Risk engine requires approval for CRITICAL risk.",
+  "status": "PENDING_APPROVAL"
+}
+
+Approval required.
+Approval request ID: cmq7ly8js008z1q2g5vpttau0
+Approve it in AgentGate, then rerun with --resume cmq7ly8jh008x1q2gukwsoytw or add --wait-for-approval.
+
+Transcript written: /Users/rm/projects/AgentGate/examples/agents/support-ops-agent/run-logs/2026-06-10T05-08-03-428Z-small-refund-sup-1001-transcript.json
+## scenario large refund
+
+> agentgate@0.1.0 agent:support:large-refund
+> tsx scripts/run-support-ops-agent.ts --scenario large-refund
+
+
+=== Support Operations Agent ===
+Mode: LIVE
+Scenario: large-refund - Large VIP duplicate charge refund
+Ticket SUP-1002: VIP customer was double charged $1,200.
+
+Intended action:
+{
+  "agentId": "support-refund-agent",
+  "tool": "stripe",
+  "action": "refund.create",
+  "environment": "production",
+  "amount": 1200,
+  "currency": "USD",
+  "reason": "VIP customer was double charged.",
+  "payload": {
+    "amount": 1200,
+    "currency": "USD",
+    "customerReference": "demo-vip-customer",
+    "refundMode": "simulated"
+  },
+  "metadata": {
+    "agentName": "Support Operations Agent",
+    "scenario": "large-refund",
+    "ticketId": "SUP-1002",
+    "ticketTitle": "Large VIP duplicate charge refund",
+    "customerTier": "vip",
+    "source": "support-ops-agent"
+  }
+}
+
+AgentGate decision:
+{
+  "actionRequestId": "cmq7ly8vi00941q2gtm2k43h3",
+  "decision": "REQUIRE_APPROVAL",
+  "allowed": false,
+  "requiresApproval": true,
+  "approvalRequestId": "cmq7ly8vk00961q2g79a34z4y",
+  "risk": {
+    "score": 200,
+    "level": "CRITICAL",
+    "signals": [
+      "money_involved",
+      "amount_over_100",
+      "amount_over_500",
+      "amount_over_1000",
+      "external_customer_communication",
+      "production_environment",
+      "payment_refund_action",
+      "high_risk_agent_tier",
+      "tool_risk_level"
+    ],
+    "explanation": "Local rules scored this CRITICAL risk at 200 because of payment or refund action, money involved, amount over 1000."
+  },
+  "reason": "Refunds above $500 require approval.: REQUIRE_APPROVAL.",
+  "status": "PENDING_APPROVAL"
+}
+
+Approval required.
+Approval request ID: cmq7ly8vk00961q2g79a34z4y
+Approve it in AgentGate, then rerun with --resume cmq7ly8vi00941q2gtm2k43h3 or add --wait-for-approval.
+
+Transcript written: /Users/rm/projects/AgentGate/examples/agents/support-ops-agent/run-logs/2026-06-10T05-08-03-844Z-large-refund-sup-1002-transcript.json
+## scenario blocked delete
+
+> agentgate@0.1.0 agent:support:blocked-delete
+> tsx scripts/run-support-ops-agent.ts --scenario blocked-delete
+
+
+=== Support Operations Agent ===
+Mode: LIVE
+Scenario: blocked-delete - Production customer deletion request
+Ticket SUP-1003: Customer asks to delete their customer record from production.
+
+Intended action:
+{
+  "agentId": "support-refund-agent",
+  "tool": "postgres",
+  "action": "customer.delete",
+  "environment": "production",
+  "dataSensitivity": "customer",
+  "reversible": false,
+  "reason": "Customer requested deletion.",
+  "payload": {
+    "customerReference": "demo-customer-delete-request",
+    "operation": "delete_customer_record",
+    "simulated": true
+  },
+  "metadata": {
+    "agentName": "Support Operations Agent",
+    "scenario": "blocked-delete",
+    "ticketId": "SUP-1003",
+    "ticketTitle": "Production customer deletion request",
+    "customerTier": "standard",
+    "source": "support-ops-agent"
+  }
+}
+
+AgentGate decision:
+{
+  "actionRequestId": "cmq7ly97k009b1q2gchda5c8z",
+  "decision": "BLOCK",
+  "allowed": false,
+  "requiresApproval": false,
+  "risk": {
+    "score": 190,
+    "level": "CRITICAL",
+    "signals": [
+      "external_customer_communication",
+      "production_environment",
+      "irreversible_action",
+      "delete_action",
+      "database_write",
+      "high_risk_agent_tier",
+      "tool_risk_level",
+      "unusual_action_type"
+    ],
+    "explanation": "Local rules scored this CRITICAL risk at 190 because of delete action, irreversible action, production environment."
+  },
+  "reason": "Delete actions are always blocked.: BLOCK.",
+  "status": "BLOCKED"
+}
+
+Blocked by AgentGate. The agent will not execute anything.
+Reason: Delete actions are always blocked.: BLOCK.
+
+Transcript written: /Users/rm/projects/AgentGate/examples/agents/support-ops-agent/run-logs/2026-06-10T05-08-04-294Z-blocked-delete-sup-1003-transcript.json
+## scenario external email
+
+> agentgate@0.1.0 agent:support:external-email
+> tsx scripts/run-support-ops-agent.ts --scenario external-email
+
+
+=== Support Operations Agent ===
+Mode: LIVE
+Scenario: external-email - External apology email
+Ticket SUP-1004: Customer needs an external apology email.
+
+Intended action:
+{
+  "agentId": "support-refund-agent",
+  "tool": "email_preview",
+  "action": "email.send",
+  "environment": "production",
+  "externalCommunication": true,
+  "reason": "Customer should receive apology email.",
+  "payload": {
+    "recipient": "customer@example.com",
+    "subject": "We are sorry about your recent experience",
+    "body": "We apologize for the issue and are reviewing your account.",
+    "simulated": true
+  },
+  "metadata": {
+    "agentName": "Support Operations Agent",
+    "scenario": "external-email",
+    "ticketId": "SUP-1004",
+    "ticketTitle": "External apology email",
+    "customerTier": "standard",
+    "source": "support-ops-agent"
+  }
+}
+
+AgentGate decision:
+{
+  "actionRequestId": "cmq7ly9k6009h1q2ggc17r8e3",
+  "decision": "REQUIRE_APPROVAL",
+  "allowed": false,
+  "requiresApproval": true,
+  "approvalRequestId": "cmq7ly9ka009j1q2g76mnh0s5",
+  "risk": {
+    "score": 60,
+    "level": "HIGH",
+    "signals": [
+      "external_customer_communication",
+      "production_environment",
+      "high_risk_agent_tier"
+    ],
+    "explanation": "Local rules scored this HIGH risk at 60 because of production environment, external customer communication, high risk agent tier."
+  },
+  "reason": "Risk engine requires approval for HIGH risk.",
+  "status": "PENDING_APPROVAL"
+}
+
+Approval required.
+Approval request ID: cmq7ly9ka009j1q2g76mnh0s5
+Approve it in AgentGate, then rerun with --resume cmq7ly9k6009h1q2ggc17r8e3 or add --wait-for-approval.
+
+Transcript written: /Users/rm/projects/AgentGate/examples/agents/support-ops-agent/run-logs/2026-06-10T05-08-04-737Z-external-email-sup-1004-transcript.json
+## scenario database write
+
+> agentgate@0.1.0 agent:support:database-write
+> tsx scripts/run-support-ops-agent.ts --scenario database-write
+
+
+=== Support Operations Agent ===
+Mode: LIVE
+Scenario: database-write - Production customer status correction
+Ticket SUP-1005: Support needs to update a production customer record.
+
+Intended action:
+{
+  "agentId": "support-refund-agent",
+  "tool": "postgres",
+  "action": "customer.update",
+  "environment": "production",
+  "dataSensitivity": "customer",
+  "reversible": true,
+  "reason": "Correct customer support status.",
+  "payload": {
+    "customerReference": "demo-customer-status-update",
+    "field": "supportStatus",
+    "value": "reviewed",
+    "simulated": true
+  },
+  "metadata": {
+    "agentName": "Support Operations Agent",
+    "scenario": "database-write",
+    "ticketId": "SUP-1005",
+    "ticketTitle": "Production customer status correction",
+    "customerTier": "standard",
+    "source": "support-ops-agent"
+  }
+}
+
+AgentGate decision:
+{
+  "actionRequestId": "cmq7ly9wb009o1q2goh2wp4zl",
+  "decision": "REQUIRE_APPROVAL",
+  "allowed": false,
+  "requiresApproval": true,
+  "approvalRequestId": "cmq7ly9wg009q1q2g8ykavq6j",
+  "risk": {
+    "score": 110,
+    "level": "CRITICAL",
+    "signals": [
+      "external_customer_communication",
+      "production_environment",
+      "database_write",
+      "high_risk_agent_tier",
+      "tool_risk_level",
+      "unusual_action_type"
+    ],
+    "explanation": "Local rules scored this CRITICAL risk at 110 because of production environment, database write, external customer communication."
+  },
+  "reason": "Risk engine requires approval for CRITICAL risk.",
+  "status": "PENDING_APPROVAL"
+}
+
+Approval required.
+Approval request ID: cmq7ly9wg009q1q2g8ykavq6j
+Approve it in AgentGate, then rerun with --resume cmq7ly9wb009o1q2goh2wp4zl or add --wait-for-approval.
+
+Transcript written: /Users/rm/projects/AgentGate/examples/agents/support-ops-agent/run-logs/2026-06-10T05-08-05-169Z-database-write-sup-1005-transcript.json
+## approve latest
+
+> agentgate@0.1.0 demo:approve-latest
+> tsx scripts/approve-latest-demo-approval.ts
+
+Local demo helper: approve latest Support Operations Agent large-refund approval.
+This is not production approval logic.
+
+Approved approvalRequestId=cmq7ly8vk00961q2g79a34z4y
+actionRequestId=cmq7ly8vi00941q2gtm2k43h3
+## resume approved action cmq7ly8vi00941q2gtm2k43h3
+
+> agentgate@0.1.0 agent:support
+> tsx scripts/run-support-ops-agent.ts --resume cmq7ly8vi00941q2gtm2k43h3
+
+Resuming action request: cmq7ly8vi00941q2gtm2k43h3
+Current AgentGate status:
+{
+  "actionRequestId": "cmq7ly8vi00941q2gtm2k43h3",
+  "decision": "REQUIRE_APPROVAL",
+  "status": "APPROVED",
+  "requiresApproval": true,
+  "approvalRequest": {
+    "id": "cmq7ly8vk00961q2g79a34z4y",
+    "requiredRole": "reviewer",
+    "status": "APPROVED"
+  },
+  "risk": {
+    "score": 200,
+    "level": "CRITICAL",
+    "signals": [
+      "money_involved",
+      "amount_over_100",
+      "amount_over_500",
+      "amount_over_1000",
+      "external_customer_communication",
+      "production_environment",
+      "payment_refund_action",
+      "high_risk_agent_tier",
+      "tool_risk_level"
+    ],
+    "explanation": "Local rules scored this CRITICAL risk at 200 because of payment or refund action, money involved, amount over 1000."
+  },
+  "reason": "Refunds above $500 require approval.: REQUIRE_APPROVAL."
+}
+Simulated execution result:
+{
+  "actionRequestId": "cmq7ly8vi00941q2gtm2k43h3",
+  "status": "EXECUTED",
+  "executed": true,
+  "result": {
+    "executor": "stripe_test_mode",
+    "message": "Simulated Stripe test-mode refund. No Stripe API call was made.",
+    "output": {
+      "amount": 1200,
+      "currency": "USD",
+      "environment": "production",
+      "refundId": "sim_rf_cmq7ly8vi009",
+      "simulatedStripeMode": "test"
+    },
+    "simulated": true,
+    "success": true
+  }
+}
+## agent pause block
+
+> agentgate@0.1.0 demo:pause-support-agent
+> tsx scripts/demo-pause-support-agent.ts
+
+Local demo helper: pause Support Refund Agent.
+Support Refund Agent status=PAUSED
+
+> agentgate@0.1.0 agent:support:large-refund
+> tsx scripts/run-support-ops-agent.ts --scenario large-refund
+
+
+=== Support Operations Agent ===
+Mode: LIVE
+Scenario: large-refund - Large VIP duplicate charge refund
+Ticket SUP-1002: VIP customer was double charged $1,200.
+
+Intended action:
+{
+  "agentId": "support-refund-agent",
+  "tool": "stripe",
+  "action": "refund.create",
+  "environment": "production",
+  "amount": 1200,
+  "currency": "USD",
+  "reason": "VIP customer was double charged.",
+  "payload": {
+    "amount": 1200,
+    "currency": "USD",
+    "customerReference": "demo-vip-customer",
+    "refundMode": "simulated"
+  },
+  "metadata": {
+    "agentName": "Support Operations Agent",
+    "scenario": "large-refund",
+    "ticketId": "SUP-1002",
+    "ticketTitle": "Large VIP duplicate charge refund",
+    "customerTier": "vip",
+    "source": "support-ops-agent"
+  }
+}
+
+AgentGate decision:
+{
+  "actionRequestId": "cmq7lybjm009w1q2gzuuox7s5",
+  "decision": "BLOCK",
+  "allowed": false,
+  "requiresApproval": false,
+  "risk": {
+    "score": 200,
+    "level": "CRITICAL",
+    "signals": [
+      "money_involved",
+      "amount_over_100",
+      "amount_over_500",
+      "amount_over_1000",
+      "external_customer_communication",
+      "production_environment",
+      "payment_refund_action",
+      "high_risk_agent_tier",
+      "tool_risk_level"
+    ],
+    "explanation": "Local rules scored this CRITICAL risk at 200 because of payment or refund action, money involved, amount over 1000."
+  },
+  "reason": "Agent is paused by admin kill switch.",
+  "status": "BLOCKED"
+}
+
+Blocked by AgentGate. The agent will not execute anything.
+Reason: Agent is paused by admin kill switch.
+
+Transcript written: /Users/rm/projects/AgentGate/examples/agents/support-ops-agent/run-logs/2026-06-10T05-08-07-306Z-large-refund-sup-1002-transcript.json
+
+> agentgate@0.1.0 demo:resume-support-agent
+> tsx scripts/demo-resume-support-agent.ts
+
+Local demo helper: resume Support Refund Agent.
+Support Refund Agent status=ACTIVE
+## org kill switch block
+
+> agentgate@0.1.0 demo:enable-org-kill-switch
+> tsx scripts/demo-enable-org-kill-switch.ts
+
+Local demo helper: enable Acme organization kill switch.
+Acme AI Operations killSwitch=true
+
+> agentgate@0.1.0 agent:support:small-refund
+> tsx scripts/run-support-ops-agent.ts --scenario small-refund
+
+
+=== Support Operations Agent ===
+Mode: LIVE
+Scenario: small-refund - Small duplicate charge refund
+Ticket SUP-1001: Customer was double charged $45.
+
+Intended action:
+{
+  "agentId": "support-refund-agent",
+  "tool": "stripe",
+  "action": "refund.create",
+  "environment": "production",
+  "amount": 45,
+  "currency": "USD",
+  "reason": "Customer was double charged for small amount.",
+  "payload": {
+    "amount": 45,
+    "currency": "USD",
+    "customerReference": "demo-customer-small-refund",
+    "refundMode": "simulated"
+  },
+  "metadata": {
+    "agentName": "Support Operations Agent",
+    "scenario": "small-refund",
+    "ticketId": "SUP-1001",
+    "ticketTitle": "Small duplicate charge refund",
+    "customerTier": "standard",
+    "source": "support-ops-agent"
+  }
+}
+
+AgentGate decision:
+{
+  "actionRequestId": "cmq7lycsn00a21q2g0hfpg4zu",
+  "decision": "BLOCK",
+  "allowed": false,
+  "requiresApproval": false,
+  "risk": {
+    "score": 240,
+    "level": "CRITICAL",
+    "signals": [
+      "money_involved",
+      "external_customer_communication",
+      "production_environment",
+      "payment_refund_action",
+      "high_risk_agent_tier",
+      "tool_risk_level",
+      "kill_switch_active"
+    ],
+    "explanation": "Local rules scored this CRITICAL risk at 240 because of kill switch active, payment or refund action, money involved."
+  },
+  "reason": "Organization-level kill switch is active.",
+  "status": "BLOCKED"
+}
+
+Blocked by AgentGate. The agent will not execute anything.
+Reason: Organization-level kill switch is active.
+
+Transcript written: /Users/rm/projects/AgentGate/examples/agents/support-ops-agent/run-logs/2026-06-10T05-08-08-932Z-small-refund-sup-1001-transcript.json
+
+> agentgate@0.1.0 demo:disable-org-kill-switch
+> tsx scripts/demo-disable-org-kill-switch.ts
+
+Local demo helper: disable Acme organization kill switch.
+Acme AI Operations killSwitch=false
+## verify
+
+> agentgate@0.1.0 verify:agent-integration
+> tsx scripts/verify-agentgate-agent-integration.ts
+
+AgentGate Support Operations Agent integration verification
+
+[PASS] recent ActionRequests exist for each scenario - found=small-refund, large-refund, database-write, external-email, blocked-delete
+[PASS] large-refund action exists - cmq7lybjm009w1q2gzuuox7s5
+[PASS] large-refund decision requires approval - cmq7ly8vi00941q2gtm2k43h3
+[PASS] large-refund has ApprovalRequest - APPROVED
+[PASS] blocked-delete decision is BLOCK - BLOCK
+[PASS] blocked-delete status is BLOCKED - BLOCKED
+[PASS] external-email has ApprovalRequest - PENDING
+[PASS] RiskAssessments exist - checked=7
+[PASS] AuditLogs include gateway action checked
+[PASS] AuditLogs include approval requested
+[PASS] AuditLogs include blocked action
+[PASS] latest large-refund approval requested audit exists
+[PASS] latest blocked-delete blocked audit exists
+[PASS] agent transcripts were written - count=82
+[PASS] transcripts do not contain full demo API key
+[PASS] approval/resume produced executed large-refund action - cmq7ly8vi00941q2gtm2k43h3
+[PASS] paused agent produced blocked large-refund action - cmq7lybjm009w1q2gzuuox7s5
+[PASS] organization kill switch produced blocked small-refund action - cmq7lycsn00a21q2g0hfpg4zu
+
+Approval large-refund actionRequestId=cmq7ly8vi00941q2gtm2k43h3
+Approval large-refund approvalStatus=APPROVED
+[PASS] no approval-required action executed before approval - checked=4
+[PASS] blocked actions were not executed
+
+Agent integration verification passed.

@@ -25,8 +25,13 @@ export function answerPolicyQuestion(message: string) {
     return "Returns are demo-only. Delivered orders can request a return within 30 days if the item is unused. No real labels or refunds are created.";
   }
 
-  if (text.includes("privacy")) {
-    return "Northstar uses local demo data only. Customer data delete requests are intentionally blocked through AgentGate in this V1 demo.";
+  if (
+    text.includes("privacy") ||
+    text.includes("customer email") ||
+    text.includes("customer data") ||
+    text.includes("all customer")
+  ) {
+    return "I can't share customer emails or private customer data. Northstar uses local demo data only, and sensitive customer-data requests stay restricted through AgentGate.";
   }
 
   if (text.includes("international")) {

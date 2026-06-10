@@ -25,6 +25,18 @@ export function routeIntent(message: string): RoutedIntent {
     return { ...base, intent: "resend_receipt" };
   }
 
+  if (
+    text.includes("shipping") ||
+    text.includes("privacy") ||
+    text.includes("customer email") ||
+    text.includes("customer data") ||
+    text.includes("all customer") ||
+    text.includes("policy") ||
+    text.includes("international")
+  ) {
+    return { ...base, intent: "policy_question" };
+  }
+
   if (text.includes("return")) {
     return { ...base, intent: "return_request" };
   }
@@ -45,15 +57,6 @@ export function routeIntent(message: string): RoutedIntent {
     text.includes("track")
   ) {
     return { ...base, intent: "order_status" };
-  }
-
-  if (
-    text.includes("shipping") ||
-    text.includes("privacy") ||
-    text.includes("policy") ||
-    text.includes("international")
-  ) {
-    return { ...base, intent: "policy_question" };
   }
 
   if (

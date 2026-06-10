@@ -1,0 +1,68 @@
+
+> agentgate@0.1.0 demo:reset
+> tsx scripts/reset-demo-data.ts
+
+AgentGate demo reset
+Scope: Acme AI Operations demo tenant only.
+Unrelated organizations are not deleted.
+
+Resetting only the AgentGate Acme AI Operations demo tenant. Unrelated organizations are not touched.
+Seeded AgentGate demo tenant: Acme AI Operations (slug: acme)
+Local demo API key: [REDACTED_SUPPORT_DEMO_KEY]
+Local Northstar commerce API key: [REDACTED_COMMERCE_DEMO_KEY]
+The demo API key is printed for local development only and only its hash is stored.
+
+Demo reset complete.
+Run npm run demo:check to verify the clean V1 demo state.
+
+> agentgate@0.1.0 commerce:reset
+> npm run reset --prefix apps/demo-commerce-store
+
+
+> agentgate-demo-commerce-store@0.1.0 reset
+> tsx scripts/seed.ts --reset
+
+Seeded Northstar Outdoor Supply demo store.
+
+> agentgate@0.1.0 test:e2e
+> playwright test
+
+
+Running 30 tests using 1 worker
+
+(node:13926) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:13926) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/approval-flow.spec.ts:81:5 › reviewer approves real approval UI flow and gateway executes after approval (11.9s)
+  ✓   2 [chromium] › tests/e2e/customer-checkout-agentgate-flow.spec.ts:73:5 › customer checkout order routes commerce agent actions through AgentGate (12.5s)
+  ✓   3 [chromium] › tests/e2e/demo-commerce-api-key-bridge.spec.ts:51:5 › created AgentGate key bridges Northstar admin, chat, approvals, and audit visibility (8.3s)
+  ✓   4 [chromium] › tests/e2e/demo-flow.spec.ts:16:5 › public demo surfaces load (1.4s)
+  ✓   5 [chromium] › tests/e2e/demo-flow.spec.ts:36:5 › seeded owner can inspect core demo pages (3.5s)
+  ✓   6 [chromium] › tests/e2e/demo-screenshots.spec.ts:128:5 › generate AgentGate visual demo screenshots (17.8s)
+  ✓   7 [chromium] › tests/e2e/full-agentgate-ecommerce-integration-qa.spec.ts:93:5 › full Northstar human flow is governed by AgentGate and safe for customers (6.9s)
+  ✓   8 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Owner can log in and reach expected role surfaces (3.9s)
+  ✓   9 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Security admin can log in and reach expected role surfaces (3.8s)
+  ✓  10 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Developer can log in and reach expected role surfaces (2.8s)
+  ✓  11 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Reviewer can log in and reach expected role surfaces (2.9s)
+  ✓  12 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Auditor can log in and reach expected role surfaces (2.7s)
+  ✓  13 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Platform owner can log in and reach expected role surfaces (2.9s)
+  ✓  14 [chromium] › tests/e2e/full-role-login-qa.spec.ts:97:7 › AgentGate seeded role login QA › unauthenticated protected route redirects to login (350ms)
+  ✓  15 [chromium] › tests/e2e/northstar-screenshots.spec.ts:44:5 › capture redesigned Northstar ecommerce screenshots (7.2s)
+  ✓  16 [chromium] › apps/demo-commerce-store/tests/e2e/qa-admin-operations.spec.ts:5:5 › Northstar admin operations pages load and API config is prefix-only (2.3s)
+  ✓  17 [chromium] › tests/e2e/qa-agentgate-core-flows.spec.ts:32:5 › Agent Lab decisions, reviewer approval, role denial, and audit trail work (8.4s)
+  ✓  18 [chromium] › tests/e2e/qa-agentgate-pages.spec.ts:21:5 › public and owner AgentGate pages load without workspace errors (12.6s)
+  ✓  19 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › owner seeded account can login, navigate, and logout (4.0s)
+  ✓  20 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › security-admin seeded account can login, navigate, and logout (3.9s)
+  ✓  21 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › developer seeded account can login, navigate, and logout (3.1s)
+  ✓  22 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › reviewer seeded account can login, navigate, and logout (3.3s)
+  ✓  23 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › auditor seeded account can login, navigate, and logout (3.0s)
+  ✓  24 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:53:7 › platform-owner seeded account can login, navigate, and logout (2.6s)
+  ✓  25 [chromium] › tests/e2e/qa-all-agentgate-accounts.spec.ts:74:5 › unauthenticated users are redirected from protected app pages (527ms)
+  ✓  26 [chromium] › apps/demo-commerce-store/tests/e2e/qa-commerce-accounts.spec.ts:5:5 › Northstar customer and admin accounts have correct access boundaries (3.6s)
+  ✓  27 [chromium] › apps/demo-commerce-store/tests/e2e/qa-commerce-agent-chat.spec.ts:19:5 › Northstar chat answers safely and routes risky actions through AgentGate (4.2s)
+  ✓  28 [chromium] › tests/e2e/qa-full-agentgate-commerce-integration.spec.ts:35:5 › full AgentGate and Northstar cancellation governance path (13.7s)
+  ✓  29 [chromium] › apps/demo-commerce-store/tests/e2e/qa-full-customer-checkout.spec.ts:5:5 › Northstar customer can browse, checkout, and view tracking/receipt (3.4s)
+  ✓  30 [chromium] › tests/e2e/ui-polish-screenshots.spec.ts:30:5 › capture UI polish screenshots (17.1s)
+
+  30 passed (2.9m)

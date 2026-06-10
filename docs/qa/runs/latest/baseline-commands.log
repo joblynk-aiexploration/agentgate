@@ -1,0 +1,489 @@
+
+## npm install
+start=2026-06-10T04:45:19Z
+
+> agentgate@0.1.0 postinstall
+> prisma generate
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (7.8.0) to ./src/generated/prisma in 149ms
+
+
+up to date, audited 502 packages in 10s
+
+172 packages are looking for funding
+  run `npm fund` for details
+
+5 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+exit= end=2026-06-10T04:45:30Z
+
+## npx prisma generate
+start=2026-06-10T04:45:30Z
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (7.8.0) to ./src/generated/prisma in 131ms
+
+exit= end=2026-06-10T04:45:31Z
+
+## npm run test
+start=2026-06-10T04:45:31Z
+
+> agentgate@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.8 /Users/rm/projects/AgentGate
+
+
+ Test Files  6 passed (6)
+      Tests  28 passed (28)
+   Start at  23:45:32
+   Duration  479ms (transform 484ms, setup 0ms, import 861ms, tests 81ms, environment 1ms)
+
+exit= end=2026-06-10T04:45:32Z
+
+## npm run type-check
+start=2026-06-10T04:45:32Z
+
+> agentgate@0.1.0 type-check
+> tsc --noEmit
+
+exit= end=2026-06-10T04:45:34Z
+
+## npm run lint
+start=2026-06-10T04:45:34Z
+
+> agentgate@0.1.0 lint
+> eslint
+
+exit= end=2026-06-10T04:45:41Z
+
+## npm run build
+start=2026-06-10T04:45:41Z
+
+> agentgate@0.1.0 build
+> next build
+
+▲ Next.js 16.2.7 (Turbopack)
+- Environments: .env
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 3.7s
+  Running TypeScript ...
+  Finished TypeScript in 6.0s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/68) ...
+  Generating static pages using 7 workers (17/68)
+  Generating static pages using 7 workers (34/68)
+  Generating static pages using 7 workers (51/68)
+✓ Generating static pages using 7 workers (68/68) in 263ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /actions
+├ ƒ /actions/[id]
+├ ƒ /agents
+├ ƒ /agents/[id]
+├ ƒ /agents/new
+├ ƒ /api/actions
+├ ƒ /api/actions/[id]
+├ ƒ /api/agents
+├ ƒ /api/agents/[id]
+├ ƒ /api/agents/[id]/pause
+├ ƒ /api/agents/[id]/resume
+├ ƒ /api/approvals
+├ ƒ /api/approvals/[id]
+├ ƒ /api/approvals/[id]/approve
+├ ƒ /api/approvals/[id]/comments
+├ ƒ /api/approvals/[id]/edit
+├ ƒ /api/approvals/[id]/reject
+├ ƒ /api/audit-logs
+├ ƒ /api/audit-logs/export
+├ ƒ /api/demo/status
+├ ƒ /api/demo/support-agent/run
+├ ƒ /api/demo/support-agent/scenarios
+├ ƒ /api/developer/api-keys
+├ ƒ /api/developer/api-keys/[id]/revoke
+├ ƒ /api/developer/webhooks
+├ ƒ /api/developer/webhooks/[id]
+├ ƒ /api/developer/webhooks/[id]/test
+├ ƒ /api/gateway/actions/[id]
+├ ƒ /api/gateway/cancel
+├ ƒ /api/gateway/check
+├ ƒ /api/gateway/execute
+├ ƒ /api/health
+├ ƒ /api/integrations/webhook-demo/test
+├ ƒ /api/notifications
+├ ƒ /api/notifications/[id]/read
+├ ƒ /api/notifications/read-all
+├ ƒ /api/openapi
+├ ƒ /api/policies
+├ ƒ /api/policies/[id]
+├ ƒ /api/policies/from-template
+├ ƒ /api/reports/actions/export
+├ ƒ /api/reports/approvals/export
+├ ƒ /api/settings
+├ ƒ /api/settings/data-retention
+├ ƒ /api/settings/data-retention/cleanup
+├ ƒ /api/settings/data-retention/dry-run
+├ ƒ /api/settings/kill-switch/disable
+├ ƒ /api/settings/kill-switch/enable
+├ ƒ /api/settings/members
+├ ƒ /api/settings/members/[id]
+├ ƒ /api/settings/members/invite
+├ ƒ /api/tool-proxy/[tool]/[action]
+├ ƒ /approvals
+├ ƒ /approvals/[id]
+├ ƒ /audit-logs
+├ ƒ /billing
+├ ƒ /dashboard
+├ ○ /demo
+├ ƒ /developer
+├ ƒ /developer/agent-lab
+├ ƒ /developer/api-keys
+├ ƒ /developer/docs
+├ ƒ /developer/webhooks
+├ ƒ /integrations
+├ ƒ /integrations/demo-commerce
+├ ƒ /login
+├ ƒ /logout
+├ ƒ /onboarding
+├ ƒ /onboarding/agent
+├ ƒ /onboarding/api-key
+├ ƒ /onboarding/organization
+├ ƒ /platform
+├ ƒ /platform/audit
+├ ƒ /platform/health
+├ ƒ /platform/organizations
+├ ƒ /policies
+├ ƒ /policies/[id]
+├ ƒ /policies/new
+├ ƒ /register
+├ ƒ /reports
+├ ƒ /settings
+├ ƒ /settings/access-review
+├ ƒ /settings/data-retention
+├ ƒ /settings/members
+└ ƒ /settings/members/invite
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+exit= end=2026-06-10T04:45:54Z
+
+## npm run commerce:install
+start=2026-06-10T04:45:54Z
+
+> agentgate@0.1.0 commerce:install
+> npm install --prefix apps/demo-commerce-store
+
+
+up to date, audited 393 packages in 4s
+
+153 packages are looking for funding
+  run `npm fund` for details
+
+2 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+exit= end=2026-06-10T04:45:58Z
+
+## npm run commerce:build
+start=2026-06-10T04:45:58Z
+
+> agentgate@0.1.0 commerce:build
+> npm run build --prefix apps/demo-commerce-store
+
+
+> agentgate-demo-commerce-store@0.1.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/rm/projects/AgentGate/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles:
+   * /Users/rm/projects/AgentGate/apps/demo-commerce-store/package-lock.json
+
+▲ Next.js 16.2.7 (Turbopack)
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.4s
+  Running TypeScript ...
+  Finished TypeScript in 2.7s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/45) ...
+  Generating static pages using 7 workers (11/45)
+  Generating static pages using 7 workers (22/45)
+  Generating static pages using 7 workers (33/45)
+✓ Generating static pages using 7 workers (45/45) in 193ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /account
+├ ƒ /account/orders
+├ ƒ /account/orders/[orderNumber]
+├ ƒ /account/receipts
+├ ƒ /account/support
+├ ƒ /account/tracking
+├ ƒ /admin
+├ ƒ /admin/agent-logs
+├ ƒ /admin/api
+├ ƒ /admin/customers
+├ ƒ /admin/fulfillment
+├ ƒ /admin/login
+├ ƒ /admin/logout
+├ ƒ /admin/orders
+├ ƒ /admin/orders/[orderNumber]
+├ ƒ /admin/products
+├ ƒ /admin/settings
+├ ƒ /admin/tracking
+├ ƒ /api/admin/config
+├ ƒ /api/admin/config/clear
+├ ƒ /api/admin/config/demo
+├ ƒ /api/admin/config/test
+├ ƒ /api/admin/login
+├ ƒ /api/admin/orders/[orderNumber]/note
+├ ƒ /api/admin/orders/[orderNumber]/status
+├ ƒ /api/admin/orders/sync-agentgate
+├ ƒ /api/agent/chat
+├ ƒ /api/cart/add
+├ ƒ /api/cart/remove
+├ ƒ /api/cart/update
+├ ƒ /api/checkout
+├ ƒ /api/customer/login
+├ ƒ /api/customer/logout
+├ ƒ /api/customer/register
+├ ƒ /api/customer/session
+├ ƒ /cart
+├ ƒ /checkout
+├ ƒ /checkout/success
+├ ƒ /help
+├ ƒ /login
+├ ƒ /order-lookup
+├ ƒ /policies/privacy
+├ ƒ /policies/returns
+├ ƒ /policies/shipping
+├ ƒ /products
+├ ƒ /products/[slug]
+└ ƒ /register
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
+exit= end=2026-06-10T04:46:05Z
+
+## npm run commerce:test
+start=2026-06-10T04:46:05Z
+
+> agentgate@0.1.0 commerce:test
+> npm run test --prefix apps/demo-commerce-store
+
+
+> agentgate-demo-commerce-store@0.1.0 test
+> vitest run
+
+
+ RUN  v4.1.8 /Users/rm/projects/AgentGate/apps/demo-commerce-store
+
+
+ Test Files  1 passed (1)
+      Tests  14 passed (14)
+   Start at  23:46:06
+   Duration  31.51s (transform 63ms, setup 0ms, import 82ms, tests 31.32s, environment 0ms)
+
+exit= end=2026-06-10T04:46:37Z
+
+## npm run test:e2e
+start=2026-06-10T04:46:37Z
+
+> agentgate@0.1.0 test:e2e
+> playwright test
+
+
+Running 16 tests using 1 worker
+
+(node:7632) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:7632) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/approval-flow.spec.ts:81:5 › reviewer approves real approval UI flow and gateway executes after approval (13.2s)
+  ✓   2 [chromium] › tests/e2e/customer-checkout-agentgate-flow.spec.ts:73:5 › customer checkout order routes commerce agent actions through AgentGate (15.2s)
+  ✓   3 [chromium] › tests/e2e/demo-commerce-api-key-bridge.spec.ts:51:5 › created AgentGate key bridges Northstar admin, chat, approvals, and audit visibility (7.7s)
+  ✓   4 [chromium] › tests/e2e/demo-flow.spec.ts:16:5 › public demo surfaces load (1.3s)
+  ✓   5 [chromium] › tests/e2e/demo-flow.spec.ts:36:5 › seeded owner can inspect core demo pages (3.6s)
+  ✓   6 [chromium] › tests/e2e/demo-screenshots.spec.ts:128:5 › generate AgentGate visual demo screenshots (17.3s)
+  ✓   7 [chromium] › tests/e2e/full-agentgate-ecommerce-integration-qa.spec.ts:93:5 › full Northstar human flow is governed by AgentGate and safe for customers (6.5s)
+  ✓   8 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Owner can log in and reach expected role surfaces (4.1s)
+  ✓   9 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Security admin can log in and reach expected role surfaces (4.1s)
+  ✓  10 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Developer can log in and reach expected role surfaces (2.6s)
+  ✓  11 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Reviewer can log in and reach expected role surfaces (4.2s)
+  ✓  12 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Auditor can log in and reach expected role surfaces (2.9s)
+  ✓  13 [chromium] › tests/e2e/full-role-login-qa.spec.ts:75:9 › AgentGate seeded role login QA › Platform owner can log in and reach expected role surfaces (3.2s)
+  ✓  14 [chromium] › tests/e2e/full-role-login-qa.spec.ts:97:7 › AgentGate seeded role login QA › unauthenticated protected route redirects to login (364ms)
+  ✓  15 [chromium] › tests/e2e/northstar-screenshots.spec.ts:44:5 › capture redesigned Northstar ecommerce screenshots (7.5s)
+  ✓  16 [chromium] › tests/e2e/ui-polish-screenshots.spec.ts:30:5 › capture UI polish screenshots (14.0s)
+
+  16 passed (1.8m)
+exit= end=2026-06-10T04:48:28Z
+
+## npm run demo:check
+start=2026-06-10T04:48:28Z
+
+> agentgate@0.1.0 demo:check
+> tsx scripts/check-demo-state.ts
+
+AgentGate clean demo state checklist
+
+[PASS] organization exists - status=ACTIVE, killSwitch=false
+[PASS] users exist - count=6/6
+[PASS] agents exist - count=4
+[PASS] policies exist - count=8
+[PASS] API key exists - status=ACTIVE, prefix=ag_test_seed
+[PASS] sample action requests exist - count=27
+[PASS] sample risk assessments exist - count=27
+[PASS] pending approvals exist - count=9
+[PASS] audit logs exist - count=104
+[PASS] paused agent exists - Database Maintenance Agent (database-maintenance-agent)
+
+Demo state check passed.
+exit= end=2026-06-10T04:48:29Z
+
+## npm run verify:agent-integration
+start=2026-06-10T04:48:29Z
+
+> agentgate@0.1.0 verify:agent-integration
+> tsx scripts/verify-agentgate-agent-integration.ts
+
+AgentGate Support Operations Agent integration verification
+
+[PASS] recent ActionRequests exist for each scenario - found=large-refund, small-refund, database-write, external-email, blocked-delete
+[PASS] large-refund action exists - cmq7l7q2p00ujg22g27xrzxeu
+[PASS] large-refund decision requires approval - cmq7l7q2p00ujg22g27xrzxeu
+[PASS] large-refund has ApprovalRequest - APPROVED
+[PASS] blocked-delete decision is BLOCK - BLOCK
+[PASS] blocked-delete status is BLOCKED - BLOCKED
+[PASS] external-email has ApprovalRequest - PENDING
+[PASS] RiskAssessments exist - checked=11
+[PASS] AuditLogs include gateway action checked
+[PASS] AuditLogs include approval requested
+[PASS] AuditLogs include blocked action
+[PASS] latest large-refund approval requested audit exists
+[PASS] latest blocked-delete blocked audit exists
+[PASS] agent transcripts were written - count=75
+[PASS] transcripts do not contain full demo API key
+[PASS] approval/resume produced executed large-refund action - cmq7l7q2p00ujg22g27xrzxeu
+[PASS] paused agent produced blocked large-refund action - cmq7kzqg800r6g22gl6a1slrb
+[PASS] organization kill switch produced blocked small-refund action - cmq7kzrq400rcg22gliv1y6g7
+
+Approval large-refund actionRequestId=cmq7l7q2p00ujg22g27xrzxeu
+Approval large-refund approvalStatus=APPROVED
+[PASS] no approval-required action executed before approval - checked=8
+[PASS] blocked actions were not executed
+
+Agent integration verification passed.
+exit= end=2026-06-10T04:48:29Z
+
+## npm run verify:commerce-checkout-agent
+start=2026-06-10T04:48:29Z
+
+> agentgate@0.1.0 verify:commerce-checkout-agent
+> tsx scripts/verify-commerce-real-checkout-agent.ts
+
+Northstar real checkout + AgentGate agent verification
+
+Commerce URL: http://localhost:3004
+AgentGate URL: http://localhost:3001
+[PASS] AgentGate health available - database=connected
+[PASS] commerce store loads
+[PASS] public pages do not expose full demo key
+[PASS] commerce admin login works
+[PASS] commerce admin saved AgentGate config
+[PASS] safe config exposes prefix only
+[PASS] customer login works
+[FAIL] customer starts with no orders after reset
+[PASS] cart add works
+[PASS] checkout redirects to success with order number - NS-2005
+[PASS] success page shows checkout order
+[PASS] agent finds real order after checkout
+[PASS] cancel latest order calls AgentGate and requires approval - cmq7l945u00vxg22g7040g9b3
+[PASS] receipt resend calls AgentGate - REQUIRE_APPROVAL
+[PASS] delete customer action is blocked/refused - cmq7l949800wbg22g1zdkzsxs
+[PASS] checkout-created order remains processing while approval pending
+[PASS] order stores pending approval id - cmq7l947q00w6g22gr2zs7ywi
+[PASS] customer data was not deleted
+[PASS] agent logs include checkout flow - count=19
+[PASS] agent logs do not expose full demo key
+[PASS] admin logs page shows checkout order
+[PASS] admin logs page does not expose full demo key
+[PASS] AgentGate organization exists
+[PASS] demo commerce API key is hashed and scoped - ag_test_seed_demo
+[PASS] AgentGate action records were created - count=3
+[PASS] large checkout cancellation creates approval - cmq7l946200vzg22gxfhi381y
+[PASS] AgentGate audit logs exist for checkout actions
+
+Verification failed: 1 check(s).
+exit= end=2026-06-10T04:48:31Z
+
+## npm run verify:commerce-agent
+start=2026-06-10T04:48:31Z
+
+> agentgate@0.1.0 verify:commerce-agent
+> tsx scripts/verify-demo-commerce-integration.ts
+
+Northstar real checkout + AgentGate agent verification
+
+Commerce URL: http://localhost:3004
+AgentGate URL: http://localhost:3001
+[PASS] AgentGate health available - database=connected
+[PASS] commerce store loads
+[PASS] public pages do not expose full demo key
+[PASS] commerce admin login works
+[PASS] commerce admin saved AgentGate config
+[PASS] safe config exposes prefix only
+[PASS] customer login works
+[FAIL] customer starts with no orders after reset
+[PASS] cart add works
+[PASS] checkout redirects to success with order number - NS-2006
+[PASS] success page shows checkout order
+[PASS] agent finds real order after checkout
+[PASS] cancel latest order calls AgentGate and requires approval - cmq7l95m000whg22gd04zqxjt
+[PASS] receipt resend calls AgentGate - REQUIRE_APPROVAL
+[PASS] delete customer action is blocked/refused - cmq7l95or00wvg22giq9owqpc
+[PASS] checkout-created order remains processing while approval pending
+[PASS] order stores pending approval id - cmq7l95nh00wqg22gl178tp36
+[PASS] customer data was not deleted
+[PASS] agent logs include checkout flow - count=23
+[PASS] agent logs do not expose full demo key
+[PASS] admin logs page shows checkout order
+[PASS] admin logs page does not expose full demo key
+[PASS] AgentGate organization exists
+[PASS] demo commerce API key is hashed and scoped - ag_test_seed_demo
+[PASS] AgentGate action records were created - count=3
+[PASS] large checkout cancellation creates approval - cmq7l95m300wjg22gi0naasry
+[PASS] AgentGate audit logs exist for checkout actions
+
+Verification failed: 1 check(s).
+exit= end=2026-06-10T04:48:33Z
