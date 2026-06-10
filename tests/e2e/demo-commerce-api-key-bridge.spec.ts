@@ -78,7 +78,7 @@ test("created AgentGate key bridges Northstar admin, chat, approvals, and audit 
 
   await loginCommerceAdmin(page);
   await page.goto(`${commerceBaseUrl}/admin/api`);
-  await page.locator('input[name="agentGateBaseUrl"]').fill(baseURL ?? "http://127.0.0.1:3100");
+  await page.locator('input[name="agentGateBaseUrl"]').fill(baseURL ?? "http://localhost:3100");
   await page.locator('input[name="agentGateApiKey"]').fill(fullKey);
   await page.locator('input[name="agentId"]').fill(commerceAgentSlug);
   await page.locator('select[name="environment"]').selectOption("production");

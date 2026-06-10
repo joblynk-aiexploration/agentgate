@@ -4,30 +4,30 @@ Date: 2026-06-09
 
 ## Verdict
 
-AgentGate V1 is strong enough for internal founder testing and guided local demos. It is not yet ready for a high-stakes customer demo until the real browser approval UI bug is fixed.
+AgentGate V1 is strong enough for internal founder testing, guided local demos, and controlled customer-facing walkthroughs. It remains demo software, not production software.
 
 ## Ready To Show?
 
 | Audience | Verdict | Reason |
 | --- | --- | --- |
 | Personal testing | Yes | Core app, commerce demo, reset scripts, and monitor mostly work. |
-| Friends/advisors | Yes, with script discipline | Use known flows and be ready to avoid the broken approval UI path. |
-| Serious customer demo | Not yet | Approval UI persistence failure can break the central product story. |
+| Friends/advisors | Yes | The main ecommerce and AgentGate governance flows pass E2E. |
+| Serious customer demo | Yes, controlled | Approval UI, ecommerce cancellation approval, execution, and audit evidence now pass in browser tests. |
 | Production | No | V1 is local/demo, simulated integrations, and no production hardening guarantee. |
 
 ## Issues Found
 
-### HIGH: Real Reviewer Approval UI Does Not Persist Approval
+### FIXED: Real Reviewer Approval UI Did Not Persist Approval
 
 Why it matters: AgentGate sells approval controls. If the reviewer click path fails, the core demo breaks.
 
-Evidence: Full Playwright E2E failed in approval-related specs. Records stayed `PENDING` / `PENDING_APPROVAL` after clicking the UI.
+Evidence: Full Playwright E2E previously failed in approval-related specs because records stayed `PENDING` / `PENDING_APPROVAL` after clicking the UI. The root cause was local QA using `127.0.0.1`, which prevented Next dev hydration from wiring the client button.
 
-Latest full-suite count: 12 Playwright tests passed and 4 failed. Three failures are approval-related and one is a screenshot timeout.
+Latest full-suite count: 16 Playwright tests passed.
 
-Fix: Refactor approval actions to a deterministic submit path, add explicit loading/success/error UI, and keep E2E regression coverage.
+Fix: Playwright and Northstar demo config now default to `localhost`, and Next dev configuration allows both `localhost` and `127.0.0.1` connect/websocket origins.
 
-Fix now or later: Now.
+Fix now or later: Fixed now. Keep E2E regression coverage.
 
 ### MEDIUM: Commerce Verification Scripts Are Not Self-Isolating
 
@@ -61,13 +61,13 @@ Fix: Reset fixtures inside screenshot spec and wait on stable UI markers.
 
 Fix now or later: Later unless screenshots are needed for a live sales package.
 
-### LOW: Local Dev-Origin Warning
+### FIXED: Local Dev-Origin Warning
 
 Why it matters: noisy local QA.
 
-Fix: Use `localhost` consistently or configure `allowedDevOrigins`.
+Fix: Playwright now defaults to `localhost`, and Next.js dev configuration allows both `localhost` and `127.0.0.1`.
 
-Fix now or later: Later.
+Fix now or later: Fixed in the follow-up ecommerce/demo-readiness pass.
 
 ### LOW: Commerce Workspace-Root Warning
 
@@ -91,11 +91,11 @@ Fix now or later: Later.
 - Added browser QA coverage for the Northstar -> AgentGate commerce integration.
 - Adjusted QA tests so safe prompt-injection refusal is accepted as a pass rather than requiring an approval.
 - Verified that normal cancellation requests create AgentGate approvals.
+- Fixed local QA host consistency so browser approval buttons hydrate and persist actions correctly.
 - Added this structured QA evidence package.
 
 ## What Was Intentionally Left
 
-- The approval UI product bug was documented, not patched blindly. It is security-critical and needs a focused fix with regression coverage.
 - Dependency audit remediation was left for a controlled package update pass.
 - Verification script isolation was documented rather than hidden by always running commands in a lucky order.
 
@@ -109,8 +109,8 @@ Fix now or later: Later.
 6. Login as owner.
 7. Show dashboard, agents, policies, ecommerce monitor, and audit logs.
 8. Use Northstar chat to request a cancellation and show AgentGate `REQUIRE_APPROVAL`.
-9. Avoid depending on the reviewer approval UI until the high-severity bug is fixed.
+9. Approve through the reviewer UI and verify action execution plus audit logs.
 
 ## Final Recommendation
 
-Fix the approval UI persistence issue before showing AgentGate to a serious buyer. After that, rerun the full E2E suite and both commerce verifiers with reset isolation.
+AgentGate is ready for a controlled V1 demo. Before production or a higher-stakes enterprise evaluation, clean up verifier isolation, dependency audit findings, and deployment hardening.

@@ -2,7 +2,7 @@
 
 ## Overall Rating
 
-Good for V1 demo, not yet enterprise-sales polished.
+Good for V1 demo and controlled customer walkthroughs, not yet enterprise-sales polished.
 
 ## Strong Areas
 
@@ -13,7 +13,7 @@ Good for V1 demo, not yet enterprise-sales polished.
 
 ## Weak Areas
 
-- Approval detail UX is blocked by the underlying approval action bug.
+- Approval detail UX now has working browser-verified approval behavior.
 - Verification/test instability could cause demo prep confusion.
 - A few local dev warnings make the environment feel less polished than the UI.
 
@@ -23,4 +23,3 @@ Good for V1 demo, not yet enterprise-sales polished.
 - Disable approval buttons during submission and show the exact safe error if the API rejects.
 - Add an explicit "Approved" state banner after success.
 - Add a "demo data was reset at" or "fixture state" note to local QA docs/scripts.
-

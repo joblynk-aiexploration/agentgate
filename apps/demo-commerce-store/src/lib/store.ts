@@ -36,7 +36,7 @@ const defaultAgentGateApiKey =
   process.env.AGENTGATE_DEMO_COMMERCE_API_KEY ??
   "ag_test_seed_demo_commerce_agent_key";
 const defaultAgentGateBaseUrl =
-  process.env.AGENTGATE_BASE_URL ?? "http://127.0.0.1:3001";
+  process.env.AGENTGATE_BASE_URL ?? "http://localhost:3001";
 
 export const defaultAdminConfig: AdminConfig = {
   agentGateApiKey: defaultAgentGateApiKey,

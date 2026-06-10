@@ -12,16 +12,15 @@ Northstar chat/customer event -> AgentGate gateway -> local risk engine -> polic
 - AgentGate audit logs showed related ecommerce events.
 - Admin API page stayed prefix-only.
 
-## Failed Evidence
+## Previously Failed Evidence
 
-The real reviewer approval UI path failed in existing E2E specs. This blocks the full "customer asks cancel -> reviewer approves -> execute" browser proof until fixed.
+The real reviewer approval UI path initially failed when tests used `127.0.0.1`; it now passes when local QA uses `localhost`.
 
 ## Recommendation
 
-Make the approval UI action deterministic, then rerun:
+Keep running:
 
 ```bash
 npm run test:e2e
 npm run verify:commerce-checkout-agent
 ```
-

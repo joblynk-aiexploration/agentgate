@@ -15,7 +15,6 @@ The local `.env` uses `DATABASE_URL` pointing to Postgres on port `55432`. After
 ## Known Environment Notes
 
 - `npm` and `npx` required the Node tool path to be exported in this shell.
-- AgentGate dev server warned that `127.0.0.1` is not listed in Next.js `allowedDevOrigins` for dev resources. Tests still loaded pages, but this should be cleaned up for smoother local QA.
+- AgentGate local QA now defaults to `localhost`; the Next.js dev configuration also allows `127.0.0.1` for local browser automation.
 - Commerce build emitted a Next.js workspace-root warning because multiple lockfiles are present.
 - Playwright/browser tests were run against local servers, not a hosted deployment.
-

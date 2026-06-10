@@ -6,6 +6,7 @@ if (process.env.AGENTGATE_SKIP_ENV_VALIDATION !== "1") {
 }
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["localhost", "127.0.0.1"],
   async headers() {
     const contentSecurityPolicy = [
       "default-src 'self'",
@@ -17,7 +18,7 @@ const nextConfig: NextConfig = {
       "object-src 'none'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
-      "connect-src 'self' http://localhost:* ws://localhost:*",
+      "connect-src 'self' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*",
     ].join("; ");
 
     return [

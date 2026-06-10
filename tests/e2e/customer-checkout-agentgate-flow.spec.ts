@@ -83,7 +83,7 @@ test("customer checkout order routes commerce agent actions through AgentGate", 
   await loginCommerceAdmin(page);
   await page.goto(`${commerceBaseUrl}/admin/api`);
   await expect(page.locator('input[name="agentGateBaseUrl"]')).toHaveValue(
-    baseURL ?? "http://127.0.0.1:3001",
+    baseURL ?? "http://localhost:3001",
   );
   await expect(page.locator('input[name="agentId"]')).toHaveValue(
     "demo-commerce-support-agent",

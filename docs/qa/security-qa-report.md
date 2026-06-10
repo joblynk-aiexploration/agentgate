@@ -12,9 +12,9 @@
 
 ## Findings
 
-### HIGH: Approval UI Persistence Failure
+### FIXED: Approval UI Persistence Failure
 
-Approval action controls must be reliable because they are security-critical. The UI currently appears clickable but does not persist approval state in multiple E2E flows.
+Approval action controls must be reliable because they are security-critical. The issue was traced to local QA using `127.0.0.1`, which blocked Next dev hydration for the client approval button. Local QA now uses `localhost`, and E2E verifies the reviewer approval path.
 
 ### MEDIUM: npm Audit Findings
 
@@ -24,9 +24,9 @@ Root dependencies reported 5 moderate vulnerabilities. Commerce dependencies rep
 
 Some verification scripts require a clean state but do not reset their own fixtures. This can create false failures and reduce confidence in security/regression checks.
 
-### LOW: Dev-Origin Warning
+### FIXED: Dev-Origin Warning
 
-Next.js dev server warned about `127.0.0.1` dev-origin access. Prefer one canonical local host or configure allowed dev origins.
+Next.js dev server warned about `127.0.0.1` dev-origin access during QA. The local QA default now uses `localhost`, and the dev configuration allows both `localhost` and `127.0.0.1` websocket/connect origins.
 
 ## Secret Scan
 

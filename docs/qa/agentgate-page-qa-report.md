@@ -10,7 +10,7 @@
 | `/agents/[id]` | Good | Strong detail layout with linked actions and controls. |
 | `/policies` | Good | Policy list and templates are understandable. |
 | `/approvals` | Good | Inbox layout is clear. |
-| `/approvals/[id]` | Needs polish | Visually strong, but real approval button persistence failed in E2E. |
+| `/approvals/[id]` | Good | Visually strong, and browser E2E verifies reviewer approval updates both approval and action status. |
 | `/actions` | Good | Action inspection is valuable and replay-safe. |
 | `/audit-logs` | Good | Enterprise table and export posture are appropriate. |
 | `/integrations` | Good | Simulated integration language is honest. |
@@ -25,7 +25,6 @@
 
 ## Recommended Fixes
 
-- Fix the approval detail action controls before customer demos.
+- Keep the real approval UI E2E in CI/regression runs because it protects the core product story.
 - Add stable success/error feedback to approval action buttons.
-- Add a small dev-origin config cleanup so local QA can consistently use either `localhost` or `127.0.0.1`.
-
+- Local QA now defaults to `localhost`, with `127.0.0.1` allowed for dev websocket/connect origins.

@@ -13,13 +13,13 @@
 
 ## Findings
 
-### HIGH: Reviewer Approval UI Does Not Reliably Persist Approval
+### FIXED: Reviewer Approval UI Persistence
 
 Why it matters: approval is the centerpiece of the product demo. If a reviewer clicks Approve and the records remain pending, the buyer sees a broken control plane.
 
-Evidence: `tests/e2e/approval-flow.spec.ts`, `tests/e2e/customer-checkout-agentgate-flow.spec.ts`, and `tests/e2e/demo-commerce-api-key-bridge.spec.ts` failed because records remained `PENDING` / `PENDING_APPROVAL` after clicking the real UI.
+Evidence: this initially failed when tests used `127.0.0.1`, because Next dev hydration did not wire the client button handler. After switching Playwright and demo config defaults to `localhost`, `tests/e2e/approval-flow.spec.ts`, `tests/e2e/customer-checkout-agentgate-flow.spec.ts`, and `tests/e2e/demo-commerce-api-key-bridge.spec.ts` passed.
 
-Fix now or later: fix now before any external demo. The API authorization path should also get a regression test that proves reviewer approval updates both `ApprovalRequest` and `ActionRequest`.
+Fix now or later: fixed now. Keep these browser specs as regression coverage.
 
 ### Passed: Unauthenticated Redirect
 
@@ -28,4 +28,3 @@ Unauthenticated access to `/dashboard` redirected to `/login`.
 ### Passed: Admin Separation In Northstar
 
 Customer account sessions could not directly open Northstar admin routes.
-

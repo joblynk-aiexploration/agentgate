@@ -21,18 +21,18 @@ Scope: AgentGate V1 plus the Northstar Outdoor Supply demo commerce app.
 
 ## Executive Result
 
-AgentGate V1 is functional enough for internal demo and founder walkthroughs, but one high-severity browser approval regression prevents calling it fully customer-demo safe.
+AgentGate V1 is functional enough for internal demo, founder walkthroughs, and a controlled customer-facing demo.
 
-The gateway, risk engine, policy engine, audit logging, tenant-scoped monitor, Northstar chat integration, and simulated tool behavior work in automated tests. The real browser reviewer approval flow currently fails in multiple Playwright specs because clicking the approval UI does not reliably update the `ApprovalRequest` and `ActionRequest` records.
+The gateway, risk engine, policy engine, audit logging, tenant-scoped monitor, Northstar chat integration, simulated tool behavior, and real browser reviewer approval flow work in automated tests. A previous approval UI failure was root-caused to local QA using `127.0.0.1`, which prevented Next dev hydration from wiring client actions. Local QA now defaults to `localhost`, and full E2E passes.
 
 ## Severity Summary
 
 | Severity | Count | Summary |
 | --- | ---: | --- |
 | CRITICAL | 0 | No confirmed secret leakage, real external side effects, or cross-tenant data access was found in this pass. |
-| HIGH | 1 | Reviewer approval UI click path does not reliably approve pending actions. |
-| MEDIUM | 5 | Verification isolation gaps, scenario prerequisites, npm audit findings, dev-origin warning, and screenshot-suite flakiness. |
-| LOW | 3 | Workspace-root warning, local build artifacts in file scans, and dev hydration warnings. |
+| HIGH | 0 | The reviewer approval UI issue was fixed and covered by E2E. |
+| MEDIUM | 3 | Verification isolation gaps, scenario prerequisites, and npm audit findings remain. |
+| LOW | 2 | Workspace-root warning and local build artifacts in file scans remain. |
 
 ## Commands Run
 
@@ -54,7 +54,7 @@ The gateway, risk engine, policy engine, audit logging, tenant-scoped monitor, N
 - `npx prisma migrate dev`
 - `npm run demo:reset`
 - `npm run demo:check`
-- `npm run test:e2e` - 12 passed, 4 failed
+- `npm run test:e2e` - 16 passed after the localhost/dev-origin fix
 - `npx playwright test tests/e2e/full-role-login-qa.spec.ts`
 - `npx playwright test tests/e2e/full-agentgate-ecommerce-integration-qa.spec.ts`
 - `npm run verify:commerce-checkout-agent`
@@ -81,7 +81,6 @@ The gateway, risk engine, policy engine, audit logging, tenant-scoped monitor, N
 
 ## Failed
 
-- Full Playwright E2E suite failed 4 tests because the real approval UI did not reliably approve pending actions.
 - `verify:agent-integration` failed immediately after a clean reset because it expects the support-agent scenario chain to have been run first. After running the documented scenario chain, it passed.
 - `verify:commerce-agent` failed when run after another commerce verifier because the earlier verifier created an order and the second verifier expected a clean store.
 

@@ -95,7 +95,7 @@ describe("Northstar demo store", () => {
 
     expect(config.agentGateApiKey).toBe("ag_test_seed_demo_commerce_agent_key");
     expect(config.agentId).toBe("demo-commerce-support-agent");
-    expect(config.agentGateBaseUrl).toBe("http://127.0.0.1:3001");
+    expect(config.agentGateBaseUrl).toBe("http://localhost:3001");
     expect(safe.keyConfigured).toBe(true);
     expect(JSON.stringify(safe)).not.toContain("commerce_agent_key");
     expect(safe.keyPrefix).toBe("ag_test_seed_demo");

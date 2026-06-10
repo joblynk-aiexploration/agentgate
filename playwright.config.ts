@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { defineConfig, devices } from "@playwright/test";
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3100";
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3100";
 const webServerURL = process.env.PLAYWRIGHT_WEBSERVER_URL ?? baseURL;
 const webServerHost = new URL(webServerURL).hostname;
 const webServerPort = new URL(webServerURL).port || "3100";

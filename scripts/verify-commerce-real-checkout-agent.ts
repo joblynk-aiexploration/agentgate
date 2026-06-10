@@ -5,8 +5,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
 import { ActionDecision, PrismaClient } from "../src/generated/prisma/client";
 
-const commerceBaseUrl = process.env.COMMERCE_BASE_URL ?? "http://127.0.0.1:3004";
-const agentGateBaseUrl = process.env.AGENTGATE_BASE_URL ?? "http://127.0.0.1:3001";
+const commerceBaseUrl = process.env.COMMERCE_BASE_URL ?? "http://localhost:3004";
+const agentGateBaseUrl = process.env.AGENTGATE_BASE_URL ?? "http://localhost:3001";
 const demoCommerceApiKey =
   process.env.AGENTGATE_DEMO_COMMERCE_API_KEY ?? "ag_test_seed_demo_commerce_agent_key";
 const demoCommerceAgentId =

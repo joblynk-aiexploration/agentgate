@@ -14,15 +14,15 @@ High-risk refund and destructive customer-delete scenarios triggered appropriate
 
 ## Approvals
 
-Result: Failed in browser UI path.
+Result: Passed in browser UI path.
 
-Direct helper/API-based approval flows can update records, but real browser clicking of the approval button failed in E2E and left records pending.
+Direct helper/API-based approval flows and real browser approval flows now update `ApprovalRequest` and `ActionRequest` records correctly when tested through `localhost`.
 
 ## Audit Logs
 
-Result: Mostly passed.
+Result: Passed in the tested flows.
 
-Audit logs were generated for commerce action checks, blocked actions, approval-related events, and execution when the flow reached execution. The failed approval UI path blocked full audit verification in those failing E2E tests.
+Audit logs were generated for commerce action checks, blocked actions, approval approvals, and simulated executions.
 
 ## Kill Switch And Pause Behavior
 
