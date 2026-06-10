@@ -44,13 +44,13 @@ Screenshots:
 - `npm run type-check`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.
-- `npm run commerce:build`: passed with a Next workspace-root warning.
+- `npm run commerce:build`: passed. Follow-up cleanup set the commerce Turbopack root, removing the previous multiple-lockfile workspace-root warning.
 - `npm run commerce:test`: passed, 14 tests.
 - `npm run test:e2e`: passed, 30 browser tests.
 - `npm run demo:check`: passed.
-- `npm run verify:agent-integration`: passed after running prerequisite scenarios.
-- `npm run verify:commerce-checkout-agent`: passed after `npm run commerce:reset`.
-- `npm run verify:commerce-agent`: passed after `npm run commerce:reset`.
+- `npm run verify:agent-integration`: passed after running prerequisite scenarios. Follow-up cleanup made the verifier prepare those safe local fixtures by default.
+- `npm run verify:commerce-checkout-agent`: passed after `npm run commerce:reset`. Follow-up cleanup made the verifier reset the local Northstar store by default.
+- `npm run verify:commerce-agent`: passed after `npm run commerce:reset`. Follow-up cleanup made the verifier reset the local Northstar store by default.
 
 ## Bugs Found and Fixed During QA
 
@@ -61,9 +61,9 @@ Screenshots:
 
 ## Open Issues
 
-- Dependency audit reports moderate vulnerabilities in root and commerce dependency trees. Needs controlled dependency review.
-- Commerce build shows a Next.js workspace-root warning due multiple lockfiles. It does not break builds.
-- Some verifier scripts require reset/setup prerequisites. This is documented in the command logs and should be made more self-contained later.
+- Dependency audit reports moderate vulnerabilities in root and commerce dependency trees. Follow-up review found the available `npm audit fix --force` path would install breaking/downgrade package changes, so the advisories are documented for later safe upstream fixes.
+- The previous commerce build workspace-root warning has been fixed by setting `turbopack.root` in the commerce app config.
+- Verifier scripts now either prepare safe local fixtures themselves or fail fast with exact setup commands when AgentGate/Postgres is not ready.
 - All business integrations remain simulated by design.
 
 ## Final Buyer-Style Assessment

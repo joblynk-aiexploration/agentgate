@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -12,6 +13,7 @@ const demoCommerceApiKey =
 const demoCommerceAgentId =
   process.env.AGENTGATE_DEMO_COMMERCE_AGENT_ID ?? "demo-commerce-support-agent";
 const commerceStoreFile = join(process.cwd(), "apps/demo-commerce-store/data/store.json");
+const shouldResetCommerceStore = process.env.COMMERCE_VERIFY_RESET !== "0";
 
 type ChatResponse = {
   agentGateDecision?: {
@@ -36,6 +38,43 @@ const checks: Check[] = [];
 function record(label: string, passed: boolean, detail?: string) {
   checks.push({ detail, label, passed });
   console.log(`[${passed ? "PASS" : "FAIL"}] ${label}${detail ? ` - ${detail}` : ""}`);
+}
+
+function failIfAnyFailed(stage: string) {
+  const failed = checks.filter((check) => !check.passed);
+  if (failed.length) {
+    throw new Error(
+      `${stage} failed. Fix the failed check(s) above, then rerun. Prerequisites: AgentGate at ${agentGateBaseUrl}, Northstar at ${commerceBaseUrl}.`,
+    );
+  }
+}
+
+function resetCommerceStore() {
+  if (!shouldResetCommerceStore) {
+    console.log("Skipped Northstar store reset because COMMERCE_VERIFY_RESET=0.");
+    return;
+  }
+
+  const result = spawnSync("npm", ["run", "commerce:reset"], {
+    encoding: "utf8",
+    env: process.env,
+  });
+
+  if (result.stdout.trim()) {
+    console.log(result.stdout.trim());
+  }
+
+  if (result.stderr.trim()) {
+    console.error(result.stderr.trim());
+  }
+
+  if (result.status !== 0) {
+    throw new Error(
+      `Could not reset Northstar local demo store. Run npm run commerce:reset, then rerun this verifier. Exit: ${
+        result.status ?? "unknown"
+      }`,
+    );
+  }
 }
 
 function cookieHeader(headers: Headers) {
@@ -101,6 +140,7 @@ async function configureAdmin() {
     "safe config exposes prefix only",
     safeConfigText.includes("ag_test_seed_demo") && !safeConfigText.includes(demoCommerceApiKey),
   );
+  failIfAnyFailed("Commerce admin configuration setup");
 
   return adminCookie;
 }
@@ -116,12 +156,14 @@ async function loginCustomer() {
   );
   const customerCookie = cookieHeader(login.headers);
   record("customer login works", login.status === 303 && Boolean(customerCookie));
+  failIfAnyFailed("Commerce customer login setup");
   return customerCookie;
 }
 
 async function createCheckoutOrder(customerCookie: string) {
   const accountBefore = await getText("/account/orders", customerCookie);
   record("customer starts with no orders after reset", accountBefore.text.includes("No orders yet"));
+  failIfAnyFailed("Commerce store reset verification");
 
   const addBackpack = await postForm(
     `${commerceBaseUrl}/api/cart/add`,
@@ -134,6 +176,7 @@ async function createCheckoutOrder(customerCookie: string) {
     customerCookie,
   );
   record("cart add works", addBackpack.status === 303 && addJacket.status === 303);
+  failIfAnyFailed("Commerce cart setup");
 
   const checkout = await postForm(
     `${commerceBaseUrl}/api/checkout`,
@@ -154,9 +197,11 @@ async function createCheckoutOrder(customerCookie: string) {
   const location = checkout.headers.get("location") ?? "";
   const orderNumber = new URL(location, commerceBaseUrl).searchParams.get("order");
   record("checkout redirects to success with order number", checkout.status === 303 && Boolean(orderNumber), orderNumber ?? undefined);
+  failIfAnyFailed("Commerce checkout setup");
 
   const success = await getText(`/checkout/success?order=${orderNumber}`, customerCookie);
   record("success page shows checkout order", success.response.ok && success.text.includes(orderNumber ?? ""));
+  failIfAnyFailed("Commerce checkout success verification");
 
   return orderNumber!;
 }
@@ -262,13 +307,34 @@ async function main() {
   console.log(`Commerce URL: ${commerceBaseUrl}`);
   console.log(`AgentGate URL: ${agentGateBaseUrl}`);
 
+  resetCommerceStore();
+
   const health = await fetch(`${agentGateBaseUrl}/api/health`).catch(() => null);
   const healthBody = health ? ((await health.json().catch(() => ({}))) as { ok?: boolean; database?: string }) : {};
-  record("AgentGate health available", Boolean(health?.ok && healthBody.ok), `database=${healthBody.database ?? "unknown"}`);
+  record(
+    "AgentGate health available",
+    Boolean(health?.ok && healthBody.ok && healthBody.database === "connected"),
+    `database=${healthBody.database ?? "unknown"}`,
+  );
+  if (!health?.ok || !healthBody.ok || healthBody.database !== "connected") {
+    console.error(
+      [
+        "AgentGate is not ready for commerce verification.",
+        "Start Postgres and prepare the AgentGate demo database, then rerun:",
+        "  docker compose up -d postgres",
+        "  npx prisma migrate dev",
+        "  npm run demo:reset",
+        "  npm run dev -- -p 3001",
+        "  npm run commerce:dev",
+      ].join("\n"),
+    );
+    failIfAnyFailed("AgentGate health preflight");
+  }
 
   const home = await getText("/");
   record("commerce store loads", home.response.ok && home.text.includes("Northstar Outdoor Supply"));
   record("public pages do not expose full demo key", !home.text.includes(demoCommerceApiKey));
+  failIfAnyFailed("Northstar health preflight");
 
   const adminCookie = await configureAdmin();
   const customerCookie = await loginCustomer();

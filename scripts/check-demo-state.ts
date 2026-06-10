@@ -52,6 +52,24 @@ function printCheck(check: Check) {
   console.log(`[${marker}] ${check.label}${detail}`);
 }
 
+function isDatabaseConnectionError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "ECONNREFUSED"
+  );
+}
+
+function printDatabaseSetupHelp() {
+  console.error("PostgreSQL is not reachable for demo state checks.");
+  console.error("Start the local database and rerun:");
+  console.error("  docker compose up -d postgres");
+  console.error("  npx prisma migrate dev");
+  console.error("  npm run demo:reset");
+  console.error("  npm run demo:check");
+}
+
 async function main() {
   const organization = await prisma.organization.findUnique({
     where: {
@@ -228,7 +246,11 @@ async function main() {
 main()
   .catch((error) => {
     console.error("Demo state check failed.");
-    console.error(error);
+    if (isDatabaseConnectionError(error)) {
+      printDatabaseSetupHelp();
+    } else {
+      console.error(error);
+    }
     process.exit(1);
   })
   .finally(async () => {

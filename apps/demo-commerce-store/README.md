@@ -94,11 +94,30 @@ With both apps running and the demo database seeded:
 npm run verify:commerce-agent
 ```
 
-This script uses the same server-side config storage as `/admin/api`, runs the
-real customer login, cart, checkout, and chat scenarios. It verifies AgentGate
-action/approval/audit records, confirms admin logs have action IDs, confirms
-customer records were not changed unsafely, and checks that the full local-only
-API key is not exposed on rendered or admin-visible surfaces.
+This script resets the local Northstar store by default, uses the same
+server-side config storage as `/admin/api`, runs the real customer login, cart,
+checkout, and chat scenarios. It verifies AgentGate action/approval/audit
+records, confirms admin logs have action IDs, confirms customer records were not
+changed unsafely, and checks that the full local-only API key is not exposed on
+rendered or admin-visible surfaces.
+
+If it fails with an AgentGate health preflight message, start PostgreSQL,
+migrate/seed AgentGate, and run both local apps:
+
+```bash
+docker compose up -d postgres
+npx prisma migrate dev
+npm run demo:reset
+npm run dev -- -p 3001
+npm run commerce:dev
+```
+
+Set `COMMERCE_VERIFY_RESET=0` only when intentionally verifying an existing
+Northstar store state.
+
+The former Next.js multiple-lockfile workspace-root warning is fixed by setting
+the commerce app Turbopack root in `next.config.ts`; the app keeps its own
+`package-lock.json` so it can still be installed independently for demo work.
 
 ## Testing with a Newly Created AgentGate API Key
 

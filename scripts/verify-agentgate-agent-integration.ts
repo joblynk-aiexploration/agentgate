@@ -1,4 +1,5 @@
 import { readFile, readdir } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { PrismaPg } from "@prisma/adapter-pg";
 import "dotenv/config";
@@ -12,6 +13,7 @@ import {
 const DEMO_ORGANIZATION_SLUG = "acme";
 const DEMO_AGENT_SLUG = "support-refund-agent";
 const DEMO_API_KEY = "ag_test_seed_support_refund_demo_key";
+const agentGateBaseUrl = process.env.AGENTGATE_BASE_URL ?? "http://localhost:3001";
 const SCENARIOS = [
   "small-refund",
   "large-refund",
@@ -19,6 +21,9 @@ const SCENARIOS = [
   "external-email",
   "database-write",
 ] as const;
+
+const shouldPrepareFixtures =
+  process.env.AGENTGATE_VERIFY_PREPARE_FIXTURES !== "0";
 
 type Check = {
   detail?: string;
@@ -64,6 +69,114 @@ function printCheck(check: Check) {
   console.log(`[${marker}] ${check.label}${detail}`);
 }
 
+function runSetupCommand(
+  label: string,
+  command: string,
+  args: string[],
+  env: Partial<NodeJS.ProcessEnv> = {},
+) {
+  console.log(`\n[setup] ${label}`);
+  const result = spawnSync(command, args, {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      AGENTGATE_BASE_URL: process.env.AGENTGATE_BASE_URL ?? "http://localhost:3001",
+      AGENTGATE_DEMO_API_KEY:
+        process.env.AGENTGATE_DEMO_API_KEY ?? DEMO_API_KEY,
+      ...env,
+    },
+  });
+
+  if (result.stdout.trim()) {
+    console.log(result.stdout.trim());
+  }
+
+  if (result.stderr.trim()) {
+    console.error(result.stderr.trim());
+  }
+
+  if (result.status !== 0) {
+    throw new Error(
+      `${label} failed with exit ${result.status ?? "unknown"}. Make sure AgentGate is running at ${agentGateBaseUrl}, then rerun this verifier.`,
+    );
+  }
+
+  return result.stdout;
+}
+
+async function assertAgentGateReady() {
+  const response = await fetch(`${agentGateBaseUrl}/api/health`).catch(() => null);
+  const body = response
+    ? ((await response.json().catch(() => ({}))) as { database?: string; ok?: boolean })
+    : {};
+
+  if (!response?.ok || !body.ok || body.database !== "connected") {
+    console.error("AgentGate is not ready for support-agent verification.");
+    console.error(`Health: ok=${String(body.ok ?? false)} database=${body.database ?? "unknown"}`);
+    console.error(
+      [
+        "Start Postgres and prepare the AgentGate demo database, then rerun:",
+        "  docker compose up -d postgres",
+        "  npx prisma migrate dev",
+        "  npm run demo:reset",
+        "  npm run dev -- -p 3001",
+      ].join("\n"),
+    );
+    process.exit(1);
+  }
+}
+
+async function prepareFixtures() {
+  if (!shouldPrepareFixtures) {
+    console.log("Skipping verifier fixture setup because AGENTGATE_VERIFY_PREPARE_FIXTURES=0.");
+    return;
+  }
+
+  console.log("Preparing support-agent verification fixtures.");
+  console.log("This safely resets only the Acme demo tenant and runs local simulated support-agent scenarios.");
+
+  runSetupCommand("reset AgentGate demo tenant", "npm", ["run", "demo:reset"]);
+  runSetupCommand("small refund scenario", "npm", ["run", "agent:support:small-refund"]);
+  runSetupCommand("large refund scenario", "npm", ["run", "agent:support:large-refund"]);
+  runSetupCommand("blocked delete scenario", "npm", ["run", "agent:support:blocked-delete"]);
+  runSetupCommand("external email scenario", "npm", ["run", "agent:support:external-email"]);
+  runSetupCommand("database write scenario", "npm", ["run", "agent:support:database-write"]);
+
+  const approvalOutput = runSetupCommand("approve latest large-refund approval", "npm", [
+    "run",
+    "demo:approve-latest",
+  ]);
+  const actionRequestId = approvalOutput
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.startsWith("actionRequestId="))
+    ?.replace("actionRequestId=", "");
+
+  if (!actionRequestId) {
+    throw new Error("Could not find actionRequestId from demo:approve-latest output.");
+  }
+
+  runSetupCommand("resume approved large-refund action", "npm", [
+    "run",
+    "agent:support",
+    "--",
+    "--resume",
+    actionRequestId,
+  ]);
+  runSetupCommand("pause support agent", "npm", ["run", "demo:pause-support-agent"]);
+  runSetupCommand("large refund blocked by paused agent", "npm", [
+    "run",
+    "agent:support:large-refund",
+  ]);
+  runSetupCommand("resume support agent", "npm", ["run", "demo:resume-support-agent"]);
+  runSetupCommand("enable org kill switch", "npm", ["run", "demo:enable-org-kill-switch"]);
+  runSetupCommand("small refund blocked by org kill switch", "npm", [
+    "run",
+    "agent:support:small-refund",
+  ]);
+  runSetupCommand("disable org kill switch", "npm", ["run", "demo:disable-org-kill-switch"]);
+}
+
 async function readTranscriptFiles() {
   const logsDir = path.join(
     process.cwd(),
@@ -85,6 +198,9 @@ async function readTranscriptFiles() {
 }
 
 async function main() {
+  await assertAgentGateReady();
+  await prepareFixtures();
+
   const organization = await prisma.organization.findUnique({
     where: { slug: DEMO_ORGANIZATION_SLUG },
     select: { id: true, name: true },

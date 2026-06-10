@@ -295,29 +295,45 @@ Fix:
 
 ### verify:agent-integration fails after reset
 
-Likely cause: this verifier checks recent support-agent scenario traffic. A clean `demo:reset` does not create every scenario it expects.
-
-Fix:
-
-Run the support-agent scenarios first:
-
-```bash
-export AGENTGATE_DEMO_API_KEY=ag_test_seed_support_refund_demo_key
-export AGENTGATE_BASE_URL=http://localhost:3001
-npm run agent:support:small-refund
-npm run agent:support:large-refund
-npm run agent:support:blocked-delete
-npm run agent:support:external-email
-npm run agent:support:database-write
-```
-
-Then run:
+The verifier now prepares its own support-agent scenario fixtures by default.
+Run it directly after AgentGate is running with a connected database:
 
 ```bash
 npm run verify:agent-integration
 ```
 
-For the full verifier, the demo also expects one approved/resumed action, one paused-agent block, and one organization kill-switch block. The automated final QA run performs those setup steps before running the verifier.
+If it fails immediately with an AgentGate health preflight message, start
+PostgreSQL and prepare the demo database:
+
+```bash
+docker compose up -d postgres
+npx prisma migrate dev
+npm run demo:reset
+npm run dev -- -p 3001
+```
+
+Set `AGENTGATE_VERIFY_PREPARE_FIXTURES=0` only when you intentionally want to
+inspect existing support-agent scenario traffic without resetting the demo.
+
+### verify:commerce-agent fails before checkout
+
+The commerce verifiers now reset the local Northstar store by default. If they
+fail immediately, the most likely issue is that AgentGate is running without a
+connected database or Northstar is not running on `3004`.
+
+Fix:
+
+```bash
+docker compose up -d postgres
+npx prisma migrate dev
+npm run demo:reset
+npm run dev -- -p 3001
+npm run commerce:dev
+npm run verify:commerce-agent
+```
+
+Set `COMMERCE_VERIFY_RESET=0` only when you intentionally want to verify an
+existing Northstar store state.
 
 ## Quick First Test
 

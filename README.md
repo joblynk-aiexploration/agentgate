@@ -183,12 +183,17 @@ run the live verification script:
 npm run verify:commerce-checkout-agent
 ```
 
-The script logs in to the commerce admin, saves the AgentGate connection through
-the real admin API route, confirms the browser-safe config only exposes
-`ag_test_seed_demo`, logs in as the customer, creates a real local checkout order,
-runs customer chat scenarios, verifies approval/audit records in Prisma when
-available, and scans rendered/admin surfaces for the full local-only API key. The
-script does not execute real Stripe, Gmail, Slack, Postgres, or webhook actions.
+The script resets the local Northstar demo store, logs in to the commerce admin,
+saves the AgentGate connection through the real admin API route, confirms the
+browser-safe config only exposes `ag_test_seed_demo`, logs in as the customer,
+creates a real local checkout order, runs customer chat scenarios, verifies
+approval/audit records in Prisma when available, and scans rendered/admin
+surfaces for the full local-only API key. The script does not execute real
+Stripe, Gmail, Slack, Postgres, or webhook actions.
+
+If AgentGate is running but PostgreSQL is not connected, the verifier fails fast
+with the setup commands to run instead of continuing into confusing downstream
+chat or checkout errors.
 
 ### Testing the Ecommerce Agent with an AgentGate API Key
 
@@ -973,6 +978,48 @@ The E2E suite targets the app on `http://localhost:3001`. Public page tests run
 without a database. The authenticated demo flow requires a migrated and seeded
 database; if `/api/demo/status` reports missing seed data, that protected flow is
 skipped with a setup message instead of pretending the login demo passed.
+
+Support agent integration:
+
+```bash
+npm run verify:agent-integration
+```
+
+This verifier now prepares its own safe local fixtures by default: it resets only
+the Acme demo tenant, runs the support-agent scenarios, approves and resumes one
+large-refund action with the local helper, verifies the paused-agent block, and
+verifies the organization kill-switch block. Set
+`AGENTGATE_VERIFY_PREPARE_FIXTURES=0` only when you intentionally want to inspect
+existing scenario traffic.
+
+Commerce integration:
+
+```bash
+npm run verify:commerce-checkout-agent
+npm run verify:commerce-agent
+```
+
+These verifiers reset the local Northstar demo store by default. Set
+`COMMERCE_VERIFY_RESET=0` only when you intentionally want to test an existing
+commerce store state.
+
+### QA Cleanup Notes
+
+`npm audit` currently reports moderate advisories in dependency chains owned by
+Next.js and Prisma:
+
+- `next@16.2.7` depends on `postcss@8.4.31`; npm recommends
+  `npm audit fix --force`, but that would install an old breaking Next version.
+- `prisma@7.8.0` depends on `@prisma/dev@0.24.3`, which depends on
+  `@hono/node-server@1.19.11`; the current Prisma release still pins that
+  version.
+
+No forced audit fix is used because it would destabilize the V1 demo. Revisit
+when Next.js or Prisma publish safe patched dependency chains.
+
+The former Northstar `next build` multiple-lockfile workspace-root warning is
+addressed by setting the commerce app Turbopack root in
+`apps/demo-commerce-store/next.config.ts`.
 
 ## Final Demo Script
 
