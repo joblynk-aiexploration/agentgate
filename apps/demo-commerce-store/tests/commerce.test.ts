@@ -2,6 +2,7 @@ import { compareSync, hashSync } from "bcryptjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { formatCurrency } from "../src/lib/format";
 import {
+  addOrderEvent,
   addCartItem,
   createCheckoutOrder,
   createCustomerUser,
@@ -15,6 +16,7 @@ import {
   writeAdminConfig,
 } from "../src/lib/store";
 import { routeIntent } from "../src/server/agent/intent-router";
+import { syncApprovedAgentGateOrders } from "../src/server/agent/agentgate-sync";
 import { cancelOrder, deleteCustomerData, resendReceipt } from "../src/server/agent/order-tools";
 import { answerOrderStatus, answerProductQuestion } from "../src/server/agent/store-knowledge";
 
@@ -225,5 +227,97 @@ describe("Northstar demo store", () => {
     expect(readAdminConfig().agentGateApiKey).toBe("ag_test_seed_demo_commerce_agent_key");
     expect(JSON.stringify(safeAdminConfig())).not.toContain("commerce_agent_key");
     expect(safeAdminConfig().keyPrefix).toBe("ag_test_seed_demo");
+  });
+
+  it("sync skips stale AgentGate cancellation actions and executes valid approved ones", async () => {
+    const staleOrder = createSarahOrder();
+    const approvedOrder = createSarahOrder();
+
+    addOrderEvent(staleOrder, {
+      actorLabel: "AgentGate",
+      actorType: "agentgate",
+      description: "Stale approval from a previous local reset.",
+      message: `Cancellation for ${staleOrder.number} needs AgentGate reviewer approval before local order state changes.`,
+      metadata: {
+        action: "order.cancel",
+        actionRequestId: "missing-action",
+        approvalRequestId: "missing-approval",
+      },
+      title: "Cancellation approval required",
+      type: "cancellation.approval_required",
+      visibleToCustomer: true,
+    });
+    addOrderEvent(approvedOrder, {
+      actorLabel: "AgentGate",
+      actorType: "agentgate",
+      description: "Approved local cancellation.",
+      message: `Cancellation for ${approvedOrder.number} needs AgentGate reviewer approval before local order state changes.`,
+      metadata: {
+        action: "order.cancel",
+        actionRequestId: "approved-action",
+        approvalRequestId: "approved-approval",
+      },
+      title: "Cancellation approval required",
+      type: "cancellation.approval_required",
+      visibleToCustomer: true,
+    });
+
+    const fetchMock = vi.fn(async (url: string | URL | Request) => {
+      const href = String(url);
+
+      if (href.includes("/api/gateway/actions/missing-action")) {
+        return new Response(JSON.stringify({ error: "Action request not found." }), {
+          headers: { "Content-Type": "application/json" },
+          status: 404,
+        });
+      }
+
+      if (href.includes("/api/gateway/actions/approved-action")) {
+        return new Response(
+          JSON.stringify({
+            actionRequestId: "approved-action",
+            approvalRequest: {
+              id: "approved-approval",
+              status: "APPROVED",
+            },
+            status: "APPROVED",
+          }),
+          { headers: { "Content-Type": "application/json" }, status: 200 },
+        );
+      }
+
+      if (href.includes("/api/gateway/execute")) {
+        return new Response(
+          JSON.stringify({
+            actionRequestId: "approved-action",
+            executed: true,
+            status: "EXECUTED",
+          }),
+          { headers: { "Content-Type": "application/json" }, status: 200 },
+        );
+      }
+
+      return new Response(JSON.stringify({ error: "Unexpected test URL" }), {
+        headers: { "Content-Type": "application/json" },
+        status: 500,
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await syncApprovedAgentGateOrders();
+    const orders = readStore().orders;
+
+    expect(result).toMatchObject({
+      checked: 2,
+      executed: 1,
+      skipped: 1,
+      updatedOrders: [approvedOrder.number],
+    });
+    expect(orders.find((order) => order.number === staleOrder.number)?.status).toBe(
+      "processing",
+    );
+    expect(orders.find((order) => order.number === approvedOrder.number)?.status).toBe(
+      "cancelled",
+    );
   });
 });

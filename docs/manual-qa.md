@@ -14,6 +14,10 @@ demo rehearsal. The flow proves the real approval UI and API path, not the local
 
 ## Real Approval Flow
 
+This flow specifically protects against the historical approval persistence bug:
+the approval detail page must send the real approve request, update both approval
+and action state to `APPROVED`, and write an `approval.approved` audit log.
+
 1. Log in as `owner@agentgate.dev` / `Password123!`.
 2. Open `/developer/agent-lab`.
 3. Run the `large-refund` scenario.

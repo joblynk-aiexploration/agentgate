@@ -52,6 +52,10 @@ async function getActionStatus(actionRequestId: string) {
     error?: string;
   };
 
+  if (response.status === 404) {
+    return null;
+  }
+
   if (!response.ok) {
     throw new Error(body.error ?? "AgentGate action status check failed.");
   }
@@ -141,6 +145,11 @@ export async function syncApprovedAgentGateOrders(): Promise<SyncResult> {
     }
 
     const status = await getActionStatus(pendingCancellation.actionRequestId);
+
+    if (!status) {
+      result.skipped += 1;
+      continue;
+    }
 
     if (!canSyncCancellation(order, status)) {
       result.skipped += 1;

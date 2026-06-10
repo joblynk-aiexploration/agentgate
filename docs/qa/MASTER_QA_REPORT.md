@@ -15,6 +15,34 @@ AgentGate V1 is strong enough for internal founder testing, guided local demos, 
 | Serious customer demo | Yes, controlled | Approval UI, ecommerce cancellation approval, execution, and audit evidence now pass in browser tests. |
 | Production | No | V1 is local/demo, simulated integrations, and no production hardening guarantee. |
 
+## Approval UI Persistence Fix
+
+Root cause: the original failing E2E runs used `127.0.0.1` for local browser automation while the Next.js dev server and app configuration expected `localhost`. In that mode, the approval detail page rendered, but the client-side approval button did not hydrate correctly, so clicking Approve did not send `POST /api/approvals/[id]/approve`. The database stayed at `ApprovalRequest.status=PENDING` and `ActionRequest.status=PENDING_APPROVAL`.
+
+Files changed for the fix:
+
+- `playwright.config.ts`: defaults local E2E to `http://localhost:3001`, reusing the normal local demo server when it is already running.
+- `next.config.ts`: allows both `localhost` and `127.0.0.1` for local dev websocket/connect origins.
+- `apps/demo-commerce-store/src/lib/store.ts`: defaults the Northstar AgentGate URL to `http://localhost:3001`.
+- `tests/e2e/approval-flow.spec.ts`: verifies owner/security approval API paths, auditor/developer denial, reviewer UI approval, action status, audit log, and safe execution.
+- `tests/e2e/customer-checkout-agentgate-flow.spec.ts`: verifies Northstar cancellation approval through the real AgentGate reviewer UI.
+- `tests/e2e/demo-commerce-api-key-bridge.spec.ts`: verifies a created AgentGate API key can bridge Northstar, create approvals, approve through UI, and show audit evidence.
+- `apps/demo-commerce-store/src/server/agent/agentgate-sync.ts`: skips stale local cancellation action IDs from old demo state instead of aborting a valid approved sync.
+- `apps/demo-commerce-store/tests/commerce.test.ts`: covers stale AgentGate action IDs plus one valid approved cancellation sync.
+
+Before behavior: the UI appeared clickable, but no approval POST happened in the failing browser runs, leaving records pending.
+
+After behavior: reviewer UI approval sends the real API request, updates both `ApprovalRequest` and `ActionRequest` to `APPROVED`, records `approval.approved`, disables the reviewed action state, and allows safe simulated execution.
+
+Regression coverage:
+
+- `npx playwright test tests/e2e/approval-flow.spec.ts`
+- `npm run test:e2e`
+- `npm run commerce:test`
+- `npm run verify:commerce-checkout-agent`
+
+Final status: fixed for local V1 demo and covered by browser E2E. This does not change the production readiness verdict; V1 remains demo software with simulated integrations.
+
 ## Issues Found
 
 ### FIXED: Real Reviewer Approval UI Did Not Persist Approval

@@ -968,7 +968,7 @@ Browser E2E smoke tests:
 npm run test:e2e
 ```
 
-The E2E suite starts the app on `http://localhost:3100`. Public page tests run
+The E2E suite targets the app on `http://localhost:3001`. Public page tests run
 without a database. The authenticated demo flow requires a migrated and seeded
 database; if `/api/demo/status` reports missing seed data, that protected flow is
 skipped with a setup message instead of pretending the login demo passed.
